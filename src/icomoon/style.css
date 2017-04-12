@@ -1,0 +1,78 @@
+@font-face {
+  font-family: 'icomoon';
+  src:  url('fonts/icomoon.eot?tf6q4');
+  src:  url('fonts/icomoon.eot?tf6q4#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?tf6q4') format('truetype'),
+    url('fonts/icomoon.woff?tf6q4') format('woff'),
+    url('fonts/icomoon.svg?tf6q4#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-plan:before {
+  content: "\e901";
+}
+.icon-close:before {
+  content: "\f00d";
+}
+.icon-gear:before {
+  content: "\f013";
+}
+.icon-trash:before {
+  content: "\f014";
+}
+.icon-clock:before {
+  content: "\f017";
+}
+.icon-book:before {
+  content: "\f02d";
+}
+.icon-calendar:before {
+  content: "\f073";
+}
+.icon-angle-left:before {
+  content: "\f104";
+}
+.icon-angle-right:before {
+  content: "\f105";
+}
+.icon-angle-up:before {
+  content: "\f106";
+}
+.icon-angle-down:before {
+  content: "\f107";
+}
+.icon-ellipsis-v:before {
+  content: "\f142";
+}
+.icon-edit:before {
+  content: "\e902";
+}
+.icon-layers:before {
+  content: "\e031";
+}
+.icon-pencil:before {
+  content: "\e900";
+}
+.icon-stack:before {
+  content: "\e92e";
+}
+.icon-plan2:before {
+  content: "\ea82";
+}
+

@@ -1,0 +1,454 @@
+<!--
+    Single Log Entry page.
+    Controlled by logentryui.js.
+-->
+<dialog id="log-entry-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Loggboksanteckning</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 control-label"
+                   for="log-entry-point">Punkt</label>
+            <div class="col-xs-6 col-sm-3">
+              <input name="point" type="text" class="form-control"
+                     id="log-entry-point"/>
+            </div>
+            <label for="log-entry-finish"
+                   class="col-xs-6 col-sm-5 checkbox-inline">
+              <input name="finish" type="checkbox"
+                     id="log-entry-finish"/>Målgång
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 control-label">Tidpunkt</label>
+            <div class="col-xs-6 col-sm-3">
+              <div class='input-group date' id='log-entry-timepicker'>
+                <input name="time" type="text" class="form-control"/>
+                <span class="input-group-addon">
+                  <span class="icon-clock"></span>
+                </span>
+              </div>
+            </div>
+            <div class="col-xs-6 col-sm-3">
+              <div class='input-group date' id='log-entry-datepicker'>
+                <input name="date" type="text" class="form-control"/>
+                <span class="input-group-addon">
+                  <span class="icon-calendar"></span>
+                </span>
+              </div>
+            </div>
+            <div class="col-sm-offset-2"></div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 control-label"
+                   for="log-entry-wind">Vind</label>
+            <div class="col-xs-6 col-sm-3">
+              <select class="form-control" id="log-entry-wind-dir">
+                <option>N</option>
+                <!-- <option>NNO</option> -->
+                <option>NO</option>
+                <!-- <option>ONO</option> -->
+                <option>O</option>
+                <!-- <option>OSO</option> -->
+                <option>SO</option>
+                <!-- <option>SSO</option> -->
+                <option>S</option>
+                <!-- <option>SSW</option> -->
+                <option>SW</option>
+                <!-- <option>WSW</option> -->
+                <option>W</option>
+                <!-- <option>WNW</option> -->
+                <option>NW</option>
+                <!-- <option>NNW</option> -->
+              </select>
+            </div>
+            <div class="col-xs-6 col-sm-3">
+              <select class="form-control" id="log-entry-wind-speed">
+                <option value="0">0 m/s</option>
+                <option value="1">1 m/s</option>
+                <option value="2">2 m/s</option>
+                <option value="3">3 m/s</option>
+                <option value="4">4 m/s</option>
+                <option value="5">5 m/s</option>
+                <option value="6">6 m/s</option>
+                <option value="7">7 m/s</option>
+                <option value="8">8 m/s</option>
+                <option value="9">9 m/s</option>
+                <option value="10">10 m/s</option>
+                <option value="11">11 m/s</option>
+                <option value="12">12 m/s</option>
+                <option value="13">13 m/s</option>
+                <option value="14">14 m/s</option>
+                <option value="15">15 m/s</option>
+                <option value="16">16 m/s</option>
+                <option value="17">17 m/s</option>
+                <option value="18">18 m/s</option>
+                <option value="19">19 m/s</option>
+                <option value="20+">20+ m/s</option>
+              </select>
+            </div>
+            <div class="col-sm-offset-2"></div>
+          </div>
+          <!--
+              NOTE: the different grids below are chosen so that
+              the text is visible w/o linewrapping on all
+              screens, and also so that the clickable area is
+              completely hidden when the timepicker is expanded;
+              this is to avoid showing the interrupt dialog when
+              tapping outside the timepicker window.
+
+It would be nicer if the timepicker could be modal.
+          -->
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 control-label">Avbrott</label>
+            <div class="col-xs-9 col-sm-4 col-md-3">
+              <p class="form-control-static log-entry-item-text"
+                 id="log-entry-interrupt"></p>
+            </div>
+            <div class="col-xs-3 col-sm-4 col-md-5"></div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 control-label">Protest</label>
+            <div class="col-xs-9 col-sm-4 col-md-3">
+              <p class="form-control-static log-entry-item-text"
+                 id="log-entry-protest"></p>
+            </div>
+            <div class="col-xs-3 col-sm-4 col-md-5"></div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 control-label">Segel</label>
+            <div class="col-xs-9 col-sm-4 col-md-3">
+              <p class="form-control-static log-entry-item-text"
+                 id="log-entry-sails"></p>
+            </div>
+            <div class="col-xs-3 col-sm-4 col-md-5"></div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label"
+                   for="log-entry-boats">Siktade startnummer</label>
+            <div class="col-sm-8">
+              <select multiple="multiple" class="form-control"
+                      id="log-entry-boats">
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Övrigt</label>
+            <div class="col-sm-8">
+              <label for="log-entry-lanterns"
+                     class="checkbox-inline">
+                <input name="lanterns" type="checkbox"
+                       id="log-entry-lanterns"/>Lanternor
+              </label>
+              <label for="log-entry-engine"
+                     class="checkbox-inline">
+                <input name="engine" type="checkbox"
+                       id="log-entry-engine"/>Motor för laddning
+              </label>
+            </div>
+            <div class="col-sm-offset-4 col-sm-8">
+              <label for="log-entry-end-of-race"
+                     data-toggle="collapse"
+                     data-target="#log-entry-end-of-race-pos"
+                     class="checkbox-inline">
+                <input name="end-of-race" type="checkbox"
+                       id="log-entry-end-of-race"/>Seglingsperioden slut
+              </label>
+            </div>
+          </div>
+          <div class="form-group collapse" id="log-entry-end-of-race-pos">
+            <label class="col-xs-12 col-sm-4
+                          control-label">Position
+            </label>
+            <div class="col-xs-5 col-sm-3">
+              <div class="input-group">
+                <input name="lat" type="text" class="form-control"
+                       placeholder="latitude"
+                       id="log-entry-end-of-race-lat"/>
+                <div class="input-group-addon">N</div>
+              </div>
+            </div>
+            <div class="col-xs-5 col-sm-3">
+              <div class="input-group">
+                <input name="long" type="text" class="form-control"
+                       placeholder="longitude"
+                       id="log-entry-end-of-race-lng"/>
+                <div class="input-group-addon">E</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Kommentar</label>
+            <div class="col-sm-8">
+              <textarea class="form-control" rows="2"
+                        id="log-entry-comment"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-default"
+               value="Avbryt" id="log-entry-cancel"/>
+        <input type="button" class="btn btn-primary"
+               value="Spara" id="log-entry-save"/>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!--
+    Additional form-based page for entry of sails.
+    Controlled by logentryui.js.
+-->
+<dialog class="log-entry-item" id="log-entry-item-sails">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Segel</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <div class="col-sm-offset-4 col-sm-8">
+              <label for="log-entry-sail-main"
+                     class="checkbox-inline">
+                <input name="main" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-main"/>stor
+              </label>
+              <label for="log-entry-sail-reef1"
+                     class="checkbox-inline">
+                <input name="reef1" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-reef1"/>rev 1
+              </label>
+              <label for="log-entry-sail-reef2"
+                     class="checkbox-inline">
+                <input name="reef2" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-reef2"/>rev 2
+              </label>
+            </div>
+            <div class="col-sm-offset-4 col-sm-8">
+              <label for="log-entry-sail-jib"
+                     class="checkbox-inline">
+                <input name="foresail" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-jib"/>fock
+              </label>
+              <label for="log-entry-sail-genoa"
+                     class="checkbox-inline">
+                <input name="foresail" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-genoa"/>genua
+              </label>
+            </div>
+            <div class="col-sm-offset-4 col-sm-8">
+              <label for="log-entry-sail-code"
+                     class="checkbox-inline">
+                <input name="down" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-code"/>code
+              </label>
+              <label for="log-entry-sail-gennaker"
+                     class="checkbox-inline">
+                <input name="down" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-gennaker"/>gennaker
+              </label>
+              <label for="log-entry-sail-spinn"
+                     class="checkbox-inline">
+                <input name="down" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-spinn"/>spinnaker
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Andra segel</label>
+            <div class="col-sm-8">
+              <input name="other" type="text" id="log-entry-sail-other"/>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-primary log-entry-item-done"
+               value="Klar"/>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!--
+    Additional form-based page for entry of interuption.
+    Controlled by logentryui.js.
+-->
+<dialog class="log-entry-item" id="log-entry-item-interrupt">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Avbrott</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" id="log-entry-interrupt-form">
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-2 control-label">Position</label>
+            <div class="col-xs-5 col-sm-3">
+              <div class="input-group">
+                <input name="lat" type="text" class="form-control"
+                       placeholder="latitude"
+                       id="log-entry-interrupt-lat"/>
+                <div class="input-group-addon">N</div>
+              </div>
+            </div>
+            <div class="col-xs-5 col-sm-3">
+              <div class="input-group">
+                <input name="long" type="text" class="form-control"
+                       placeholder="longitude"
+                       id="log-entry-interrupt-lng"/>
+                <div class="input-group-addon">E</div>
+              </div>
+            </div>
+            <div class="col-xs-offset-2 col-sm-offset-4"></div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-none"
+                         value="none"
+                         checked="checked"/>
+                  Inget avbrott
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-bridge"
+                         value="bridge"/>
+                  Motorgång i väntan på broöppning (&sect;11.1.1)
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-anchor"
+                         value="anchor"/>
+                  Ankring för att undvika fara (&sect;11.1.2)
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-engine"
+                         value="engine"/>
+                  Motorgång för att undvika fara (&sect;11.1.2)
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-visibility"
+                         value="visibility"/>
+                  Dålig sikt (&sect;11.1.3)
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-repair"
+                         value="repair"/>
+                  Reparation akut skada (&sect;11.1.4)
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-rescue-time"
+                         value="rescue-time"/>
+                  Undsättning nödställd - tidstillägg
+                  (&sect;11.1.5)
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-rescue-distance"
+                         value="rescue-dist"/>
+                  Undsättning nödställd - distanstillägg
+                  (&sect;11.1.5)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Kommentar</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" rows="2"
+                        id="log-entry-interrupt-text"></textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <p>
+                När seglingen återupptas, skapa en ny
+                loggboksanteckning av typen <em>Inget
+                avbrott</em>.
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-primary log-entry-item-done"
+               value="Klar"/>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!--
+    Additional form-based page for entry of protests.
+    Controlled by logentryui.js.
+-->
+<dialog class="log-entry-item" id="log-entry-item-protest">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Observation av möjligt regelbrott</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" id="log-entry-protest-form">
+          <div class="form-group">
+            <label class="col-sm-2 control-label"
+                   for="boat">Båt</label>
+            <div class="col-sm-8">
+              <select class="form-control"
+                      id="log-entry-protest-boat">
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Kommentar</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" rows="2"
+                        id="log-entry-protest-text"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-primary log-entry-item-done"
+               value="Klar"/>
+      </div>
+    </div>
+  </div>
+</dialog>

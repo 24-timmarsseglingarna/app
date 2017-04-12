@@ -1,0 +1,41 @@
+<!--
+    Log Book page.
+    Controlled by logbookui.js.
+-->
+<dialog id="log-book-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Loggbok</h3>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-xs-6">
+            <b>Båt:</b> <span id="log-book-boat"></span>
+          </div>
+          <div class="col-xs-6">
+            <b>Seglad distans:</b> <span id="log-book-distance"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-6">
+            <b>Startnummer:</b> <span id="log-book-startno"></span>
+          </div>
+          <div class="col-xs-6">
+            <b>Medelfart:</b> <span id="log-book-speed"></span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-condensed" id="log-book-entries">
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-default"
+               value="Lägg till" id="log-book-add"/>
+        <input type="button" class="btn btn-primary"
+               value="Klar" id="log-book-cancel"/>
+      </div>
+    </div>
+  </div>
+</dialog>

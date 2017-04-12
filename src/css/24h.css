@@ -1,0 +1,289 @@
+html, body, #map {
+    height: 100%;
+}
+
+/* place zoom buttons below the status bar */
+.ol-zoom {
+    top: 75px;
+}
+
+
+#tf-status-bar {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    z-index: 10;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display:flex;
+    flex-wrap: wrap;
+}
+
+.tf-status-cell {
+    background-color: white;
+    opacity: 0.95;
+    border-style: solid;
+    border-color: #ddd;
+    border-width: 1px 1px 1px 0px;
+    padding: 4px;
+}
+
+.tf-status-cell:first-child {
+    border-width: 1px 1px 1px 1px;
+}
+
+/* add some additional padding on non-phones */
+@media (min-width: 768px) {
+    .tf-status-cell {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    #tf-status-time {
+        min-width: 80px;
+    }
+    #tf-status-speed {
+        min-width: 60px;
+    }
+}
+/* make sure the boat name cell is not to small */
+#tf-status-cell-boat {
+    min-width: 100px;
+}
+
+
+.tf-status-val {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+.tf-status-label {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    text-align: center;
+}
+
+#tf-nav-bar {
+    background-color: white;
+    opacity: 0.95;
+    position: absolute;
+    bottom: 0%;
+    left: 25%;
+    width: 50%;
+    z-index: 10;
+    display: flex;
+    justify-content: space-around;
+}
+
+/* make button bar take up entire width on phones/tablets */
+@media (max-width: 1199px) {
+    #tf-nav-bar {
+        left: 0%;
+        width: 100%;
+    }
+}
+
+.tf-nav-cell {
+    cursor: pointer;
+}
+
+.tf-nav-icon {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    margin-right: 20px;
+    font-size: 26px;
+    line-height: 0;
+}
+
+.tf-nav-cell.ol-active
+{
+    background: rgba(60, 136, 0, 0.7)
+}
+
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    width: 280px;
+    /* left: -156px; */ /* (width + 2 * padding + 2 * border) / 2 */
+    /* width / 2 is used with box-sizing: border-box defined by boostrap */
+    left: -140px;
+    /*white-space: nowrap;*/
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* popup arrow */
+.ol-popup:after {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-top-color: white;
+    border-width: 10px;
+    left: 50%;
+    margin-left: -10px; /* adjust for our border */
+}
+/*
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 50%;
+    margin-left: -11px;
+}
+*/
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+.ol-popup-closer:after {
+    content: "✖";
+}
+
+/* Make attribution text readable */
+.ol-attribution ul {
+    font-size: 10px;
+}
+
+/* do not show special color for button focus */
+.ol-control button:focus {
+    text-decoration: none;
+    background-color: rgba(0,60,136,0.5);
+}
+
+.log-point-button {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.log-book-edit-popover {
+    background: #f6f6f6;
+}
+
+.log-book-edit-buttons .btn {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.btn-toolbar .btn:last-child {
+    margin-right: 0;
+}
+
+.log-book-edit {
+    color: #333;
+    text-decoration: none;
+}
+.log-book-edit:hover {
+    text-decoration: none;
+}
+.log-book-edit:focus {
+    text-decoration: none;
+}
+.log-book-invalid-dist {
+    cursor: pointer;
+    text-decoration: underline;
+    font-style: italic;
+}
+
+.log-entry-item-text {
+    cursor: pointer;
+}
+
+/* modal stacking - default z-index in bootstrap is 1050 */
+#log-book-page {
+    z-index: 1050;
+}
+#log-entry-page {
+    z-index: 1060;
+}
+.log-entry-item {
+    z-index: 1070;
+}
+
+
+dialog {
+    /* make dialog scrollable; necessary on phone */
+    overflow-y: auto;
+
+    position: fixed;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    /*color: none;*/
+}
+
+/* make boostrap's modal scrollable; necessary on phone */
+.modal {
+    overflow-y: auto;
+}
+
+
+.alert-dialog {
+    margin-top: 50%;
+}
+
+/* make modals fullscreen on phones/tablets */
+@media (max-width: 1199px) {
+    dialog {
+        background: #ffffff;
+        width: 100%;
+        height: 100%;
+    }
+    .alert-dialog {
+        margin-top: 0;
+    }
+    .modal {
+        background: #ffffff;
+    }
+    .modal-dialog {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+@media (min-width: 1200px) {
+    .modal-dialog {
+        width: 1100px;
+        margin: 30px auto;
+    }
+}
+
+/*
+ * Copied from bootstrap.css - we use 'div' in 'li' instead of 'a',
+ * in order to avoid that the browser shows "#" on hover.
+ */
+.dropdown-menu > li > div {
+  display: block;
+  padding: 3px 20px;
+  clear: both;
+  font-weight: normal;
+  line-height: 1.42857143;
+  color: #333;
+  white-space: nowrap;
+}
+.dropdown-menu > li > div:hover,
+.dropdown-menu > li > div:focus {
+  color: #262626;
+  text-decoration: none;
+  background-color: #f5f5f5;
+}

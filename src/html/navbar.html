@@ -1,0 +1,123 @@
+<!--
+    The navigation bar at the bottom of the screen.
+    Controlled by ui.js.
+-->
+<div id="tf-nav-bar">
+
+  <!-- temporary test button -->
+  <!--
+      <div id="tf-nav-test" class="tf-nav-cell">
+      <div class="tf-nav-icon">
+      <span class="icon-close"></span>
+      </div>
+      </div>
+  -->
+
+  <div class="dropup">
+    <div id="tf-nav-more" class="tf-nav-cell" data-toggle="dropdown">
+      <div class="tf-nav-icon">
+        <span class="icon-ellipsis-v"></span>
+      </div>
+    </div>
+    <ul class="dropdown-menu" id="tf-nav-show-more">
+      <li>
+        <div id="tf-nav-show-activate-race">Aktivera segling</div>
+      </li>
+      <li>
+        <div id="tf-nav-show-settings">Inställningar</div>
+      </li>
+      <li role="separator" class="divider"></li>
+      <li>
+        <div id="tf-nav-show-help">Hjälp</div>
+      </li>
+      <li role="separator" class="divider"></li>
+      <li>
+        <div id="tf-nav-show-info">Info</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="dropup">
+    <div id="tf-nav-layers" class="tf-nav-cell" data-toggle="dropdown">
+      <div class="tf-nav-icon">
+        <span class="icon-stack"></span>
+      </div>
+    </div>
+    <ul class="dropdown-menu">
+      <li>
+        <a href="#">
+          <label for="tf-nav-show-legs"
+                 class="checkbox-inline">
+            <input type="checkbox"
+                   checked="checked"
+                   id="tf-nav-show-legs"/>Visa sträckor</label>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <label for="tf-nav-show-plan"
+                 class="checkbox-inline">
+            <input type="checkbox"
+                   id="tf-nav-show-plan"/>Visa plan</label>
+        </a>
+      </li>
+      <li role="separator" class="divider"></li>
+      <li>
+        <a href="#">
+          <label for="tf-nav-auto-distances"
+                 class="radio-inline">
+            <input type="radio" name="distances" value="auto"
+                   checked="checked"
+                   class="tf-nav-distances"
+                   id="tf-nav-auto-distances"/>Automatiska distanser</label>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <label for="tf-nav-show-distances"
+                 class="radio-inline">
+            <input type="radio" name="distances" value="show"
+                   class="tf-nav-distances"
+                   id="tf-nav-show-distances"/>Visa alltid distanser</label>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <label for="tf-nav-hide-distances"
+                 class="radio-inline">
+            <input type="radio" name="distances" value="hide"
+                   class="tf-nav-distances"
+                   id="tf-nav-hide-distances"/>Visa aldrig distanser</label>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div id="tf-nav-logentry" class="tf-nav-cell">
+    <div class="tf-nav-icon">
+      <span class="icon-pencil"></span>
+    </div>
+  </div>
+
+  <div id="tf-nav-logbook" class="tf-nav-cell">
+    <div class="tf-nav-icon">
+      <span class="icon-book"></span>
+    </div>
+  </div>
+
+  <!--
+      <div id="tf-nav-boats" class="tf-nav-cell">
+      <div class="tf-nav-icon">
+      <span class="icon-sailing-boat"></span>
+      </div>
+      </div>
+  -->
+
+  <div id="tf-nav-plan-mode" class="tf-nav-cell">
+    <div class="tf-nav-icon">
+      <span class="icon-plan"></span>
+    </div>
+  </div>
+
+</div>
+

@@ -1,0 +1,104 @@
+<!--
+    Login page.
+    Controlled by loginui.js.
+-->
+<dialog id="login-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">24-timmars Inloggning</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-8">
+              <p>
+                Inlogging krävs för att kunna hitta den segling du
+                är anmäld till och för att kunna föra loggbok för
+                den seglingen.
+              </p>
+              <p>
+                Om du bara är anmäld till en segling är denna
+                segling aktiverad automatiskt.  Om du är anmäld till
+                fler seglingar, välj din segling under
+                Inställningar.
+              </p>
+              <p>
+                När en segling är aktiverad krävs inte
+                nätverkskoppling förrän loggboken skall rapporteras.
+              </p>
+              <p>
+                Det går också bra att använda appen som ett
+                elektroniskt punktkort utan att logga in, men då kan
+                man inte föra loggbok.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-8">
+              <input type="button" class="btn btn-danger"
+                     value="" id="login-error-btn"/>
+            </div>
+          </div>
+
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label"
+                   for="login-email">Email</label>
+            <div class="col-sm-8">
+              <input id="login-email" type="email"
+                     class="form-control"/>
+              <p class="help-block">
+                Logga in med den emailadress du angav när du
+                anmälde dig.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label"
+                   for="login-password">Lösenord</label>
+            <div class="col-sm-8">
+              <input id="login-password" type="password"
+                     class="form-control"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-8">
+              <div class="checkbox">
+                <label for="login-save-password">
+                  <input type="checkbox"
+                         id="login-save-password">
+                    Spara lösenord
+                  </input>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <hr/>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <p>
+                Har du inte registrerat eller anmält dig, eller har du
+                glömt dina uppgifter?  Klicka <a
+                href="http://giona.herokuapp.com" target="_blank">här</a>.
+              </p>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-default dialog-close"
+               value="Avbryt"/>
+        <input type="button" class="btn btn-primary"
+               value="Login" id="login-submit"/>
+      </div>
+    </div>
+  </div>
+</dialog>

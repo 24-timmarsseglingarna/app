@@ -1,0 +1,40 @@
+<!--
+    Activate Race page.
+    Controlled by activateraceui.js.
+-->
+<dialog id="activate-race-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Aktivera Segling</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label"
+                   for="activate-race-races">Segling</label>
+            <div class="col-sm-10">
+              <select class="form-control" id="activate-race-races">
+              </select>
+              <p class="help-block">
+                Välj segling du är anmäld till.  När du valt en
+                segling kan du skapa en loggbok för denna segling.
+              </p>
+              <p>
+                Har du inte anmält dig, klicka <a
+                href="http://giona.herokuapp.com" target="_blank">här</a>.
+              </p>
+
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-primary dialog-close"
+               value="Klar"/>
+      </div>
+    </div>
+  </div>
+</dialog>

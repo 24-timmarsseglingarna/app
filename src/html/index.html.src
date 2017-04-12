@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>24-timmars app</title>
+
+    <meta charset="UTF-8"/>
+
+    <!--
+        Customize this policy to fit your own app's needs. For more
+        guidance, see:
+        https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+
+        Some notes:
+            * gap: is required only on iOS (when using UIWebView) and
+              is needed for JS->native communication
+            * https://ssl.gstatic.com is required only on Android and
+              is needed for TalkBack to function properly
+            * Disables use of inline scripts in order to mitigate risk
+              of XSS vulnerabilities. To change this:
+                * Enable inline JS: add 'unsafe-inline' to default-src
+        -->
+
+<!--
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;"/>
+-->
+
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="msapplication-tap-highlight" content="no"/>
+
+    <meta name="viewport"
+          content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+    <link rel="stylesheet" href="deps/dialog-polyfill.css" type="text/css"/>
+    <link rel="stylesheet" href="deps/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="deps/ol.css" type="text/css" />
+    <link rel="stylesheet" href="24h.css" type="text/css" />
+    <link rel="stylesheet" href="icomoon.css" type="text/css" />
+    <link rel="stylesheet"
+          href="deps/bootstrap-datetimepicker.min.css"
+          type="text/css"/>
+  </head>
+  <body>
+
+    <!--
+        The main Open Layers map.
+        Controlled by ui.js.
+    -->
+    <div id="map" class="map"></div>
+
+m4_include(statusbar.html)
+m4_include(navbar.html)
+m4_include(help.html)
+m4_include(info.html)
+m4_include(alert.html)
+m4_include(login.html)
+m4_include(settings.html)
+m4_include(activaterace.html)
+m4_include(logbook.html)
+m4_include(logentry.html)
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="deps/jquery.min.js"></script>
+    <script type="text/javascript" src="deps/dialog-polyfill.js"></script>
+
+    <!-- moment -->
+    <script type="text/javascript" src="deps/moment.min.js"></script>
+    <script type="text/javascript" src="deps/sv.js"></script>
+
+    <!-- bootstrap -->
+    <script type="text/javascript" src="deps/bootstrap.min.js"></script>
+    <script type="text/javascript" src="deps/bootstrap-datetimepicker.min.js">
+    </script>
+
+    <!-- open layers -->
+    <script type="text/javascript" src="deps/ol.js"></script>
+    <script type="text/javascript" src="deps/ol3-popup.js"></script>
+
+    <script type="text/javascript" src="pod.js"></script>
+
+    <script type="text/javascript" src="24h.js"></script>
+  </body>
+</html>
