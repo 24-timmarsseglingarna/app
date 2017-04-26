@@ -280,7 +280,7 @@ tf.ui.logPoint = function(number) {
 
 
 $(document).ready(function() {
-    tf.ui.pointPopup = new ol.Overlay.Popup({panMapIfOutOfView: false});
+    tf.ui.pointPopup = new ol.Overlay.Popup();
 
     tf.ui.map.on('click', function(event) {
         var coordinate = event.coordinate;

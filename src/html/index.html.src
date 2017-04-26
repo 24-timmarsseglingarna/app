@@ -74,7 +74,6 @@ m4_include(logentry.html)
 
     <!-- open layers -->
     <script type="text/javascript" src="deps/ol.js"></script>
-    <script type="text/javascript" src="deps/ol3-popup.js"></script>
 
     <script type="text/javascript" src="pod.js"></script>
 

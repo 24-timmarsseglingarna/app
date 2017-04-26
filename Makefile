@@ -100,7 +100,6 @@ deps:
 	$(MAKE) deps/closure-compiler
 	$(MAKE) deps/jquery
 	$(MAKE) deps/ol
-	$(MAKE) deps/ol3-popup
 	$(MAKE) deps/dialog-polyfill
 	$(MAKE) deps/bootstrap
 	$(MAKE) deps/bootstrap-datetimepicker
@@ -131,24 +130,15 @@ deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
 
-OL_VSN=3.18.2
+OL_VSN=4.1.0
 deps/ol:
 	cd deps; \
-	wget https://github.com/openlayers/ol3/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
+	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
 	unzip -q v$(OL_VSN)-dist.zip; \
 	rm -f v$(OL_VSN)-dist.zip; \
 	mv v$(OL_VSN)-dist/ol.js .; \
 	mv v$(OL_VSN)-dist/ol.css .; \
 	rm -rf v$(OL_VSN)-dist
-
-OL3_POPUP_VSN=1.0.1
-deps/ol3-popup:
-	cd deps; \
-	wget https://github.com/walkermatt/ol3-popup/archive/v$(OL3_POPUP_VSN).tar.gz; \
-	tar zxf v$(OL3_POPUP_VSN).tar.gz; \
-	rm -f v$(OL3_POPUP_VSN).tar.gz; \
-	mv ol3-popup-$(OL3_POPUP_VSN)/src/ol3-popup.js .; \
-	rm -rf ol3-popup-$(OL3_POPUP_VSN)
 
 DIALOG_POLYFILL_VSN=0.4.7
 deps/dialog-polyfill:
