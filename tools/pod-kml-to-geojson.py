@@ -136,7 +136,7 @@ def get_legs(tree):
 
             properties = {"src": src,
                           "dst": dst,
-                          "dist": dist}
+                          "dist": float(dist)}
             c = p.find("kml:LineString/kml:coordinates", nsmap).text
             [a,b] = c.split(" ")
             [alng, alat] = a.split(",")
