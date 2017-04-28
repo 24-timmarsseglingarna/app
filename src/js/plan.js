@@ -65,35 +65,109 @@ tf.Plan.prototype.attachLogBook = function(logbook) {
 };
 
 tf.Plan.prototype.addPoint = function(point) {
-    var entry = {};
-    entry.point = point;
-    if (this.entries.length > 0) {
-        if (this.entries[this.entries.length - 1].point == point) {
-            // user tried to plan same point twice; ignore
-            return;
-        }
+    if (this.entries.length == 0) {
+        // first point in plan, just add it
+        var entry = {point: point, dist: 0};
+        this.entries.push(entry);
+    } else {
         var prev = this.entries[this.entries.length - 1].point;
-        var leg = tf.legName(point, prev);
-        var dist = this.pod.getDistance(prev, point);
-        if (dist == -1) {
-            // invalid leg; ignore
+        var path = this.pod.getShortestPath(prev, point, 6);
+        if (!path) {
+            // can't find path, ignore
             return;
         }
-        entry.dist = dist;
-        this.totalDist += dist * 10;
-        if (!this.nlegs[leg]) {
-            this.nlegs[leg] = 0;
+        // start from 1; the first point is always the starting point
+        for (var i = 1; i < path.points.length; i++) {
+            var cur = path.points[i];
+            var entry = {point: cur,
+                         dist: this.pod.getDistance(prev, cur)};
+            this.entries.push(entry);
+            prev = cur;
         }
-        this.nlegs[leg] = this.nlegs[leg] + 1;
+    }
+    this._updateState();
+    for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
+        this.onPlanUpdateFns[i].call(this);
+    }
+};
+
+tf.Plan.prototype.getLastPoint = function() {
+    if (this.entries.length > 0) {
+        return this.entries[this.entries.length - 1].point;
+    } else {
+        return null;
+    }
+};
+
+tf.Plan.prototype.delLastPoint = function() {
+    if (this.entries.length > 0) {
+        this.entries.pop();
+        this._updateState();
         for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
             this.onPlanUpdateFns[i].call(this);
         }
     }
-    this.entries.push(entry);
-    this._updateETA();
 };
 
-tf.Plan.prototype.getTotalDistance = function() {
+tf.Plan.prototype.rePlan = function(oldPoint, newPoint) {
+    // find the point to start re-plan from; we cannot re-plan the first
+    // point so we start from 1.
+    for (var i = 1; i < this.entries.length; i++) {
+        if (this.entries[i].point == oldPoint) {
+            var prev = this.entries[i-1].point;
+            var next = null;
+            if (i+1 < this.entries.length) {
+                next =  this.entries[i+1].point;
+            }
+            var path1 = this.pod.getShortestPath(prev, newPoint, 6);
+            var path2 = null;
+            if (!path1) {
+                return false;
+            }
+            if (next) {
+                path2 = this.pod.getShortestPath(newPoint, next, 6);
+                if (!path2) {
+                    return false;
+                }
+            }
+            // keep the tail
+            var tail = this.entries.splice(i+1);
+            // remove oldPoint
+            this.entries.pop();
+            // add the new paths
+
+            // start from 1; the first point is always the starting point
+            for (var i = 1; i < path1.points.length; i++) {
+                var cur = path1.points[i];
+                var entry = {point: cur,
+                             dist: this.pod.getDistance(prev, cur)};
+                this.entries.push(entry);
+                prev = cur;
+            }
+            if (next) {
+                for (var i = 1; i < path2.points.length; i++) {
+                var cur = path2.points[i];
+                    var entry = {point: cur,
+                                 dist: this.pod.getDistance(prev, cur)};
+                    this.entries.push(entry);
+                    prev = cur;
+                }
+            }
+            // add the tail
+            Array.prototype.push.apply(this.entries, tail);
+
+            this._updateState();
+            for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
+                this.onPlanUpdateFns[i].call(this);
+            }
+
+            return true;
+        }
+    }
+    return false;
+};
+
+tf.Plan.prototype.getPlannedDistance = function() {
     return Math.round(this.totalDist) / 10;
 };
 
@@ -127,9 +201,7 @@ tf.Plan.prototype.getLegPlanned = function(pointA, pointB) {
 
 tf.Plan.prototype._logBookChanged = function() {
     var j;
-    var nlegs = {};
     var match = true;
-    var totalDist = 0;
     var loggedPoints = this.logbook.getPoints();
 
     j = 0;
@@ -148,19 +220,6 @@ tf.Plan.prototype._logBookChanged = function() {
         j = 1;
     }
     this.firstPlanned = j;
-    for (; j > 0 && j < this.entries.length; j++) {
-        var leg = tf.legName(this.entries[j - 1].point, this.entries[j].point);
-        var dist = this.entries[j].dist;
-
-        totalDist += dist * 10;
-        if (!nlegs[leg]) {
-            nlegs[leg] = 1;
-        } else {
-            nlegs[leg] = nlegs[leg] + 1;
-        }
-    }
-    this.totalDist = totalDist;
-    this.nlegs = nlegs;
     if (!match) {
         // the plan doesn't match the log book; entire plan is invalid
         this.firstPlanned = -1;
@@ -169,22 +228,38 @@ tf.Plan.prototype._logBookChanged = function() {
     }
     this._isValid = true;
 
-    this._updateETA();
+    this._updateState();
 };
 
 /**
- * Calculate planned ETA for each point.
+ * Calculate planned ETA for each point, totalDist, and legs.
  * We can only have an ETA if we know the time of the last logged point;
  * i.e., if there is at least one logged point; i.e., if the race has
  * started.  An alternative could be to calculate ETA after first legal
  * start time in the race in this case.
  */
-tf.Plan.prototype._updateETA = function() {
+tf.Plan.prototype._updateState = function() {
+    var nlegs = {};
+    var totalDist = 0;
     var j;
-    var dist = 0;
     for (j = 0; j < this.entries.length; j++) {
         this.entries[j].eta = undefined;
+        var dist = this.entries[j].dist;
+        if (dist != undefined) {
+            totalDist += dist * 10;
+            if (j > 1) {
+                var leg = tf.legName(this.entries[j - 1].point,
+                                     this.entries[j].point);
+                if (!nlegs[leg]) {
+                    nlegs[leg] = 1;
+                } else {
+                    nlegs[leg] = nlegs[leg] + 1;
+                }
+            }
+        }
     }
+    this.totalDist = totalDist;
+    this.nlegs = nlegs;
     var loggedPoints = this.logbook.getPoints();
     if (loggedPoints.length > 0) {
         var time = loggedPoints[loggedPoints.length - 1].time;

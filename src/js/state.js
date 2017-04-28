@@ -125,6 +125,7 @@ tf.state._setActiveRace2 = function(raceId) {
     if (raceData && teamData) {
         // FIXME: the pod should be more dynamic; it can change on the server
         var tmpPod = new tf.Pod(basePodSpec);
+        tf.state.curPod = tmpPod; // FIXME, tmp debug
 
         tf.state.curRace = new tf.Race(null, // FIXME: do we need regatta?
                                        raceData,
@@ -154,6 +155,13 @@ tf.state.loggedIn = function() {
 
 tf.state.logout = function() {
     tf.serverAPI.logout();
+    props = {
+        email: null,
+        password: null,
+        token: null,
+        userId: null
+    };
+    tf.storage.setSettings(props);
     tf.state.isLoggedIn = false;
     tf.state.curRace = null;
     tf.state.curLogBook = null;

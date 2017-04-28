@@ -294,16 +294,22 @@ $(document).ready(function() {
                     var number = feature.get('number');
                     var name = feature.get('name');
                     var descr = feature.get('descr');
-                    // show the popup from the center of the point
-                    var coord = geom.getCoordinates();
                     if (descr) {
                         if (tf.ui.planMode) {
-                            tf.state.curPlan.addPoint(number);
+                            if (tf.state.curPlan.getLastPoint() == number) {
+                                // clicking on the last point in a plan
+                                // removes it
+                                tf.state.curPlan.delLastPoint();
+                            } else {
+                                tf.state.curPlan.addPoint(number);
+                            }
                         } else {
                             var eta = [];
                             if (tf.ui.showPlan && tf.state.curPlan.isValid()) {
                                 eta = tf.state.curPlan.getETA(number);
                             }
+                            // show the popup from the center of the point
+                            var coord = geom.getCoordinates();
                             tf.ui.pointPopup.show(
                                 coord,
                                 tf.ui.mkPointPopupHTML(number, name, descr,
@@ -871,7 +877,7 @@ tf.ui.updateStatusBar = function() {
     $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
     $('#tf-status-distance').text(dist.toFixed(1) + ' M');
     if (tf.ui.showPlan && tf.state.curPlan && tf.state.curPlan.isValid()) {
-        var planDist = tf.state.curPlan.getTotalDistance();
+        var planDist = tf.state.curPlan.getPlannedDistance();
         var planSpeed = tf.state.curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;
         if (finished) {

@@ -149,8 +149,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     // populate 'boats' with list of boats from current regatta
     var teams = tf.serverData.getTeamsData(options.logBook.race.getRegattaId());
     boatsOptions = '';
-    // FIXME: harcoded 100 here b/c server bug - it returns _all_ teams!
-    for (var i = 0; teams && i < teams.length && i < 100; i++) {
+    for (var i = 0; teams && i < teams.length; i++) {
         var sn = teams[i].start_number;
         var bn = teams[i].boat_name;
         var bcn = teams[i].boat_class_name;

@@ -36,17 +36,16 @@ $(document).ready(function() {
 
     $('#settings-logout-btn').on('click', function() {
         tf.state.logout();
-        props = {
-            email: null,
-            password: null,
-            token: null,
-            userId: null
-        };
-        tf.storage.setSettings(props);
         tf.ui.popPage();
         // after logout, go to login page
         tf.ui.loginPage.openPage();
         return false;
     });
+
+    $('#settings-update-btn').on('click', function() {
+        tf.serverData.update(tf.storage.getSetting('userId'));
+        return false;
+    });
+
 });
 

@@ -82,7 +82,7 @@ tf.serverAPI.getTeams = function(regattaIds, responsefn) {
     };
     var requests = [];
     for (var i = 0; i < regattaIds.length; i++) {
-        requests.push(tf.serverAPI.getAJAX('/api/v1/teams?has_regatta=' +
+        requests.push(tf.serverAPI.getAJAX('/api/v1/teams?from_regatta=' +
                                            regattaIds[i],
                                            regattaIds[i]));
     }

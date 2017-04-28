@@ -26,10 +26,8 @@ tf.ui.activateRace._populateRaces = function() {
         $('#activate-race-races').
             append(new Option('-- inga seglingar funna --', '-1'));
     } else {
-        if (racesData.length == 1) {
-            // just one available, select it
-            tf.state.setActiveRace(racesData[0].id);
-        }
+        $('#activate-race-races').
+            append(new Option('-- ingen segling vald --', '-1'));
         for (var i = 0; i < racesData.length; i++) {
             var isActive = (racesData[i].id == curActiveRaceId);
             $('#activate-race-races').
@@ -47,7 +45,12 @@ $(document).ready(function() {
 
     $('#activate-race-races').on('change', function() {
         // a race is selected, store this fact in settings
-        tf.state.setActiveRace($(this).val());
+        var raceId = $(this).val();
+        if (raceId > 0) {
+            tf.state.setActiveRace(raceId);
+        } else {
+            tf.state.setActiveRace(null);
+        }
     });
 });
 
