@@ -86,9 +86,15 @@ tf.Plan.prototype.addPoint = function(point) {
         }
     }
     this._updateState();
-    for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
-        this.onPlanUpdateFns[i].call(this);
+};
+
+tf.Plan.prototype.isPointPlanned = function(point) {
+    for (var i = 0; i < this.entries.length; i++) {
+        if (this.entries[i].point == point) {
+            return true;
+        }
     }
+    return false;
 };
 
 tf.Plan.prototype.getLastPoint = function() {
@@ -99,14 +105,68 @@ tf.Plan.prototype.getLastPoint = function() {
     }
 };
 
-tf.Plan.prototype.delLastPoint = function() {
-    if (this.entries.length > 0) {
+tf.Plan.prototype.delPoint = function(point) {
+    if (this.entries.length == 0) {
+        return false;
+    }
+    if (this.entries[this.entries.length-1].point == point) {
+        // remove last point
         this.entries.pop();
         this._updateState();
-        for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
-            this.onPlanUpdateFns[i].call(this);
+        return true;
+    }
+    for (var i = this.entries.length-2; i > 1; i--) {
+        if (this.entries[i].point == point) {
+            var prev = this.entries[i-1].point;
+            var next =  this.entries[i+1].point;
+            var path = this.pod.getShortestPath(prev, next, 6);
+            if (!path) {
+                return false;
+            }
+            // keep the tail
+            var tail = this.entries.splice(i+1);
+            // remove point
+            this.entries.pop();
+            // add the new paths
+
+            // start from 1; the first point is always the starting point
+            for (var i = 1; i < path.points.length; i++) {
+                var cur = path.points[i];
+                var entry = {point: cur,
+                             dist: this.pod.getDistance(prev, cur)};
+                this.entries.push(entry);
+                prev = cur;
+            }
+            // add the tail
+            Array.prototype.push.apply(this.entries, tail);
+
+            this._updateState();
+            return true;
         }
     }
+
+};
+
+tf.Plan.prototype.delTail = function(point) {
+    if (this.entries.length == 0) {
+        return false;
+    }
+    for (var i = this.entries.length-2; i > 1; i--) {
+        if (this.entries[i].point == point) {
+            this.entries.splice(i+1, this.entries.length - i + 1);
+            this._updateState();
+            return;
+        }
+    }
+};
+
+tf.Plan.prototype.delAllPoints = function() {
+    if (this.firstPlanned == -1) {
+        return false;
+    }
+    this.entries.splice(this.firstPlanned,
+                        this.entries.length - this.firstPlanned);
+    this._updateState();
 };
 
 tf.Plan.prototype.rePlan = function(oldPoint, newPoint) {
@@ -157,10 +217,6 @@ tf.Plan.prototype.rePlan = function(oldPoint, newPoint) {
             Array.prototype.push.apply(this.entries, tail);
 
             this._updateState();
-            for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
-                this.onPlanUpdateFns[i].call(this);
-            }
-
             return true;
         }
     }
@@ -228,7 +284,7 @@ tf.Plan.prototype._logBookChanged = function() {
     }
     this._isValid = true;
 
-    this._updateState();
+    this._updateState(false);
 };
 
 /**
@@ -238,7 +294,7 @@ tf.Plan.prototype._logBookChanged = function() {
  * started.  An alternative could be to calculate ETA after first legal
  * start time in the race in this case.
  */
-tf.Plan.prototype._updateState = function() {
+tf.Plan.prototype._updateState = function(informSubscribers) {
     var nlegs = {};
     var totalDist = 0;
     var j;
@@ -270,6 +326,12 @@ tf.Plan.prototype._updateState = function() {
             offset = 60 * dist / planSpeed;
             // clone the moment time
             this.entries[j].eta = moment(time).add(offset, 'minutes');
+        }
+    }
+
+    if (informSubscribers != false) {
+        for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
+            this.onPlanUpdateFns[i].call(this);
         }
     }
 };

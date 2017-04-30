@@ -3,7 +3,7 @@
  * Based on the ol3-popup code by Matt Walker,
  * https://github.com/walkermatt/ol3-popup.
  * Adapted to OpenLayers 4 by Martin Björklund (just removed
- * unnecessary options)
+ * unnecessary / broken options)
  * LICENSE: MIT (c) Matt Walker.
  *
  * See [the examples](./examples) for usage. Styling can be done via CSS.

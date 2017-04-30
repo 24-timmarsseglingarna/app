@@ -30,6 +30,9 @@ goog.require('ol.style.Text');
 
 /**
  * We define three zoom levels: MIN, MED, MAX.
+ *   MIN: resolution > RESOLUTION_MIN_MED
+ *   MED: RESOLUTION_MIN_MED > resolution > RESOLUTION_MED_MAX
+ *   MEX: RESOLUTION_MED_MAX > resolution
  */
 
 /**
@@ -72,7 +75,8 @@ tf.ui.LEG_LABEL_FONT_ZOOM_MAX = 'bold 15px sans-serif';
  * Radius of visible circle around point
  * @const {number}
  */
-tf.ui.POINT_RADUIS = 6;
+tf.ui.POINT_RADUIS = 5;
+tf.ui.POINT_RADUIS_ZOOM_MIN = 4;
 
 /**
  * Radius of circle that accepts taps around point
@@ -81,28 +85,28 @@ tf.ui.POINT_RADUIS = 6;
 tf.ui.TAP_RADUIS = 16;
 
 /**
- * Width of leg line on MIN and MED zoom levels.
+ * Width of leg line on MIN zoom levels.
+ * @const {number}
+ */
+tf.ui.LEG_WIDTH_MIN = 1;
+
+/**
+ * Width of leg line on MED and MAX zoom levels.
  * @const {number}
  */
 tf.ui.LEG_WIDTH_MED = 2;
 
 /**
- * Width of leg line on MAX zoom levels.
- * @const {number}
- */
-tf.ui.LEG_WIDTH_MAX = 3;
-
-/**
  * Width of leg line that has been logged once.
  * @const {number}
  */
-tf.ui.LOGGED_1_LEG_WIDTH = 4;
+tf.ui.LOGGED_1_LEG_WIDTH = 3;
 
 /**
  * Width of leg line that has been logged twice.
  * @const {number}
  */
-tf.ui.LOGGED_2_LEG_WIDTH = 6;
+tf.ui.LOGGED_2_LEG_WIDTH = 5;
 
 /**
  * Color of leg line that has been logged.
@@ -126,14 +130,13 @@ tf.ui.TURN_POINT_COLOR = '#000000';
  * Color of inshore leg
  * @const {string}
  */
-tf.ui.INSHORE_LEG_COLOR = '#0073e2'; // blue
+tf.ui.INSHORE_LEG_COLOR = '#0113e6'; // blue
 
 /**
  * Color of offshore leg
  * @const {string}
  */
 tf.ui.OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
-
 
 /**
  * Detect environment
@@ -154,6 +157,7 @@ tf.ui.pageStack = [];
 tf.ui.showLegs = true;
 tf.ui.showPlan = false;
 tf.ui.planMode = false;
+tf.ui.dragState = null;
 
 /*
  * When we open a new page/dialog, the code calls
@@ -192,7 +196,6 @@ window.addEventListener('popstate', function(event) {
     }
 });
 
-
 /**
  * Define the Map
  */
@@ -208,8 +211,16 @@ tf.ui.map = new ol.Map({
     }),
     interactions: ol.interaction.defaults({
         altShiftDragRotate: false,
-        pinchRotate: false
-    })
+        pinchRotate: false,
+        doubleClickZoom: false
+    }).extend([new ol.interaction.Pointer({
+        handleDownEvent: function(event) {
+            return tf.ui.handleMapPointerDown(event);
+        },
+        handleUpEvent: function(event) {
+            return tf.ui.handleMapPointerUp(event);
+        }
+    })])
 });
 
 tf.ui.mapURL =
@@ -278,47 +289,141 @@ tf.ui.logPoint = function(number) {
                                 logBook: tf.state.curLogBook});
 };
 
+tf.ui.mkPlannedPointPopupHTML = function(number, name) {
+    var s = '<p><b>' + number + ' ' + name + '</b></p>' +
+        '<p><a class="log-point-button"' +
+        ' onclick="tf.ui.delPlannedPoint(\'' + number + '\')">' +
+        'Tag bort denna punkt</a></p>' +
+        '<p><a class="log-point-button"' +
+        ' onclick="tf.ui.delTailPlan(\'' + number + '\')">' +
+        'Tag bort resten av planen</a></p>' +
+        '<p><a class="log-point-button"' +
+        ' onclick="tf.ui.delPlan()">' +
+        'Tag bort hela planen</a></p>';
+    return s;
+};
 
-$(document).ready(function() {
-    tf.ui.pointPopup = new ol.Overlay.Popup();
+tf.ui.delPlannedPoint = function(number) {
+    tf.ui.plannedPointPopup.hide();
+    tf.state.curPlan.delPoint(number);
+};
 
-    tf.ui.map.on('click', function(event) {
-        var coordinate = event.coordinate;
-        var pixel = tf.ui.map.getPixelFromCoordinate(coordinate);
+tf.ui.delTailPlan = function(number) {
+    tf.ui.plannedPointPopup.hide();
+    tf.state.curPlan.delTail(number);
+};
+
+tf.ui.delPlan = function() {
+    tf.ui.plannedPointPopup.hide();
+    tf.state.curPlan.delAllPoints();
+};
+
+tf.ui.handleMapClick = function(event) {
+    tf.ui.map.forEachFeatureAtPixel(
+        event.pixel,
+        function(feature) {
+            var geom = feature.getGeometry();
+            // Only popup when Points are clicked
+            if (geom.getType() == 'Point') {
+                var number = feature.get('number');
+                var name = feature.get('name');
+                var descr = feature.get('descr');
+                if (descr) {
+                    if (tf.ui.planMode) {
+                        /*
+                         * In plan mode:
+                         *   single click - add to plan
+                         *   double click on planned point - popup
+                         *     to select to remove plan or point
+                         *   long press on planned point - change plan by
+                         *     dragging to new point
+                         */
+                        if (tf.state.curPlan.isPointPlanned(number)) {
+                            // in this case we can't react to the 'click';
+                            // need to wait for the single/dbl event
+                            if (event.type === 'click') {
+                                return;
+                            } else if (event.type === 'singleclick') {
+                                tf.state.curPlan.addPoint(number);
+                            } else if (event.type === 'dblclick') {
+                                var coord = geom.getCoordinates();
+                                tf.ui.plannedPointPopup.show(
+                                    coord,
+                                    tf.ui.mkPlannedPointPopupHTML(number,
+                                                                  name));
+                            }
+                        } else {
+                            // treat as singleclick
+                            tf.state.curPlan.addPoint(number);
+                        }
+                    } else {
+                        /*
+                         * In normal mode:
+                         *   single click - show point popup
+                         */
+                        var eta = [];
+                        if (tf.ui.showPlan && tf.state.curPlan.isValid()) {
+                            eta = tf.state.curPlan.getETA(number);
+                        }
+                        // show the popup from the center of the point
+                        var coord = geom.getCoordinates();
+                        tf.ui.pointPopup.show(
+                            coord,
+                            tf.ui.mkPointPopupHTML(number, name, descr,
+                                                   eta));
+                    }
+                }
+            }
+        });
+};
+
+tf.ui.handleMapPointerDown = function(event) {
+    if (!tf.ui.planMode || tf.ui.dragState != null) {
+        return false;
+    }
+    return tf.ui.map.forEachFeatureAtPixel(
+        event.pixel,
+        function(feature) {
+            var geom = feature.getGeometry();
+            // Only popup when Points are clicked
+            if (geom.getType() == 'Point') {
+                var number = feature.get('number');
+                if (tf.state.curPlan.isPointPlanned(number)) {
+                    tf.ui.dragState = number;
+                    return true;
+                }
+            }
+        }
+    );
+};
+
+tf.ui.handleMapPointerUp = function(event) {
+    if (tf.ui.dragState != null) {
         tf.ui.map.forEachFeatureAtPixel(
-            pixel,
+            event.pixel,
             function(feature) {
                 var geom = feature.getGeometry();
                 // Only popup when Points are clicked
                 if (geom.getType() == 'Point') {
                     var number = feature.get('number');
-                    var name = feature.get('name');
-                    var descr = feature.get('descr');
-                    if (descr) {
-                        if (tf.ui.planMode) {
-                            if (tf.state.curPlan.getLastPoint() == number) {
-                                // clicking on the last point in a plan
-                                // removes it
-                                tf.state.curPlan.delLastPoint();
-                            } else {
-                                tf.state.curPlan.addPoint(number);
-                            }
-                        } else {
-                            var eta = [];
-                            if (tf.ui.showPlan && tf.state.curPlan.isValid()) {
-                                eta = tf.state.curPlan.getETA(number);
-                            }
-                            // show the popup from the center of the point
-                            var coord = geom.getCoordinates();
-                            tf.ui.pointPopup.show(
-                                coord,
-                                tf.ui.mkPointPopupHTML(number, name, descr,
-                                                       eta));
-                        }
+                    if (number != tf.ui.dragState) {
+                        tf.state.curPlan.rePlan(tf.ui.dragState, number);
                     }
                 }
-            });
-    });
+            }
+        );
+        tf.ui.dragState = null;
+    }
+    return false;
+};
+
+$(document).ready(function() {
+    tf.ui.pointPopup = new ol.Overlay.Popup();
+    tf.ui.plannedPointPopup = new ol.Overlay.Popup();
+
+    tf.ui.map.on('click', tf.ui.handleMapClick);
+    tf.ui.map.on('singleclick', tf.ui.handleMapClick);
+    tf.ui.map.on('dblclick', tf.ui.handleMapClick);
 });
 
 /**
@@ -327,6 +432,7 @@ $(document).ready(function() {
 
 tf.ui.mkPointStyleFunc = function(color) {
     var basicPointStyle = tf.ui.styleCache['basicPoint' + color];
+    var zoomMinPointStyle = tf.ui.styleCache['zoomMinPoint' + color];
     // The tapPointStyle is a larger, invisible circle, that makes
     // it easier to tap on the point on a touch screen.
     var tapPointStyle = tf.ui.styleCache['tapPoint'];
@@ -342,6 +448,19 @@ tf.ui.mkPointStyleFunc = function(color) {
                 })
             });
         tf.ui.styleCache['basicPoint' + color] = basicPointStyle;
+    }
+    if (!zoomMinPointStyle) {
+        zoomMinPointStyle =
+            new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: tf.ui.POINT_RADUIS_ZOOM_MIN,
+                    fill: new ol.style.Fill({
+                        color: color,
+                        opacity: 1
+                    })
+                })
+            });
+        tf.ui.styleCache['zoomMinPoint' + color] = zoomMinPointStyle;
     }
     if (!tapPointStyle) {
         tapPointStyle =
@@ -359,9 +478,12 @@ tf.ui.mkPointStyleFunc = function(color) {
             var number = feature.get('number');
             var styleName = number + '1';
             var font = tf.ui.POINT_LABEL_FONT_ZOOM_MIN;
+            var pointStyle = zoomMinPointStyle;
             if (resolution < tf.ui.RESOLUTION_MIN_MED) {
+                // zoom: med || max
                 font = tf.ui.POINT_LABEL_FONT_ZOOM_MED;
                 styleName = number + '2';
+                pointStyle = basicPointStyle;
             }
             var labelStyle = tf.ui.styleCache[styleName];
             var label = number + ' ' + feature.get('name');
@@ -375,7 +497,7 @@ tf.ui.mkPointStyleFunc = function(color) {
                 });
                 tf.ui.styleCache[styleName] = labelStyle;
             }
-            return [basicPointStyle, tapPointStyle, labelStyle];
+            return [pointStyle, tapPointStyle, labelStyle];
         };
     return pointStyleFunction;
 };
@@ -424,14 +546,14 @@ tf.ui.getLegStyle = function(name, strokeOpts) {
 
 tf.ui.mkLegStyleFunc = function(color) {
     // used for zoomed out maps
+    var basicLegStyle0 =
+        tf.ui.getLegStyle('basicLeg0' + color,
+                         {width: tf.ui.LEG_WIDTH_MIN,
+                          color: color});
+    // used for zoom min and med maps
     var basicLegStyle1 =
         tf.ui.getLegStyle('basicLeg1' + color,
                          {width: tf.ui.LEG_WIDTH_MED,
-                          color: color});
-    // used for zoomed in maps
-    var basicLegStyle2 =
-        tf.ui.getLegStyle('basicLeg2' + color,
-                         {width: tf.ui.LEG_WIDTH_MAX,
                           color: color});
     // used when a leg is logged once
     var loggedLeg1Style =
@@ -470,8 +592,9 @@ tf.ui.mkLegStyleFunc = function(color) {
             var legStyle = basicLegStyle1;
             var labelNo = '1';
             if (resolution < tf.ui.RESOLUTION_MED_MAX) {
-                legStyle = basicLegStyle2;
                 labelNo = '2';
+            } else if (resolution > tf.ui.RESOLUTION_MIN_MED) {
+                legStyle = basicLegStyle0;
             }
             var src = feature.get('src');
             var dst = feature.get('dst');
@@ -957,6 +1080,7 @@ tf.ui.onDeviceReady = function() {
     tf.ui.map.addLayer(tf.ui.startPointsLayer);
 
     tf.ui.map.addOverlay(tf.ui.pointPopup);
+    tf.ui.map.addOverlay(tf.ui.plannedPointPopup);
 
     // must be called after device ready since it accesses geolocation
     // TEMPORARY - center with current position
