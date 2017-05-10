@@ -59,12 +59,15 @@ docs: $(JS_SRC) support/jsdoc.json
 	jsdoc -c support/jsdoc.json -d docs src/js
 
 # must set TGT_DIR to a dedicated directory for the app
-www-publish: all deps
-	$(MAKE) copy-target; \
-	touch $(TGT_DIR)/cordova.js; \
+www-publish:
+	$(MAKE) www-publish-no-map; \
 	if [ ! -e $(TGT_DIR)/../tiles ]; then \
 	  cp -r tiles $(TGT_DIR)/..; \
-	fi; \
+	fi
+
+www-publish-no-map: all deps
+	$(MAKE) copy-target; \
+	touch $(TGT_DIR)/cordova.js; \
 	ln -s ../tiles $(TGT_DIR)/tiles
 
 copy-target: all

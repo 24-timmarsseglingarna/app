@@ -9,6 +9,7 @@ goog.require('tf');
  * @const {string}
  */
 tf.serverAPI.URL = 'http://giona.herokuapp.com';
+tf.serverAPI.URL = 'https://giona-dev.24-timmars.nu';
 
 /**
  * Keep track of email and token; necessary in all API calls.
@@ -49,7 +50,7 @@ tf.serverAPI.login = function(email, password, responsefn) {
             }
         },
         error: function(jqXHR, status, errorThrown) {
-            console.log('login error ' + jqXHR.status);
+            console.log('login error ' + jqXHR.status + ' ' + status);
             responsefn(null);
         }
     });
@@ -120,6 +121,10 @@ tf.serverAPI.getRaces = function(teams, responsefn) {
             // each response is a list of 3 items [data, status, jqXHR]
             // each data is a list of zero or one races
             races = races.concat(responses[i][0]);
+        }
+        for (var i = 0; i < races.length; i++) {
+            races[i].start_from = moment(races[i].start_from);
+            races[i].start_to = moment(races[i].start_to);
         }
         responsefn(races);
     };

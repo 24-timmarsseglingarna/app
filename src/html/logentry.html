@@ -57,13 +57,13 @@
                 <option>SO</option>
                 <!-- <option>SSO</option> -->
                 <option>S</option>
-                <!-- <option>SSW</option> -->
-                <option>SW</option>
-                <!-- <option>WSW</option> -->
-                <option>W</option>
-                <!-- <option>WNW</option> -->
-                <option>NW</option>
-                <!-- <option>NNW</option> -->
+                <!-- <option>SSV</option> -->
+                <option>SV</option>
+                <!-- <option>VSV</option> -->
+                <option>V</option>
+                <!-- <option>VNV</option> -->
+                <option>NV</option>
+                <!-- <option>NNV</option> -->
               </select>
             </div>
             <div class="col-xs-6 col-sm-3">
@@ -101,7 +101,7 @@
               this is to avoid showing the interrupt dialog when
               tapping outside the timepicker window.
 
-It would be nicer if the timepicker could be modal.
+              It would be nicer if the timepicker could be modal.
           -->
           <div class="form-group">
             <label class="col-xs-12 col-sm-4 control-label">Avbrott</label>
@@ -129,7 +129,7 @@ It would be nicer if the timepicker could be modal.
           </div>
           <div class="form-group">
             <label class="col-sm-4 control-label"
-                   for="log-entry-boats">Siktade startnummer</label>
+                   for="log-entry-boats">Siktade båtar</label>
             <div class="col-sm-8">
               <select multiple="multiple" class="form-control"
                       id="log-entry-boats">
@@ -164,21 +164,9 @@ It would be nicer if the timepicker could be modal.
             <label class="col-xs-12 col-sm-4
                           control-label">Position
             </label>
-            <div class="col-xs-5 col-sm-3">
-              <div class="input-group">
-                <input name="lat" type="text" class="form-control"
-                       placeholder="latitude"
-                       id="log-entry-end-of-race-lat"/>
-                <div class="input-group-addon">N</div>
-              </div>
-            </div>
-            <div class="col-xs-5 col-sm-3">
-              <div class="input-group">
-                <input name="long" type="text" class="form-control"
-                       placeholder="longitude"
-                       id="log-entry-end-of-race-lng"/>
-                <div class="input-group-addon">E</div>
-              </div>
+            <div class="col-xs-12 col-sm-6">
+              <input name="position" type="text" class="form-control"
+                     id="log-entry-end-of-race-position"/>
             </div>
           </div>
           <div class="form-group">
@@ -219,15 +207,10 @@ It would be nicer if the timepicker could be modal.
                 <input name="main" type="checkbox" class="log-entry-sail"
                        id="log-entry-sail-main"/>stor
               </label>
-              <label for="log-entry-sail-reef1"
+              <label for="log-entry-sail-reef"
                      class="checkbox-inline">
-                <input name="reef1" type="checkbox" class="log-entry-sail"
-                       id="log-entry-sail-reef1"/>rev 1
-              </label>
-              <label for="log-entry-sail-reef2"
-                     class="checkbox-inline">
-                <input name="reef2" type="checkbox" class="log-entry-sail"
-                       id="log-entry-sail-reef2"/>rev 2
+                <input name="reef" type="checkbox" class="log-entry-sail"
+                       id="log-entry-sail-reef"/>rev
               </label>
             </div>
             <div class="col-sm-offset-4 col-sm-8">
@@ -253,10 +236,10 @@ It would be nicer if the timepicker could be modal.
                 <input name="down" type="checkbox" class="log-entry-sail"
                        id="log-entry-sail-gennaker"/>gennaker
               </label>
-              <label for="log-entry-sail-spinn"
+              <label for="log-entry-sail-spinnaker"
                      class="checkbox-inline">
                 <input name="down" type="checkbox" class="log-entry-sail"
-                       id="log-entry-sail-spinn"/>spinnaker
+                       id="log-entry-sail-spinnaker"/>spinnaker
               </label>
             </div>
           </div>
@@ -290,23 +273,10 @@ It would be nicer if the timepicker could be modal.
         <form class="form-horizontal" id="log-entry-interrupt-form">
           <div class="form-group">
             <label class="col-xs-12 col-sm-2 control-label">Position</label>
-            <div class="col-xs-5 col-sm-3">
-              <div class="input-group">
-                <input name="lat" type="text" class="form-control"
-                       placeholder="latitude"
-                       id="log-entry-interrupt-lat"/>
-                <div class="input-group-addon">N</div>
-              </div>
+            <div class="col-sm-10">
+              <input name="position" class="form-control"
+                     id="log-entry-interrupt-position"/>
             </div>
-            <div class="col-xs-5 col-sm-3">
-              <div class="input-group">
-                <input name="long" type="text" class="form-control"
-                       placeholder="longitude"
-                       id="log-entry-interrupt-lng"/>
-                <div class="input-group-addon">E</div>
-              </div>
-            </div>
-            <div class="col-xs-offset-2 col-sm-offset-4"></div>
           </div>
 
           <div class="form-group">
@@ -393,7 +363,7 @@ It would be nicer if the timepicker could be modal.
             <label class="col-sm-2 control-label">Kommentar</label>
             <div class="col-sm-10">
               <textarea class="form-control" rows="2"
-                        id="log-entry-interrupt-text"></textarea>
+                        id="log-entry-interrupt-comment"></textarea>
             </div>
           </div>
           <div class="form-group">
@@ -437,10 +407,17 @@ It would be nicer if the timepicker could be modal.
             </div>
           </div>
           <div class="form-group">
+            <label class="col-xs-12 col-sm-2 control-label">Position</label>
+            <div class="col-sm-10">
+              <input name="position" class="form-control"
+                     id="log-entry-protest-position"/>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="col-sm-2 control-label">Kommentar</label>
             <div class="col-sm-10">
               <textarea class="form-control" rows="2"
-                        id="log-entry-protest-text"></textarea>
+                        id="log-entry-protest-comment"></textarea>
             </div>
           </div>
         </form>

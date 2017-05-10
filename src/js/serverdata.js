@@ -22,9 +22,12 @@ tf.serverData.update = function(userId) {
         if (myTeams && myTeams != tf.serverData._myTeams) {
             tf.serverData._myTeams = myTeams;
             tf.storage.setCachedMyTeams(myTeams);
-
+        }
+        if (myTeams) {
+            console.log('getting races from server');
             tf.serverAPI.getRaces(myTeams, function(races) {
                 if (races && races != tf.serverData._races) {
+                    console.log('new races');
                     tf.serverData._races = races;
                     tf.storage.setCachedRaces(races);
                     if (races.length == 1) {
@@ -50,6 +53,8 @@ tf.serverData.update = function(userId) {
                             }
                         });
                     }
+                } else {
+                    console.log('same races, ignore');
                 }
             });
         }

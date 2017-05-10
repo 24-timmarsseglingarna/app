@@ -4,6 +4,7 @@ goog.provide('tf.ui.activateRace');
 
 goog.require('tf.ui');
 goog.require('tf.ui.alert');
+goog.require('tf.serverAPI');
 
 tf.ui.activateRace.openPage = function() {
 
@@ -21,36 +22,54 @@ tf.ui.activateRace.openPage = function() {
 tf.ui.activateRace._populateRaces = function() {
     var racesData = tf.serverData.getRacesData();
     var curActiveRaceId = tf.storage.getSetting('activeRaceId');
-    $('#activate-race-races').empty();
     if (racesData.length == 0) {
-        $('#activate-race-races').
-            append(new Option('-- inga seglingar funna --', '-1'));
+        $('#activate-race-list').hide();
+        $('#activate-race-no-races').show();
+        $('#activate-race-register-link').attr('href', tf.serverAPI.URL);
     } else {
-        $('#activate-race-races').
-            append(new Option('-- ingen segling vald --', '-1'));
+        $('#activate-race-list').show();
+        $('#activate-race-no-races').hide();
+        var s = '';
         for (var i = 0; i < racesData.length; i++) {
             var isActive = (racesData[i].id == curActiveRaceId);
-            $('#activate-race-races').
-                append(new Option(racesData[i].name, racesData[i].id,
-                                  false, isActive));
+            // FIXME: print organizer as well?
+            var r = racesData[i];
+            s += '<button type="button" autocomplete="off"' +
+                ' id="activate-race-button-' + r.id + '"' +
+                ' onclick="tf.ui.activateRace.buttonClick(' + r.id + ')"' +
+                ' class="list-group-item';
+            if (isActive) {
+                s += ' active';
+            }
+            s += '">' +
+                // FIXME: get regatta name from server
+                '<p>' + 'Svenska Kryssarklubbens Testkrets' + '</p>' +
+                '<p>' + 'Testseglingen 2017' + '</p>' +
+                '<p>' + r.period + ' timmar. ';
+            if (r.description) {
+                s += r.description + '. ';
+            }
+            s += 'Start: ' + r.start_from.format('dddd D MMMM [kl.] HH:mm');
+            if (!r.start_from.isSame(r.start_to)) {
+                s += ' - ';
+                if (r.start_from.isSame(r.start_to, 'day')) {
+                    s += r.start_to.format('HH:mm');
+                } else {
+                    s += r.start_to.format('dddd D MMMM [kl.] HH:mm');
+                }
+            }
+            s += '</p></button></div>';
         }
+        $('#activate-race-buttons').html(s);
     }
 };
 
-/**
- * Set up handlers for buttons and form input.
- */
-$(document).ready(function() {
-    var page = document.getElementById('activate-race-page');
+tf.ui.activateRace.buttonClick = function(raceId) {
+    console.log('button clicked: ' + raceId);
+    var id = '#activate-race-button-' + raceId;
+    var btn = $(id);
+    btn.parent().find('button').removeClass('active');
+    btn.addClass('active');
 
-    $('#activate-race-races').on('change', function() {
-        // a race is selected, store this fact in settings
-        var raceId = $(this).val();
-        if (raceId > 0) {
-            tf.state.setActiveRace(raceId);
-        } else {
-            tf.state.setActiveRace(null);
-        }
-    });
-});
-
+    tf.state.setActiveRace(raceId);
+};

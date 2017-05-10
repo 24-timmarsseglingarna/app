@@ -160,6 +160,9 @@ tf.Plan.prototype.delTail = function(point) {
     }
 };
 
+// FIXME: firstPlanned is -1 when plan is invalid; should we delete bad plan
+// on logbook update?
+
 tf.Plan.prototype.delAllPoints = function() {
     if (this.firstPlanned == -1) {
         return false;
@@ -260,6 +263,8 @@ tf.Plan.prototype._logBookChanged = function() {
     var match = true;
     var loggedPoints = this.logbook.getPoints();
 
+    // check if all logged points are also part of the plan;
+    // the normal case is that a new point that was planned is now logged.
     j = 0;
     for (var i = 0;
          match && i < loggedPoints.length && j < this.entries.length;

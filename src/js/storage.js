@@ -4,13 +4,15 @@ goog.provide('tf.storage');
 
 goog.require('tf');
 
-
 /**
  * This module handles all configuration parameters, state data, and
  * cached data.
  *
  * Note that this is not an object b/c this a global property.
  */
+
+tf.storage._curVersion = 1;
+
 tf.storage.init = function() {
     tf.storage._keys = [
         'settings',      // configuration parameters and state data
@@ -30,6 +32,11 @@ tf.storage.init = function() {
     }
     var defaultSettings = {
         /*
+         * Meta data
+         */
+        'version': tf.storage._curVersion, // integer()
+
+        /*
          * Authentication data
          */
         'email': null, // string()
@@ -47,8 +54,12 @@ tf.storage.init = function() {
          */
         'activeRaceId': null // integer()
     };
-    if (!tf.storage._settings) {
+    var setDefaultSettings = function() {
         tf.storage._settings = defaultSettings;
+        tf.storage.setSettings({});
+    };
+    if (!tf.storage._settings) {
+        setDefaultSettings();
     } else {
         /*
          * We found existing data.  Make sure the format matches
@@ -57,15 +68,25 @@ tf.storage.init = function() {
          *
          * If we need special upgrade code in future releases it goes
          * here.
+         *
+         * First of all, if the stored data is not backwards compatible,
+         * delete all stored data.
          */
-        for (var key in tf.storage._settings) {
-            if (!(key in defaultSettings)) {
-                delete tf.storage._settings[key];
+        if (tf.storage._settings.version != tf.storage._curVersion) {
+            // we do this during development only
+            console.log('incompatible storage found; removing all data');
+            localStorage.clear();
+            setDefaultSettings();
+        } else {
+            for (var key in tf.storage._settings) {
+                if (!(key in defaultSettings)) {
+                    delete tf.storage._settings[key];
+                }
             }
-        }
-        for (var key in defaultSettings) {
-            if (!(key in tf.storage._settings)) {
-                tf.storage._settings[key] = defaultSettings[key];
+            for (var key in defaultSettings) {
+                if (!(key in tf.storage._settings)) {
+                    tf.storage._settings[key] = defaultSettings[key];
+                }
             }
         }
     }
@@ -78,12 +99,12 @@ tf.storage.init = function() {
     } catch (err) {
         tf.storage._raceIds = {};
     }
-    tf.storage._raceLogs = {};
+    tf.storage._raceLogs  = {};
     for (var raceId in tf.storage._raceIds) {
         var key = 'racelog-' + raceId;
         try {
-            tf.storage._raceLogs[raceId] =
-                JSON.parse(localStorage.getItem(key));
+            var raceLog = JSON.parse(localStorage.getItem(key));
+            tf.storage._raceLogs[raceId] = raceLog;
         } catch (err) {
             // bad data, remove from storage
             localStorage.removeItem(key);
