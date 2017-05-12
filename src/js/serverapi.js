@@ -66,16 +66,17 @@ tf.serverAPI.logout = function() {
     tf.serverAPI.token = null;
 };
 
-tf.serverAPI.getTeams = function(regattaIds, responsefn) {
+/**
+ * Return an object with one entry per regatta, with the regattaId
+ * as key.
+ */
+tf.serverAPI.getTeamsPerRegatta = function(regattaIds, responsefn) {
     var cfn = function() {
         var responses = arguments;
         var teams = {};
         for (var i = 0; i < responses.length; i++) {
             // each response is a list of 3 items [data, status, jqXHR]
             // each data is a list of zero or more teams
-            // FIXME: check w/ stefan if server should store regatta_id!
-            // the server doesn't store regatta_id as part of the team, so
-            // we get it here.
             var regattaId = responses[i][2].tfOpaque;
             teams[regattaId] = responses[i][0];
         }
@@ -121,10 +122,6 @@ tf.serverAPI.getRaces = function(teams, responsefn) {
             // each response is a list of 3 items [data, status, jqXHR]
             // each data is a list of zero or one races
             races = races.concat(responses[i][0]);
-        }
-        for (var i = 0; i < races.length; i++) {
-            races[i].start_from = moment(races[i].start_from);
-            races[i].start_to = moment(races[i].start_to);
         }
         responsefn(races);
     };

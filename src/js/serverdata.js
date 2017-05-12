@@ -18,16 +18,23 @@ tf.serverData.init = function(url) {
 };
 
 tf.serverData.update = function(userId) {
-    tf.serverAPI.getActiveTeams(userId, function(myTeams) {
-        if (myTeams && myTeams != tf.serverData._myTeams) {
+    tf.serverAPI.getActiveTeams(userId, function(srvTeams) {
+        var myTeams = null;
+        if (srvTeams) {
+            myTeams = srvTeams.map(tf.serverData.mkTeamData);
+        }
+        if (myTeams) {
             tf.serverData._myTeams = myTeams;
             tf.storage.setCachedMyTeams(myTeams);
         }
         if (myTeams) {
             console.log('getting races from server');
-            tf.serverAPI.getRaces(myTeams, function(races) {
-                if (races && races != tf.serverData._races) {
-                    console.log('new races');
+            tf.serverAPI.getRaces(myTeams, function(srvRaces) {
+                var races = null;
+                if (srvRaces) {
+                    races = srvRaces.map(tf.serverData.mkRaceData);
+                }
+                if (races) {
                     tf.serverData._races = races;
                     tf.storage.setCachedRaces(races);
                     if (races.length == 1) {
@@ -38,23 +45,30 @@ tf.serverData.update = function(userId) {
                             tf.state.setActiveRace(races[0].id);
                         }
                     }
-                    var regattaIds = [];
+                    var rIds = [];
                     for (var i = 0; i < races.length; i++) {
                         var regattaId = races[i].regatta_id;
-                        if (regattaIds.indexOf(regattaId) == -1) {
-                            regattaIds.push(regattaId);
+                        if (rIds.indexOf(regattaId) == -1) {
+                            rIds.push(regattaId);
                         }
                     }
-                    if (regattaIds.length > 0) {
-                        tf.serverAPI.getTeams(regattaIds, function(teams) {
-                            if (teams && teams != tf.serverData._teams) {
+                    if (rIds.length > 0) {
+                        tf.serverAPI.getTeamsPerRegatta(rIds, function(r) {
+                            var teams  = null;
+                            if (r) {
+                                teams = {};
+                                for (regattaId in r) {
+                                    teams[regattaId] =
+                                        r[regattaId].map(
+                                            tf.serverData.mkTeamData);
+                                }
+                            }
+                            if (teams) {
                                 tf.serverData._teams = teams;
                                 tf.storage.setCachedTeams(teams);
                             }
                         });
                     }
-                } else {
-                    console.log('same races, ignore');
                 }
             });
         }
@@ -85,4 +99,37 @@ tf.serverData.getMyTeamData = function(raceId) {
 
 tf.serverData.getTeamsData = function(regattaId) {
     return tf.serverData._teams[regattaId];
+};
+
+
+/**
+ * Data Conversion Functions
+ *
+ * These functions maps from the server representation to the internal
+ * representation.  In most cases the internal representation is just a
+ * subset of the server representation.
+ */
+
+tf.serverData.mkRaceData = function(s) {
+    var r = {
+        id:          s.id,
+        regatta_id:  s.regatta_id,
+        start_from:  moment(s.start_from),
+        start_to:    moment(s.start_to),
+        period:      s.period,
+        description: s.description
+    };
+    return r;
+};
+
+tf.serverData.mkTeamData = function(s) {
+    var r = {
+        id:               s.id,
+        start_number:     s.start_number,
+        race_id:          s.race_id,
+        boat_name:        s.boat_name,
+        boat_type_name:   s.boat_type_name,
+        boat_sail_number: s.boat_sail_number
+    };
+    return r;
 };

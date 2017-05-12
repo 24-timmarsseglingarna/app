@@ -84,15 +84,16 @@ tf.LogBook.prototype._updateLog = function() {
     var points = [];
     var curDist;
     var pod = this.race.getPod();
-    var startFromStartPoint = this.race.getAllowedStartPoint() == 'start_point';
 
-    // find startpoint - the first log entry that has a point that
-    // also is a start point
+    // find startpoint - the first log entry that has a point.
+    // we currently allow _any_ point (including points not marked as
+    // start points in the PoD.  If/when the PoD has correct info about
+    // start points, we can validate it here.
     for (var i = 0; i < this.log.length && !startPoint; i++) {
         e = this.log[i];
-        if (e.point && !startPoint) {
+        if (e.point) {
             var p = pod.getPoint(e.point);
-            if (p && (!startFromStartPoint || p.type == tf.pod.START_POINT)) {
+            if (p) {
                 startPoint = e.point;
                 points.push({point: e.point, time: e.time});
                 startIdx = i;
@@ -100,14 +101,8 @@ tf.LogBook.prototype._updateLog = function() {
             }
         }
     }
-    // initialize round counter for the end point
     // note that the first start point does not count as a round in the
     // code below
-    if (this.race.endp == 'start') {
-        npoints[startPoint] = -1;
-    } else {
-        npoints[this.race.endp] = -1;
-    }
 
     // ignore any log items before the start point
     for (var i = (startIdx + 1); startPoint && i < this.log.length; i++) {
@@ -119,7 +114,10 @@ tf.LogBook.prototype._updateLog = function() {
             if (!npoints[e.point]) {
                 npoints[e.point] = 0;
             }
-            npoints[e.point] = npoints[e.point] + 1;
+            // unless this was the finish, count the point as rounded
+            if (!e.finish) {
+                npoints[e.point] = npoints[e.point] + 1;
+            }
             var leg = tf.legName(e.point, prev.point);
             if (!nlegs[leg]) {
                 nlegs[leg] = 1;

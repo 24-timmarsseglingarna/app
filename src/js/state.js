@@ -133,8 +133,8 @@ tf.state._setActiveRace2 = function(raceId) {
         var raceLog = tf.storage.getRaceLog(raceId) || {};
         var log = raceLog.log || [];
         tf.state.curLogBook = new tf.LogBook(teamData.boat_name,
-                                          teamData.start_number,
-                                          tf.state.curRace, log);
+                                             teamData.start_number,
+                                             tf.state.curRace, log);
 
         tf.state.curLogBook.onLogUpdate(tf.ui.logBookChanged, 100);
         tf.state.curLogBook.onLogUpdate(function(logBook) {
