@@ -286,7 +286,7 @@ tf.ui.mkPointPopupHTML = function(number, name, descr, eta) {
 tf.ui.logPoint = function(number) {
     tf.ui.pointPopup.hide();
     tf.ui.logEntry.openLogEntry({point: number,
-                                logBook: tf.state.curLogBook});
+                                 logBook: tf.state.curLogBook});
 };
 
 tf.ui.mkPlannedPointPopupHTML = function(number, name) {

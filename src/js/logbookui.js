@@ -51,6 +51,10 @@ tf.ui.logBook.openLogBook = function(options) {
         } else if (e.point) {
             prev = e;
         }
+        intTD = '<td>';
+        if (e._interruptStatus) {
+            intTD = '<td class="log-book-invalid-interrupt text-danger">';
+        }
         var button_html = "<div class='row log-book-edit-buttons'" +
             " data-index='" + i + "'>" +
             "<button class='btn btn-default' id='log-book-btn-edit'>" +
@@ -81,7 +85,7 @@ tf.ui.logBook.openLogBook = function(options) {
             '<td>' + e.point + '</td>' +
             distTD + distance + '</td>' +
             '<td>' + e.wind.dir + ' ' + e.wind.speed + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtInterrupt(e.interrupt, true) + '</td>' +
+            intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt, true) + '</td>' +
             '<td>' + tf.ui.logEntry.fmtProtest(e.protest, true) + '</td>' +
             '<td>' + tf.ui.logEntry.fmtSails(e.sails, true) + '</td>' +
             '<td>' + e.boats.join(',') + '</td>' +
@@ -100,6 +104,9 @@ tf.ui.logBook.openLogBook = function(options) {
     $('.log-book-edit').popover();
     $('.log-book-invalid-dist').on('click', function(event) {
         tf.ui.logBook.logBookInvalidDistClick(event.currentTarget);
+    });
+    $('.log-book-invalid-interrupt').on('click', function(event) {
+        tf.ui.logBook.logBookInvalidInterruptClick(event.currentTarget);
     });
     var logBookPage = document.getElementById('log-book-page');
     // save the current logBook in the page
@@ -132,6 +139,20 @@ tf.ui.logBook.logBookInvalidDistClick = function(col) {
     case 'no-leg':
         text = 'Mellan ' + e.point + ' och ' + e._invalidLeg +
             ' finns ingen giltig sträcka.';
+        break;
+    }
+    tf.ui.alert('<p>' + text + '</p>');
+};
+
+tf.ui.logBook.logBookInvalidInterruptClick = function(col) {
+    var logBookPage = document.getElementById('log-book-page');
+    logBook = logBookPage.logBook;
+    e = logBook.log[col.parentElement.rowIndex - 1];
+    var text = '';
+    switch (e._interruptStatus) {
+    case 'no-done':
+        text = 'Du verkar ha glömt att logga att seglingen har ' +
+            'återupptagits.';
         break;
     }
     tf.ui.alert('<p>' + text + '</p>');

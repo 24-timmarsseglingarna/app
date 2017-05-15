@@ -16,9 +16,15 @@ tf.ui.logEntry.fmtInterrupt = function(interrupt, compact=false) {
     if (compact) {
         return tf.ui.logEntry._fmtInterruptCompact(interrupt);
     }
+    if (interrupt == undefined) {
+        return 'Inget avbrott';
+    }
     switch (interrupt.type) {
     case 'none':
         s = 'Inget avbrott';
+        break;
+    case 'done':
+        s = 'Återupptar segling';
         break;
     case 'bridge':
         s = 'Motorgång i väntan på broöppning';
@@ -50,9 +56,15 @@ tf.ui.logEntry.fmtInterrupt = function(interrupt, compact=false) {
 
 tf.ui.logEntry._fmtInterruptCompact = function(interrupt) {
     var s;
+    if (interrupt == undefined) {
+        return '-';
+    }
     switch (interrupt.type) {
     case 'none':
         s = '-';
+        break;
+    case 'done':
+        s = 'Åter segling';
         break;
     case 'bridge':
         s = 'Broöppning';
@@ -102,7 +114,7 @@ tf.ui.logEntry.fmtSails = function(sails, compact=false) {
         s.push('genua');
     }
     if (sails.code) {
-        s.push('code0');
+        s.push('code');
     } else if (sails.gennaker) {
         s.push('gennaker');
     } else if (sails.spinnaker) {
@@ -182,6 +194,9 @@ tf.ui.logEntry.openLogEntry = function(options) {
         switch (entry.interrupt.type) {
         case 'none':
             $('#log-entry-interrupt-none').prop('checked', true);
+            break;
+        case 'done':
+            $('#log-entry-interrupt-done').prop('checked', true);
             break;
         case 'bridge':
             $('#log-entry-interrupt-bridge').prop('checked', true);

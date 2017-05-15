@@ -195,6 +195,11 @@ html, body, #map {
     text-decoration: underline;
     font-style: italic;
 }
+.log-book-invalid-interrupt {
+    cursor: pointer;
+    text-decoration: underline;
+    font-style: italic;
+}
 
 .log-entry-item-text {
     cursor: pointer;

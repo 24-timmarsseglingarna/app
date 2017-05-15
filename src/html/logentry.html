@@ -48,6 +48,7 @@
                    for="log-entry-wind">Vind</label>
             <div class="col-xs-6 col-sm-3">
               <select class="form-control" id="log-entry-wind-dir">
+                <option value="Vxl">Växlande</option>
                 <option>N</option>
                 <!-- <option>NNO</option> -->
                 <option>NO</option>
@@ -142,12 +143,12 @@
               <label for="log-entry-lanterns"
                      class="checkbox-inline">
                 <input name="lanterns" type="checkbox"
-                       id="log-entry-lanterns"/>Lanternor
+                       id="log-entry-lanterns"/>Lanternor tända
               </label>
               <label for="log-entry-engine"
                      class="checkbox-inline">
                 <input name="engine" type="checkbox"
-                       id="log-entry-engine"/>Motor för laddning
+                       id="log-entry-engine"/>Motor igång för laddning
               </label>
             </div>
             <div class="col-sm-offset-4 col-sm-8">
@@ -296,6 +297,15 @@
                 <label>
                   <input type="radio"
                          name="log-entry-interrupt-type"
+                         id="log-entry-interrupt-done"
+                         value="done"/>
+                  Återupptar segling efter tidigare avbrott
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         name="log-entry-interrupt-type"
                          id="log-entry-interrupt-bridge"
                          value="bridge"/>
                   Motorgång i väntan på broöppning (&sect;11.1.1)
@@ -371,8 +381,8 @@
             <div class="col-sm-offset-2 col-sm-10">
               <p>
                 När seglingen återupptas, skapa en ny
-                loggboksanteckning av typen <em>Inget
-                avbrott</em>.
+                loggboksanteckning med ett avbrott av typen
+                <em>Återupptar segling efter tidigare avbrott.</em>.
               </p>
             </div>
           </div>

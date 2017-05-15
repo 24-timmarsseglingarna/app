@@ -68,7 +68,7 @@ tf.serverAPI.logout = function() {
 
 /**
  * Return an object with one entry per regatta, with the regattaId
- * as key.
+ * as key, in a call to `responsefn`.
  */
 tf.serverAPI.getTeamsPerRegatta = function(regattaIds, responsefn) {
     var cfn = function() {
@@ -94,7 +94,8 @@ tf.serverAPI.getTeamsPerRegatta = function(regattaIds, responsefn) {
 };
 
 /**
- * Return the teams in the active races that `userId` is registered for.
+ * Return the teams in the active races that `userId` is registered for,
+ * in a call to `responsefn`.
  * A race becomes inactive when the results are final.
  */
 tf.serverAPI.getActiveTeams = function(userId, responsefn) {
@@ -136,6 +137,23 @@ tf.serverAPI.getRaces = function(teams, responsefn) {
                                    function() { responsefn(null); });
 };
 
+/**
+ * Return the log for a given team in a call to `responsefn`.
+ */
+tf.serverAPI.getLog = function(teamId, responsefn) {
+    tf.serverAPI.getJSON('/api/v1/teams' + teamId + '/log_entries', responsefn);
+}
+
+tf.serverAPI.deleteLogEntry = function(teamId, logid, responsefn) {
+    tf.serverAPI.delObj('/api/v1/teams/' + teamId + '/log_entries/' + logid,
+                        responsefn);
+};
+
+tf.serverAPI.putLogEntry = function(teamId, logid, logEntry, responsefn) {
+    tf.serverAPI.putJSON('/api/v1/teams/' + teamId + '/log_entries/' + logid,
+                         responsefn);
+};
+
 tf.serverAPI.getJSON = function(urlpath, responsefn) {
     $.ajax({
         url: tf.serverAPI.URL + urlpath,
@@ -166,6 +184,53 @@ tf.serverAPI.getAJAX = function(urlpath, opaque) {
                 jqXHR.tfOpaque = opaque;
             }
             return true;
+        }
+    });
+};
+
+tf.serverAPI.putJSON = function(urlpath, data, responsefn) {
+    $.ajax({
+        url: tf.serverAPI.URL + urlpath,
+        method: 'PUT',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        beforeSend: function(jqXHR, settings) {
+            jqXHR.setRequestHeader('X-User-Email', tf.serverAPI.state.email);
+            jqXHR.setRequestHeader('X-User-Token', tf.serverAPI.state.token);
+            return true;
+        },
+        success: function(data, status, jqXHR) {
+            responsefn(true);
+        },
+        error: function(jqXHR, status, errorThrown) {
+            console.log('put error for ' + urlpath + ': ' + jqXHR.status);
+            responsefn(false);
+        }
+    });
+};
+
+tf.serverAPI.delObj = function(urlpath, responsefn) {
+    $.ajax({
+        url: tf.serverAPI.URL + urlpath,
+        method: 'DELETE',
+        beforeSend: function(jqXHR, settings) {
+            jqXHR.setRequestHeader('X-User-Email', tf.serverAPI.state.email);
+            jqXHR.setRequestHeader('X-User-Token', tf.serverAPI.state.token);
+            return true;
+        },
+        success: function(data, status, jqXHR) {
+            responsefn(true);
+        },
+        error: function(jqXHR, status, errorThrown) {
+            console.log('delete error for ' + urlpath + ': ' + jqXHR.status);
+            if (jqXHR.status == 404) {
+                // The object doesn't exists on the server, good.
+                responsefn(true);
+            } else {
+                // The object might not have been deleted
+                responsefn(false);
+            }
         }
     });
 };

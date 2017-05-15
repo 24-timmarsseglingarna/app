@@ -34,6 +34,15 @@ tf.LogBook = function(boatName, startNo, race, log) {
     this.nlegs = {};
     /* keep track of points logged (in order) */
     this.points = [];
+    /* next available id */
+    this.nextId = 0;
+    for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].id && this.log[i].id >= this.nextId) {
+            this.nextId = this.log[i].id + 1;
+        }
+    }
+    // FIXME: need to store deleted on disk
+    this.deleted = [];
 
     this._updateLog();
 };
@@ -44,8 +53,15 @@ tf.LogBook.prototype.getLog = function() {
 
 tf.LogBook.prototype.saveToLog = function(logEntry, index) {
     if (index != undefined) {
-        // delet the old entry; the new entry might have different time
+        // update of an existing entry, keep id and mark it as dirty
+        logEntry.id = this.log[index].id;
+        logEntry.state = tf.state.LOG_DIRTY;
+        // delete the old entry; the new entry might have different time
         this.log.splice(index, 1);
+    } else {
+        logEntry.id = this.nextId;
+        logEntry.state = tf.state.LOG_DIRTY;
+        this.nextId++;
     }
     var low = 0;
     var high = this.log.length;
@@ -109,6 +125,7 @@ tf.LogBook.prototype._updateLog = function() {
         e = this.log[i];
         e._legStatus = null;
         e._invalidLeg = null;
+        e._interruptStatus = null;
         if (e.point) {
             points.push({point: e.point, time: e.time});
             if (!npoints[e.point]) {
@@ -150,13 +167,32 @@ tf.LogBook.prototype._updateLog = function() {
             curTimeOffset = 0;
             curDistOffset = 0;
             prev = e;
-        } else if (e.interrupt.type != 'none' && this.log[i + 1]) {
-            var interrupttime = this.log[i + 1].time.diff(e.time, 'minutes');
-            if (e.interrupt.type == 'rescue-dist') {
-                curDistOffset += interrupttime;
-            } else {
-                curTimeOffset += interrupttime;
+        } else if (e.interrupt.type != 'none' && e.interrupt.type != 'done') {
+            // Find the corresponding log entry for interrupt done
+            var found = false;
+            for (var j = i+1; !found && j < this.log.length; j++) {
+                var f = this.log[j];
+                if (f.interrupt.type == 'done') {
+                    var interrupttime = f.time.diff(e.time, 'minutes');
+                    if (e.interrupt.type == 'rescue-dist') {
+                        curDistOffset += interrupttime;
+                    } else {
+                        curTimeOffset += interrupttime;
+                    }
+                    found = true;
+                } else if (f.point) {
+                    // A rounding log entry before starting to sail again -
+                    // error
+                    e._interruptStatus = 'no-done'
+                    found = true;
+                } else if (f.interrupt.type != 'none') {
+                    // A new interrupt 'replaced' this one
+                    found = true;
+                }
             }
+            // if we haven't found a 'done' entry there are two cases:
+            //   1.  user is still in interrupt mode - ok
+            //   2.  user has logged a point - error (detected above)
         }
     }
     this.totalDist = Math.round(totalDist) / 10;
@@ -265,6 +301,7 @@ tf.LogBook.prototype.getDistOffset = function() {
 };
 
 tf.LogBook.prototype.deleteLogEntry = function(index) {
+    this.deleted.push(this.log[index].id);
     this.log.splice(index, 1);
     this._updateLog();
 };
