@@ -43,8 +43,8 @@ tf.ui.activateRace._populateRaces = function() {
             }
             s += '">' +
                 // FIXME: get regatta name from server
-                '<p>' + 'Svenska Kryssarklubbens Testkrets' + '</p>' +
-                '<p>' + 'Testseglingen 2017' + '</p>' +
+//                '<p>' + 'Svenska Kryssarklubbens Testkrets' + '</p>' +
+//                '<p>' + 'Testseglingen 2017' + '</p>' +
                 '<p>' + r.period + ' timmar. ';
             if (r.description) {
                 s += r.description + '. ';
@@ -65,7 +65,6 @@ tf.ui.activateRace._populateRaces = function() {
 };
 
 tf.ui.activateRace.buttonClick = function(raceId) {
-    console.log('button clicked: ' + raceId);
     var id = '#activate-race-button-' + raceId;
     var btn = $(id);
     btn.parent().find('button').removeClass('active');

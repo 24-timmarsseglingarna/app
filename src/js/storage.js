@@ -148,7 +148,7 @@ tf.storage.init = function() {
         }
     }
     for (var i = 0; i < removedKeys.length; i++) {
-        console.log('removing old stored key ' + key);
+        //console.log('removing old stored key ' + key);
         localStorage.removeItem(removedKeys[i]);
     }
 };

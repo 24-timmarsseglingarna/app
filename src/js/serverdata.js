@@ -28,7 +28,6 @@ tf.serverData.update = function(userId) {
             tf.storage.setCachedMyTeams(myTeams);
         }
         if (myTeams) {
-            console.log('getting races from server');
             tf.serverAPI.getRaces(myTeams, function(srvRaces) {
                 var races = null;
                 if (srvRaces) {

@@ -835,6 +835,7 @@ $(document).ready(function() {
         tf.ui.pushPage(function() {
             page.close();
         });
+        document.activeElement.blur();
         return false;
     });
 
@@ -846,6 +847,7 @@ $(document).ready(function() {
         tf.ui.pushPage(function() {
             page.close();
         });
+        document.activeElement.blur();
         return false;
     });
 

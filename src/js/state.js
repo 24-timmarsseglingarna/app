@@ -44,21 +44,21 @@ tf.state.setup = function() {
     var token = tf.storage.getSetting('token');
     var email = tf.storage.getSetting('email');
     if (hasNetwork && !tf.storage.getSetting('token')) {
-        console.log('has network, no stored token');
+        //console.log('has network, no stored token');
         // we haven't logged in
         tf.ui.loginPage.openPage();
     } else if (hasNetwork) {
-        console.log('has network and stored token, validate it');
+        //console.log('has network and stored token, validate it');
         // validate the token
         if (!tf.serverAPI.validateToken(email, token)) {
-            console.log('has network, invalid token');
+            //console.log('has network, invalid token');
             // token invalid, check if the password is stored
             var password = tf.storage.getSetting('password');
             if (password) {
-                console.log('has stored passwd, login');
+                //console.log('has stored passwd, login');
                 tf.serverAPI.login(email, password, function(response) {
                     if (response) {
-                        console.log('login ok');
+                        //console.log('login ok');
                         props = {
                             token: response.token,
                             userId: response.userId
@@ -76,15 +76,15 @@ tf.state.setup = function() {
             }
         } else {
             // token is valid
-            console.log('has network, valid token');
+            //console.log('has network, valid token');
             tf.state.onAuthenticatedOnline();
         }
     } else if (tf.storage.getSetting('token')) {
-        console.log('no network, token');
+        //console.log('no network, token');
         // we have a token but no network; continue with the data we have
         tf.state.setupContinue();
     } else {
-        console.log('no network, no token');
+        //console.log('no network, no token');
         // no network, no token; not much to do
     }
 };

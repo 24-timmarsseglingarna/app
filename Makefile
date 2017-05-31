@@ -85,12 +85,12 @@ apk: 24h-app
 		--storePassword android \
 		--password android;
 
-24h-app: all cordova-template/template_src/res
+24h-app: all src/cordova-template/template_src/res
 	cordova create 24h-app --template src/cordova-template; \
 	TGT_DIR=24h-app/www $(MAKE) copy-target; \
 	cd 24h-app; \
 	cordova platform add android@6.1.0; \
-	cp -r tiles www
+	cp -r ../tiles www
 
 cordova-template/template_src/res: \
 	cordova-template/template_src/project/assets/icon.png \

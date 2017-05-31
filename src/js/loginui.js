@@ -14,9 +14,11 @@ tf.ui.loginPage.openPage = function() {
                                    tf.storage.getSetting('savePassword'));
     tf.ui.pushPage(function() {
         $('#login-page')[0].close();
+        //document.getElementById('login-page').style.display = 'none';
     });
     $('#login-page')[0].showModal();
     document.activeElement.blur();
+    //document.getElementById('login-page').style.display = 'block';
 };
 
 tf.ui.loginPage.loginResponseFn = function(response) {
@@ -32,7 +34,7 @@ tf.ui.loginPage.loginResponseFn = function(response) {
         if (!props.savePassword) {
             props.password = null;
         }
-        console.log('set: ' + JSON.stringify(props));
+        //console.log('set: ' + JSON.stringify(props));
         tf.storage.setSettings(props);
         tf.state.loggedIn();
         tf.ui.popPage();

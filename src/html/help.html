@@ -5,29 +5,113 @@
         <h3 class="modal-title">Hjälp</h3>
       </div>
       <div class="modal-body">
+        <input type="button" class="btn btn-primary dialog-close"
+               value="Klar"/>
         <h4>
-          Här kommer det finnas hjälp!
+          Allmänt
         </h4>
         <p>
-          Detta är en prototyp / testversion av den app jag
-          utvecklar för 24-timmarsseglingarna.  Funktionaliteten
-          växer fram vartefter, och allt fungerar inte än.
+          Detta är en testversion.  Man kan inte skicka upp loggboken
+          till servern efter avslutad segling.  I övrigt finns inga
+          kända fel, och all feedback är välkommen!
+        </p>
+
+        <h4>
+          Punkt och Distans kort (PoD)
+        </h4>
+        <p>
+          I kartan ligger en PoD för hela Sverige.  Om man klickar på
+          en punkt så får man information om punkten.  Om man zoomar
+          in så visas distansen för varje sträcka.  Man kan välja att
+          alltid visa distansen eller aldrig visa distansen genom att
+          klicka på "lager-symbolen" <span class="icon-stack"></span>
+          i nederkant.
         </p>
         <p>
-          Punkt och Distans kort (PoD).
+          Genom att klicka på "lager-symbolen" <span
+          class="icon-stack"></span> kan man välja om man vill visa
+          sträckor på kartan eller inte.
+
+        <h4>
+          Loggbok
+        </h4>
+
+        <p>
+          För att kunna föra loggbok måste man vara inloggad samt
+          aktivera en segling.  Om man bara är anmäld till en segling
+          så är den seglingen aktiverad per automatik efter
+          inloggning.  Man kan aktivera en segling i huvudmenyn <span
+          class="icon-ellipsis-v"></span>.
+        </p>
+
+        <p>
+          När man startar seglingen klickar man på startpunkten och
+          fyller i de uppgifter man vill logga, dvs tidpunkt,
+          segelsättning etc.  Från och med detta kommer återstående
+          seglingstid visas i statusfältet.
         </p>
         <p>
-          Loggbok.
+          När man rundar en punkt klickar man på denna och fyller i de
+          uppgifter man vill logga.
         </p>
         <p>
-          Planeringshjälpmedel.
+          Om man vill logga någon annan händelse, tex segelskifte, man
+          tänder lanternor, en protest etc, så kan man klicka på
+          symbolen "penna" <span class="icon-pencil"></span> i
+          nederkant.
         </p>
         <p>
-          TBD: Anslut till ett race.
+          Det går också bra att logga i efterhand om man glömmer att
+          göra det exakt när det inträffar.  Kom ihåg att justera
+          tidpunkten som fylls i med nuvarande klockslag per default.
         </p>
         <p>
-          TBD: Följ andra båtar.
+          Klickar man på "bok-symbolen" <span
+          class="icon-book"></span> får man en överblick över hela
+          loggboken.  Där kan man också ta bort, lägga till samt ändra
+          loggboknoteringar.
         </p>
+        <p>
+          Om seglingstiden går ut innan man hunnit i mål gör man en
+          loggboksnotering om detta och markerar "Seglingsperioden
+          slut".
+        </p>
+        <p>
+          När man går i mål klickar man på den punkten och markerar
+          "Målgång" i checkboxen bredvid punktnumret.
+        </p>
+
+        <h4>
+          Planeringshjälpmedel
+        </h4>
+        <p>
+          När man kommit en bit på sin segling kan man vilja planera
+          in en möjlig väg att gå.  Om man klickar på "rutt-symbolen"
+          <span class="icon-plan"></span> så hamnar appen i
+          planeringsläge.  Man kan går ur planeringsläget genom
+          att klicka på samma symbol igen.
+        </p>
+        <p>
+          Om man klickar på en punkt i planeringsläget läggs denna
+          till den planerade sträckan.  Det går bra att klicka på en
+          punkt som inte är i direkt anslutning till den senast
+          rundade punkten; appen kommer då välja "närmaste" vägen.
+        </p>
+        <p>
+          Man kan dubbelklicka på en planerad punkt för att ta bort
+          punkten från planen eller ta bort hela planen.
+        </p>
+        <p>
+          När man planerar en punkt så visas planerad sträcka i
+          statusfältet i övre kanten.  Det visas också den målfart som
+          krävs för att hinna med den planerade sträckan på
+          kvarvarande tid.
+        </p>
+
+        <h4>
+          TBD: Följ andra båtars position
+        </h4>
+
       </div>
       <div class="modal-footer">
         <input type="button" class="btn btn-primary dialog-close"
