@@ -180,14 +180,14 @@ html, body, #map {
     margin-right: 0;
 }
 
-.log-book-edit {
+.log-book-delete-all, .log-book-edit {
     color: #333;
     text-decoration: none;
 }
-.log-book-edit:hover {
+.log-book-delete-all, .log-book-edit:hover {
     text-decoration: none;
 }
-.log-book-edit:focus {
+.log-book-delete-all, .log-book-edit:focus {
     text-decoration: none;
 }
 .log-book-invalid-dist {
@@ -236,7 +236,7 @@ dialog {
 }
 
 
-.alert-dialog {
+.confirm-dialog, .alert-dialog {
     margin-top: 50%;
 }
 
@@ -248,6 +248,9 @@ dialog {
         height: 100%;
     }
     .alert-dialog {
+        margin-top: 0;
+    }
+    .confirm-dialog {
         margin-top: 0;
     }
     .modal {

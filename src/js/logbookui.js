@@ -55,7 +55,7 @@ tf.ui.logBook.openLogBook = function(options) {
         if (e._interruptStatus) {
             intTD = '<td class="log-book-invalid-interrupt text-danger">';
         }
-        var button_html = "<div class='row log-book-edit-buttons'" +
+        var edit_button_html = "<div class='row log-book-edit-buttons'" +
             " data-index='" + i + "'>" +
             "<button class='btn btn-default' id='log-book-btn-edit'>" +
             'Ändra</button>' +
@@ -77,7 +77,7 @@ tf.ui.logBook.openLogBook = function(options) {
             ' data-placement="top"' +
             ' data-viewport="#log-book-entries"' +
             ' data-html="true"' +
-            ' data-content="' + button_html + '"' +
+            ' data-content="' + edit_button_html + '"' +
             ' data-template="' + popover_template + '"' +
             '><span class="icon-pencil"></span></a></td>' +
             '<td>' + e.time.format('HH:mm DD MMM')
@@ -91,6 +91,14 @@ tf.ui.logBook.openLogBook = function(options) {
             '<td>' + e.boats.join(',') + '</td>' +
             '<td>' + tf.ui.logEntry.fmtOther(e, true) + '</td>' +
             '<td>' + e.comment + '</td>' +
+            '</tr>';
+    }
+    if (log.length > 0) {
+        rows += '<tr>' +
+            '<td><a tabindex="0" class="log-book-delete-all"' +
+            ' role="button"' +
+            ' onclick="tf.ui.logBook.deleteAllClick();"' +
+            '><span class="icon-trash"></span></a></td>' +
             '</tr>';
     }
     var dist = logBook.getSailedDistance();
@@ -118,6 +126,20 @@ tf.ui.logBook.openLogBook = function(options) {
         });
     }
     document.activeElement.blur();
+};
+
+tf.ui.logBook.deleteAllClick = function(col) {
+    tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
+                  '</p>',
+                  'Nej',
+                  'Ja',
+                  function() {
+                      var logBookPage =
+                          document.getElementById('log-book-page');
+                      var logBook = logBookPage.logBook;
+                      logBook.deleteAllLogEntries();
+                      tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+                  });
 };
 
 tf.ui.logBook.logBookInvalidDistClick = function(col) {
@@ -179,6 +201,44 @@ tf.ui.logBook.closeLogBook = function() {
 $(document).ready(function() {
     $('#log-book-cancel').on('click', function() {
         tf.ui.popPage();
+        return false;
+    });
+    $('#log-book-send').on('click', function() {
+        var logBookPage = document.getElementById('log-book-page');
+        var logBook = logBookPage.logBook;
+        if (logBook.isSentToServer) {
+            tf.ui.alert('<p>Loggboken har redan skickats in.</p');
+        } else if (!logBook.hasFinished()) {
+            tf.ui.alert('<p>Loggboken kan inte skickas in förrän du ' +
+                        'loggat "Målgång".</p>');
+        } else {
+            tf.ui.confirm('<p>Du kan inte göra fler ändringar av loggboken ' +
+                          'när du har skickat in den.</p>' +
+                          '<p>Är du säker att du vill skicka in loggboken?.' +
+                          '</p>',
+                          'Nej',
+                          'Ja',
+                          function() {
+                              var logBookPage =
+                                  document.getElementById('log-book-page');
+                              var logBook = logBookPage.logBook;
+                              tf.ui.alert('<p>Denna funktion är inte ' +
+                                          'implementerad ännu!</p>' +
+                                          '<p>Loggboken ' +
+                                          'måste rapporteras in på det gamla ' +
+                                          'sättet.</p>');
+                              /*
+                              // start spinner
+                              logBook.sendToServer(function(res) {
+                                  if (res) {
+                                      // stop spinner
+                                  } else {
+                                      // stop spinner, alert a warning
+                                  }
+                              });
+                              */
+                          });
+        }
         return false;
     });
     $('#log-book-add').on('click', function() {

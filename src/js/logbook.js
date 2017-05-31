@@ -34,13 +34,7 @@ tf.LogBook = function(boatName, startNo, race, log) {
     this.nlegs = {};
     /* keep track of points logged (in order) */
     this.points = [];
-    /* next available id */
-    this.nextId = 0;
-    for (var i = 0; i < this.log.length; i++) {
-        if (this.log[i].id && this.log[i].id >= this.nextId) {
-            this.nextId = this.log[i].id + 1;
-        }
-    }
+    this.isSentToServer = false;
     // FIXME: need to store deleted on disk
     this.deleted = [];
 
@@ -59,9 +53,8 @@ tf.LogBook.prototype.saveToLog = function(logEntry, index) {
         // delete the old entry; the new entry might have different time
         this.log.splice(index, 1);
     } else {
-        logEntry.id = this.nextId;
+        logEntry.id = tf.uuid();
         logEntry.state = tf.state.LOG_DIRTY;
-        this.nextId++;
     }
     var low = 0;
     var high = this.log.length;
@@ -305,3 +298,11 @@ tf.LogBook.prototype.deleteLogEntry = function(index) {
     this.log.splice(index, 1);
     this._updateLog();
 };
+
+tf.LogBook.prototype.deleteAllLogEntries = function() {
+    for (var i = 0; i < this.log.length; i++) {
+        this.deleted.push(this.log[i].id);
+    }
+    this.log = [];
+    this._updateLog();
+}

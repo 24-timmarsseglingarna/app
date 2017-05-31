@@ -133,13 +133,13 @@ deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
 
-OL_VSN=4.1.0
+OL_VSN=4.1.1
 deps/ol:
 	cd deps; \
 	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
 	unzip -q v$(OL_VSN)-dist.zip; \
 	rm -f v$(OL_VSN)-dist.zip; \
-	mv v$(OL_VSN)-dist/ol.js .; \
+	mv v$(OL_VSN)-dist/ol-debug.js ol.js; \
 	mv v$(OL_VSN)-dist/ol.css .; \
 	rm -rf v$(OL_VSN)-dist
 
