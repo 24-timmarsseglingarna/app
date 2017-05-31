@@ -257,7 +257,7 @@ dialog {
     .modal-dialog {
         background: #ffffff;
         width: 100%;
-        height: 100%;
+        height: 500%;
         margin: 0;
     }
     .modal-content {
