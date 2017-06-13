@@ -133,7 +133,7 @@ deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
 
-OL_VSN=4.1.1
+OL_VSN=4.2.0
 deps/ol:
 	cd deps; \
 	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
@@ -182,6 +182,15 @@ deps/moment:
 	mv moment-$(MOMENT_VSN)/min/moment.min.js .; \
 	mv moment-$(MOMENT_VSN)/locale/sv.js .; \
 	rm -rf moment-$(MOMENT_VSN)
+
+OL3_EXT_VSN=1.0.1
+deps/ol3-ext:
+	cd deps; \
+	wget https://github.com/Viglino/ol3-ext/archive/v$(OL3_EXT_VSN).zip; \
+	unzip -q v$(OL3_EXT_VSN).zip; \
+	rm -f v$(OL3_EXT_VSN).zip; \
+	mv ol3-ext-$(OL3_EXT_VSN)/interaction/longtouchinteraction.js .; \
+	rm -rf ol3-ext-$(OL3_EXT_VSN)
 
 tiles:
 	wget http://mbj.homenet.org/24h/map.tgz -O - | tar zx

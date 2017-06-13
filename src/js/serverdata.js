@@ -111,12 +111,14 @@ tf.serverData.getTeamsData = function(regattaId) {
 
 tf.serverData.mkRaceData = function(s) {
     var r = {
-        id:          s.id,
-        regatta_id:  s.regatta_id,
-        start_from:  moment(s.start_from),
-        start_to:    moment(s.start_to),
-        period:      s.period,
-        description: s.description
+        id:             s.id,
+        organizer_name: s.organizer_name,
+        regatta_name:   s.regatta_name,
+        regatta_id:     s.regatta_id,
+        start_from:     moment(s.start_from),
+        start_to:       moment(s.start_to),
+        period:         s.period,
+        description:    s.description
     };
     return r;
 };

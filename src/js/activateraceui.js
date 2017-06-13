@@ -32,7 +32,6 @@ tf.ui.activateRace._populateRaces = function() {
         var s = '';
         for (var i = 0; i < racesData.length; i++) {
             var isActive = (racesData[i].id == curActiveRaceId);
-            // FIXME: print organizer as well?
             var r = racesData[i];
             s += '<button type="button" autocomplete="off"' +
                 ' id="activate-race-button-' + r.id + '"' +
@@ -42,9 +41,8 @@ tf.ui.activateRace._populateRaces = function() {
                 s += ' active';
             }
             s += '">' +
-                // FIXME: get regatta name from server
-//                '<p>' + 'Svenska Kryssarklubbens Testkrets' + '</p>' +
-//                '<p>' + 'Testseglingen 2017' + '</p>' +
+                '<p>' + r.organizer_name + '</p>' +
+                '<p>' + r.regatta_name + '</p>' +
                 '<p>' + r.period + ' timmar. ';
             if (r.description) {
                 s += r.description + '. ';

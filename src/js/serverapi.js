@@ -72,13 +72,18 @@ tf.serverAPI.logout = function() {
  */
 tf.serverAPI.getTeamsPerRegatta = function(regattaIds, responsefn) {
     var cfn = function() {
-        var responses = arguments;
+        var responses = [].slice.call(arguments);
         var teams = {};
-        for (var i = 0; i < responses.length; i++) {
-            // each response is a list of 3 items [data, status, jqXHR]
-            // each data is a list of zero or more teams
-            var regattaId = responses[i][2].tfOpaque;
-            teams[regattaId] = responses[i][0];
+        if (typeof responses[1] == 'string') {
+            var regattaId = responses[2].tfOpaque;
+            teams[regattaId] = responses[0];
+        } else {
+            for (var i = 0; i < responses.length; i++) {
+                // each response is a list of 3 items [data, status, jqXHR]
+                // each data is a list of zero or more teams
+                var regattaId = responses[i][2].tfOpaque;
+                teams[regattaId] = responses[i][0];
+            }
         }
         responsefn(teams);
     };
@@ -117,12 +122,19 @@ tf.serverAPI.getActiveTeams = function(userId, responsefn) {
 tf.serverAPI.getRaces = function(teams, responsefn) {
     // 3. For each active team, find the races it participates in.
     var cfn = function() {
-        var responses = arguments;
+        var responses = [].slice.call(arguments);
         var races = [];
-        for (var i = 0; i < responses.length; i++) {
-            // each response is a list of 3 items [data, status, jqXHR]
-            // each data is a list of zero or one races
-            races = races.concat(responses[i][0]);
+        // FIXME: temp hack - it seems arguments is not an Array of
+        // 3-Arrays if there is just one reply - in that case it is just
+        // a 3-Array directly.
+        if (typeof responses[1] == 'string') {
+            races = races.concat(responses[0]);
+        } else {
+            for (var i = 0; i < responses.length; i++) {
+                // each response is a list of 3 items [data, status, jqXHR]
+                // each data is a list of zero or one races
+                races = races.concat(responses[i][0]);
+            }
         }
         responsefn(races);
     };

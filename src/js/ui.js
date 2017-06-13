@@ -91,10 +91,22 @@ tf.ui.TAP_RADUIS = 16;
 tf.ui.LEG_WIDTH_MIN = 1;
 
 /**
+ * Width of next possible leg line on MIN zoom levels.
+ * @const {number}
+ */
+tf.ui.NEXT_LEG_WIDTH_MIN = tf.ui.LEG_WIDTH_MIN + 2;
+
+/**
  * Width of leg line on MED and MAX zoom levels.
  * @const {number}
  */
 tf.ui.LEG_WIDTH_MED = 2;
+
+/**
+ * Width of next possible leg line on MED and MAX zoom levels.
+ * @const {number}
+ */
+tf.ui.NEXT_LEG_WIDTH_MED = tf.ui.LEG_WIDTH_MED + 2;
 
 /**
  * Width of leg line that has been logged once.
@@ -202,6 +214,7 @@ window.addEventListener('popstate', function(event) {
 
 tf.ui.map = new ol.Map({
     target: 'map',
+    moveTolerance: 1.25,
     loadTilesWhileInteracting: true,
     //loadTilesWhileAnimating: true,
     controls: ol.control.defaults({
@@ -325,6 +338,7 @@ tf.ui.handleMapClick = function(event) {
             var geom = feature.getGeometry();
             // Only popup when Points are clicked
             if (geom.getType() == 'Point') {
+                console.log('ev ' + event.type);
                 var number = feature.get('number');
                 var name = feature.get('name');
                 var descr = feature.get('descr');
@@ -338,12 +352,13 @@ tf.ui.handleMapClick = function(event) {
                          *   long press on planned point - change plan by
                          *     dragging to new point
                          */
+                        if (event.type === 'click') {
+                            // do no react directly to the click; wait
+                            // for the other event (single/dbl).
+                            return;
+                        }
                         if (tf.state.curPlan.isPointPlanned(number)) {
-                            // in this case we can't react to the 'click';
-                            // need to wait for the single/dbl event
-                            if (event.type === 'click') {
-                                return;
-                            } else if (event.type === 'singleclick') {
+                            if (event.type === 'singleclick') {
                                 tf.state.curPlan.addPoint(number);
                             } else if (event.type === 'dblclick') {
                                 var coord = geom.getCoordinates();
@@ -353,14 +368,19 @@ tf.ui.handleMapClick = function(event) {
                                                                   name));
                             }
                         } else {
-                            // treat as singleclick
-                            tf.state.curPlan.addPoint(number);
+                            if (event.type === 'singleclick') {
+                                tf.state.curPlan.addPoint(number);
+                            }
                         }
                     } else {
                         /*
                          * In normal mode:
                          *   single click - show point popup
                          */
+                        if (event.type !== 'click') {
+                            // react directly to the click
+                            return;
+                        }
                         var eta = [];
                         if (tf.ui.showPlan && tf.state.curPlan.isValid()) {
                             eta = tf.state.curPlan.getETA(number);
@@ -424,6 +444,11 @@ $(document).ready(function() {
     tf.ui.map.on('click', tf.ui.handleMapClick);
     tf.ui.map.on('singleclick', tf.ui.handleMapClick);
     tf.ui.map.on('dblclick', tf.ui.handleMapClick);
+    tf.ui.map.addInteraction(
+        new ol.interaction.LongTouch({
+            handleLongTouchEvent: tf.ui.handleMapClick
+        })
+    );
 });
 
 /**
@@ -550,10 +575,20 @@ tf.ui.mkLegStyleFunc = function(color) {
         tf.ui.getLegStyle('basicLeg0' + color,
                          {width: tf.ui.LEG_WIDTH_MIN,
                           color: color});
+    // used for next possible leg in zoomed out maps
+    var nextLegStyle0 =
+        tf.ui.getLegStyle('nextLeg0' + color,
+                         {width: tf.ui.NEXT_LEG_WIDTH_MIN,
+                          color: color});
     // used for zoom min and med maps
     var basicLegStyle1 =
         tf.ui.getLegStyle('basicLeg1' + color,
                          {width: tf.ui.LEG_WIDTH_MED,
+                          color: color});
+    // used for next possible leg in zoom min and med maps
+    var nextLegStyle1 =
+        tf.ui.getLegStyle('nextLeg1' + color,
+                         {width: tf.ui.NEXT_LEG_WIDTH_MED,
                           color: color});
     // used when a leg is logged once
     var loggedLeg1Style =
@@ -590,11 +625,13 @@ tf.ui.mkLegStyleFunc = function(color) {
     legStyleFunction =
         function(feature, resolution) {
             var legStyle = basicLegStyle1;
+            var nextLegStyle = nextLegStyle1;
             var labelNo = '1';
             if (resolution < tf.ui.RESOLUTION_MED_MAX) {
                 labelNo = '2';
             } else if (resolution > tf.ui.RESOLUTION_MIN_MED) {
                 legStyle = basicLegStyle0;
+                nextLegStyle = nextLegStyle0;
             }
             var src = feature.get('src');
             var dst = feature.get('dst');
@@ -624,6 +661,19 @@ tf.ui.mkLegStyleFunc = function(color) {
                     legStyle = plannedLeg1Style;
                 } else {
                     legStyle = plannedLeg2Style;
+                }
+            } else {
+                // neither logged nor planned
+                if (tf.ui.showPlan && tf.state.curPlan) {
+                    var p = tf.state.curPlan.getLastPoint();
+                    if (p == src || p == dst) {
+                        legStyle = nextLegStyle;
+                    }
+                } else if (tf.state.curLogBook) {
+                    var p = tf.state.curLogBook.getLastPoint();
+                    if (p == src || p == dst) {
+                        legStyle = nextLegStyle;
+                    }
                 }
             }
             if (tf.ui.showLegs &&

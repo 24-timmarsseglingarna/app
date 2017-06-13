@@ -219,6 +219,14 @@ tf.LogBook.prototype.getPoints = function() {
     return this.points;
 };
 
+tf.LogBook.prototype.getLastPoint = function() {
+    if (this.points.length > 0) {
+        return this.points[this.points.length - 1].point;
+    } else {
+        return null;
+    }
+};
+
 /**
  * Get number of times a leg has been sailed (logged).
  *
