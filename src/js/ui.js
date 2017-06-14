@@ -214,7 +214,7 @@ window.addEventListener('popstate', function(event) {
 
 tf.ui.map = new ol.Map({
     target: 'map',
-    moveTolerance: 1.25,
+    moveTolerance: 1.5,
     loadTilesWhileInteracting: true,
     //loadTilesWhileAnimating: true,
     controls: ol.control.defaults({
@@ -338,7 +338,6 @@ tf.ui.handleMapClick = function(event) {
             var geom = feature.getGeometry();
             // Only popup when Points are clicked
             if (geom.getType() == 'Point') {
-                console.log('ev ' + event.type);
                 var number = feature.get('number');
                 var name = feature.get('name');
                 var descr = feature.get('descr');
@@ -444,11 +443,13 @@ $(document).ready(function() {
     tf.ui.map.on('click', tf.ui.handleMapClick);
     tf.ui.map.on('singleclick', tf.ui.handleMapClick);
     tf.ui.map.on('dblclick', tf.ui.handleMapClick);
+/*
     tf.ui.map.addInteraction(
         new ol.interaction.LongTouch({
             handleLongTouchEvent: tf.ui.handleMapClick
         })
     );
+*/
 });
 
 /**
@@ -664,7 +665,7 @@ tf.ui.mkLegStyleFunc = function(color) {
                 }
             } else {
                 // neither logged nor planned
-                if (tf.ui.showPlan && tf.state.curPlan) {
+                if (tf.ui.planMode && tf.state.curPlan) {
                     var p = tf.state.curPlan.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
@@ -767,6 +768,8 @@ tf.ui.planModeActivate = function(active) {
         tf.ui.planMode = false;
         $('#tf-nav-plan-mode').removeClass('ol-active');
     }
+    tf.ui.inshoreLegsLayer.changed();
+    tf.ui.offshoreLegsLayer.changed();
     tf.ui.updateStatusBar();
 };
 
