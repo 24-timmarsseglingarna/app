@@ -2,7 +2,7 @@
 <widget xmlns="http://www.w3.org/ns/widgets"
         xmlns:cdv="http://cordova.apache.org/ns/1.0"
         id="org.homenet.mbj.tjugofyratimmars"
-        version="0.1.1">
+        version="1.0.1">
     <name>24-timmars</name>
     <description>
       PoD
@@ -16,6 +16,7 @@
     <plugin name="cordova-plugin-geolocation" spec="" />
     <plugin name="cordova-plugin-splashscreen" spec="" />
     <plugin name="cordova-plugin-network-information" spec="" />
+    <plugin name="cordova-plugin-statusbar" spec="" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -26,6 +27,16 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
+
+    <!-- make sure we don't overwrite the iOS statusbar -->
+    <preference name="StatusBarOverlaysWebView" value="false" />
+    <!--
+    <preference name="StatusBarBackgroundColor" value="#000000" />
+    -->
+
+    <preference name="SplashScreen" value="screen"/>
+    <preference name="AutoHideSplashScreen" value="false" />
+    <preference name="SplashMaintainAspectRatio" value="true"/>
 
     <!-- build for android >= 4.4 -->
     <!--preference name="android-minSdkVersion" value="19" -->
@@ -75,10 +86,6 @@
     <icon height="159" src="res/icons/wp8/Background.png" width="159" />
 </platform>
 
-
-<preference name="SplashScreen" value="screen"/>
-<preference name="AutoHideSplashScreen" value="false" />
-<preference name="SplashMaintainAspectRatio" value="true"/>
 <platform name="android">
     <splash density="land-hdpi" src="res/screens/android/screen-hdpi-landscape.png" />
     <splash density="land-ldpi" src="res/screens/android/screen-ldpi-landscape.png" />

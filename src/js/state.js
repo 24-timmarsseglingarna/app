@@ -5,6 +5,8 @@ goog.provide('tf.state');
 goog.require('tf');
 goog.require('tf.serverData');
 goog.require('tf.storage');
+goog.require('tf.ui');
+goog.require('tf.ui.alert');
 
 /**
  * This module handles the application state and control, such as:
@@ -86,6 +88,8 @@ tf.state.setup = function() {
     } else {
         //console.log('no network, no token');
         // no network, no token; not much to do
+        tf.ui.alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
+                    'du har nätverk.</p>');
     }
 };
 
