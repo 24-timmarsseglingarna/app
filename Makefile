@@ -1,3 +1,5 @@
+include vsn.mk
+
 TGT_DIR ?= /non-existing
 
 JS_SRC = $(wildcard src/js/*.js)
@@ -23,7 +25,7 @@ all: 	build/deps \
 	build/fonts
 
 build/index.html: src/html/index.html.src $(HTML_SRC)
-	m4 -P -I src/html < $< > $@ || rm -f $@
+	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
 build/24h.js: $(JS_SRC)
 	java -jar deps/closure-compiler-v$(CLOSURE_COMPILER_VSN).jar \
@@ -77,6 +79,12 @@ copy-target: all
 
 app: 24h-app
 
+ifeq ($(shell uname -s),Darwin)
+PLATFORM=ios
+else
+PLATFORM=android
+endif
+
 apk: 24h-app
 	cd 24h-app; \
 	cordova build android --release -- \
@@ -85,11 +93,19 @@ apk: 24h-app
 		--storePassword android \
 		--password android;
 
+build-app: 24h-app
+	cd 24h-app; \
+	cordova build $(PLATFORM)
+
+# for some reason, cordova doesn't keep the version in config.xml (it
+# always sets it to 1.0.0), so we change it afterwards.
 24h-app: all src/cordova-template/template_src/res
 	cordova create 24h-app --template src/cordova-template; \
 	TGT_DIR=24h-app/www $(MAKE) copy-target; \
 	cd 24h-app; \
-	cordova platform add android@6.1.0; \
+	sed -e 's/version="1.0.0"/version="$(VSN)"/' config.xml > c.xml; \
+	mv c.xml config.xml; \
+	cordova platform add $(PLATFORM); \
 	cp -r ../tiles www
 
 cordova-template/template_src/res: \

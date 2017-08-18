@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget xmlns="http://www.w3.org/ns/widgets"
         xmlns:cdv="http://cordova.apache.org/ns/1.0"
-        id="org.homenet.mbj.tjugofyratimmars"
+        id="nu.24-timmars"
         version="1.0.0">
     <name>24-timmars</name>
     <description>
