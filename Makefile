@@ -81,8 +81,10 @@ app: 24h-app
 
 ifeq ($(shell uname -s),Darwin)
 PLATFORM=ios
+APPID=nu.24-timmars
 else
 PLATFORM=android
+APPID=org.homenet.mbj.tjugofyratimmars
 endif
 
 apk: 24h-app
@@ -103,8 +105,9 @@ build-app: 24h-app
 	cordova create 24h-app --template src/cordova-template; \
 	TGT_DIR=24h-app/www $(MAKE) copy-target; \
 	cd 24h-app; \
-	sed -e 's/version="1.0.0"/version="$(VSN)"/' config.xml > c.xml; \
-	mv c.xml config.xml; \
+	sed -e 's/version="1.0.0"/version="$(VSN)"/' \
+	    -e 's/org.homenet.mbj.tjugofyratimmars/$(APPID)/' \
+	    config.xml > c.xml; mv c.xml config.xml; \
 	cordova platform add $(PLATFORM); \
 	cp -r ../tiles www
 

@@ -45,6 +45,27 @@ tf.ui.loginPage.loginResponseFn = function(response) {
 };
 
 $(document).ready(function() {
+    url = tf.serverAPI.URL;
+    if (tf.state.isCordova) {
+        $('#login-register').on('click', function() {
+            SafariViewController.isAvailable(function(available) {
+                if (available) {
+                    SafariViewController.show({
+                        url: url,
+                        hidden: false,
+                        animated: false
+                        //barColor: "#0000ff", // default is white (iOS 10 only)
+                        //tintColor: "#ffffff" // default is ios blue
+                    });
+                } else {
+                    window.open(url);
+                }
+            });
+        });
+    } else {
+        $('#login-register').attr('href', url);
+    }
+
     $('#login-error-btn').on('click', function() {
         $('#login-error-btn').hide();
     });
