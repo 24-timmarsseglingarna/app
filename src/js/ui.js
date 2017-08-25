@@ -382,7 +382,7 @@ tf.ui.handleMapClick = function(event) {
                             return;
                         }
                         var eta = [];
-                        if (tf.ui.showPlan && tf.state.curPlan.isValid()) {
+                        if (tf.ui.showPlan) {
                             eta = tf.state.curPlan.getETA(number);
                         }
                         // show the popup from the center of the point
@@ -643,7 +643,7 @@ tf.ui.mkLegStyleFunc = function(color) {
             }
             var planned = 0;
             if (tf.ui.showPlan && tf.state.curPlan) {
-                planned = tf.state.curPlan.getLegPlanned(src, dst);
+                planned = tf.state.curPlan.isLegPlanned(src, dst);
             }
             if (logged) {
                 if (logged == 1) {
@@ -757,8 +757,7 @@ tf.ui.planModeActivate = function(active) {
     if (active) {
         if (!tf.state.curPlan) {
             tf.state.curPlan = new tf.Plan('Plan A', tf.state.curRace.getPod(),
-                                        tf.state.curLogBook);
-            tf.state.curPlan.attachLogBook(tf.state.curLogBook);
+                                           tf.state.curLogBook);
             tf.state.curPlan.onPlanUpdate(tf.ui.logBookChanged);
         }
         tf.ui.planMode = true;
@@ -1055,7 +1054,7 @@ tf.ui.updateStatusBar = function() {
     }
     $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
     $('#tf-status-distance').text(dist.toFixed(1) + ' M');
-    if (tf.ui.showPlan && tf.state.curPlan && tf.state.curPlan.isValid()) {
+    if (tf.ui.showPlan && tf.state.curPlan) {
         var planDist = tf.state.curPlan.getPlannedDistance();
         var planSpeed = tf.state.curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;

@@ -32,7 +32,6 @@ tf.Plan = function(name, pod, logbook) {
     this.pod = pod;
     this.onPlanUpdateFns = [];
     this.name = name;
-    this._isValid = true;
     /* keep track of the first entry that is not logged */
     this.firstPlanned = -1;
     this.entries = [];
@@ -40,15 +39,7 @@ tf.Plan = function(name, pod, logbook) {
     this.nlegs = {};
     /* total planned distance, in 1/10 M */
     this.totalDist = 0;
-    if (logbook != undefined) {
-        var entry;
-        var loggedPoints = logbook.getPoints();
-        for (var i = 0; i < loggedPoints.length; i++) {
-            entry = {};
-            entry.point = loggedPoints[i].point;
-            this.entries.push(entry);
-        }
-    }
+    this.attachLogBook(logbook);
 };
 
 tf.Plan.prototype.onPlanUpdate = function(fn) {
@@ -57,8 +48,10 @@ tf.Plan.prototype.onPlanUpdate = function(fn) {
 
 tf.Plan.prototype.attachLogBook = function(logbook) {
     this.logbook = logbook;
+    if (logbook != undefined) {
+        this._resetPlan();
+    }
     var self = this;
-    self._logBookChanged();
     logbook.onLogUpdate(function() {
         self._logBookChanged();
     }, 10);
@@ -76,7 +69,8 @@ tf.Plan.prototype.addPoint = function(point) {
             // can't find path, ignore
             return;
         }
-        // start from 1; the first point is always the starting point
+        // start from 1; the first point in the path is
+        // always the starting point
         for (var i = 1; i < path.points.length; i++) {
             var cur = path.points[i];
             var entry = {point: cur,
@@ -151,7 +145,7 @@ tf.Plan.prototype.delTail = function(point) {
     if (this.entries.length == 0) {
         return false;
     }
-    for (var i = this.entries.length-2; i > 1; i--) {
+    for (var i = this.entries.length-2; i > 0; i--) {
         if (this.entries[i].point == point) {
             this.entries.splice(i+1, this.entries.length - i + 1);
             this._updateState();
@@ -160,16 +154,9 @@ tf.Plan.prototype.delTail = function(point) {
     }
 };
 
-// FIXME: firstPlanned is -1 when plan is invalid; should we delete bad plan
-// on logbook update?
-
 tf.Plan.prototype.delAllPoints = function() {
-    if (this.firstPlanned == -1) {
-        return false;
-    }
-    this.entries.splice(this.firstPlanned,
-                        this.entries.length - this.firstPlanned);
-    this._updateState();
+    this._resetPlan();
+    this._updateState(true);
 };
 
 tf.Plan.prototype.rePlan = function(oldPoint, newPoint) {
@@ -230,10 +217,6 @@ tf.Plan.prototype.getPlannedDistance = function() {
     return Math.round(this.totalDist) / 10;
 };
 
-tf.Plan.prototype.isValid = function() {
-    return this._isValid;
-};
-
 tf.Plan.prototype.getPlannedSpeed = function() {
     var dist = this.totalDist / 10;
     var start = this.logbook.getStartTime();
@@ -254,40 +237,60 @@ tf.Plan.prototype.getETA = function(point) {
     return r;
 };
 
-tf.Plan.prototype.getLegPlanned = function(pointA, pointB) {
+tf.Plan.prototype.isLegPlanned = function(pointA, pointB) {
     return this.nlegs[tf.legName(pointA, pointB)];
+};
+
+tf.Plan.prototype._resetPlan = function() {
+    var entry;
+    this.nlegs = {};
+    this.firstPlanned = -1;
+    this.entries = [];
+    this.totalDist = 0;
+    if (this.logbook != undefined) {
+        var loggedPoints = this.logbook.getPoints();
+        for (var i = 0; i < loggedPoints.length; i++) {
+            entry = {};
+            entry.point = loggedPoints[i].point;
+            this.entries.push(entry);
+        }
+    }
 };
 
 tf.Plan.prototype._logBookChanged = function() {
     var j;
-    var match = true;
     var loggedPoints = this.logbook.getPoints();
 
-    // check if all logged points are also part of the plan;
-    // the normal case is that a new point that was planned is now logged.
-    j = 0;
-    for (var i = 0;
-         match && i < loggedPoints.length && j < this.entries.length;
-         i++) {
-        if (loggedPoints[i].point == this.entries[j].point) {
-            j++;
-        } else {
-            match = false;
-        }
-    }
-    // treat rest of entries as planned legs
-    if (i == 0 && this.entries.length > 0) {
-        // nothing in logbook but planned entries; entire plan is valid
-        j = 1;
-    }
-    this.firstPlanned = j;
-    if (!match) {
-        // the plan doesn't match the log book; entire plan is invalid
-        this.firstPlanned = -1;
-        this._isValid = false;
+    // if the logbook has more entries than the plan, we'll just
+    // reset the plan to match the logbook.
+    if (loggedPoints.length > this.entries.length) {
+        this._resetPlan();
         return;
     }
-    this._isValid = true;
+    // check if all logged points are also part of the plan;
+    // the normal case is that a new point that was planned is now logged.
+    for (var i = 0;
+         i < loggedPoints.length && i < this.entries.length;
+         i++) {
+        if (loggedPoints[i].point == this.entries[i].point) {
+            this.entries[i].dist = undefined;
+        } else {
+            // the plan doesn't match the log book, reset the plan.
+            // OR possibly slice in the best path from the end of
+            // logged entries to the plan start.
+            this._resetPlan();
+            return;
+        }
+    }
+    this.firstPlanned = j;
+    // treat rest of entries as planned legs
+    for (; i < this.entries.length; i++) {
+        if (i > 0 && !this.entries[i].dist) {
+            var prev = this.entries[i-1].point;
+            var cur = this.entries[i].point;
+            this.entries[i].dist = this.pod.getDistance(prev, cur);
+        }
+    }
 
     this._updateState(false);
 };
@@ -308,7 +311,7 @@ tf.Plan.prototype._updateState = function(informSubscribers) {
         var dist = this.entries[j].dist;
         if (dist != undefined) {
             totalDist += dist * 10;
-            if (j > 1) {
+            if (j > 0) {
                 var leg = tf.legName(this.entries[j - 1].point,
                                      this.entries[j].point);
                 if (!nlegs[leg]) {
@@ -326,7 +329,7 @@ tf.Plan.prototype._updateState = function(informSubscribers) {
         var time = loggedPoints[loggedPoints.length - 1].time;
         var offset;
         var planSpeed = this.getPlannedSpeed();
-        for (j = this.firstPlanned; j > 0 && j < this.entries.length; j++) {
+        for (j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
             dist += this.entries[j].dist;
             offset = 60 * dist / planSpeed;
             // clone the moment time
