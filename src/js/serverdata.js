@@ -127,6 +127,7 @@ tf.serverData.mkTeamData = function(s) {
     var r = {
         id:               s.id,
         start_number:     s.start_number,
+        start_point:      s.start_point,
         race_id:          s.race_id,
         boat_name:        s.boat_name,
         boat_type_name:   s.boat_type_name,

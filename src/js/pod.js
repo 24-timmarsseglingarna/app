@@ -134,8 +134,10 @@ tf.Pod.prototype.getShortestPath = function(a, b, maxSteps) {
 
 tf.Pod.prototype._addPoints = function(points, type) {
     for (var i = 0; i < points.features.length; i++) {
-        var p = points.features[i].properties;
+        var feature = points.features[i];
+        var p = feature.properties;
         this.points[p.number] = {name: p.name,
+                                 coords: feature.geometry.coordinates,
                                  type: type,
                                  legs: {}};
     }

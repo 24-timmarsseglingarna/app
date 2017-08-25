@@ -170,6 +170,7 @@ tf.ui.showLegs = true;
 tf.ui.showPlan = false;
 tf.ui.planMode = false;
 tf.ui.dragState = null;
+tf.ui.initialCenterChanged = false;
 
 /*
  * When we open a new page/dialog, the code calls
@@ -1104,14 +1105,14 @@ $(document).ready(function() {
                             tf.ui.TURN_POINT_COLOR);
     tf.ui.startPointsLayer =
         tf.ui.mkPointsLayer(podSpec.startPoints, 'StartPoints',
-                           tf.ui.START_POINT_COLOR);
+                            tf.ui.START_POINT_COLOR);
 
     tf.ui.inshoreLegsLayer =
         tf.ui.mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs',
-                         tf.ui.INSHORE_LEG_COLOR);
+                          tf.ui.INSHORE_LEG_COLOR);
     tf.ui.offshoreLegsLayer =
         tf.ui.mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
-                         tf.ui.OFFSHORE_LEG_COLOR);
+                          tf.ui.OFFSHORE_LEG_COLOR);
 
     if (tf.state.isCordova) {
         document.addEventListener('deviceready', tf.ui.onDeviceReady, false);
@@ -1119,6 +1120,55 @@ $(document).ready(function() {
         tf.ui.onDeviceReady();
     }
 });
+
+tf.ui.centerChanged = function(event) {
+    tf.ui.initialCenterChanged = true;
+};
+
+tf.ui.stateSetupDone = function() {
+    // 1. center on 580 initially
+    // 2. then if we have a latest logged position, center there.
+    // 3. else if we have start point, center there.
+    // 3. otherwise use geolocation.
+    //
+    // In this process, 2 and 3 may be, and 4 will be, delayed
+    // operations.  If the user has panned the map, don't change the
+    // center.
+
+    var centerSet = false;
+    if (tf.state.curLogBook) {
+        var p = tf.state.curLogBook.getLastPoint();
+        if (!p) {
+            p = tf.state.curLogBook.getStartPoint();
+        }
+        if (p) {
+            var pod = tf.state.curRace.getPod();
+            var point = pod.getPoint(p);
+            if (point && !tf.ui.initialCenterChanged) {
+                var center = ol.proj.transform(point.coords,
+                                               'EPSG:4326', 'EPSG:3857');
+                tf.ui.view.setCenter(center);
+                centerSet = true;
+            }
+        }
+    }
+    if (!centerSet && navigator && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                if (!tf.ui.initialCenterChanged) {
+                    var center = ol.proj.transform([pos.coords.longitude,
+                                                    pos.coords.latitude],
+                                                   'EPSG:4326',
+                                                   'EPSG:3857');
+                    tf.ui.view.setCenter(center);
+                }
+            },
+            function(error) {
+                //alert('geo-error: ' + error.code);
+            });
+    }
+    tf.ui.logBookChanged();
+};
 
 tf.ui.onDeviceReady = function() {
     // must be called after device ready since it accesses local files
@@ -1137,20 +1187,24 @@ tf.ui.onDeviceReady = function() {
     tf.ui.map.addOverlay(tf.ui.pointPopup);
     tf.ui.map.addOverlay(tf.ui.plannedPointPopup);
 
-    // must be called after device ready since it accesses geolocation
-    // TEMPORARY - center with current position
-    tf.ui.center = ol.proj.transform([18.387, 59.44], 'EPSG:4326', 'EPSG:3857');
+    var coords = [18.387, 59.44]; // 580 is the initial center
+
+    var center = ol.proj.transform(coords, 'EPSG:4326', 'EPSG:3857');
 
     tf.ui.view = new ol.View({
-        center: tf.ui.center,
+        center: center,
         minZoom: 7,
         maxZoom: 13,
         zoom: 10
     });
 
-    tf.ui.map.setView(tf.ui.view);
+    tf.ui.view.once('change:center', function(event) {
+        tf.ui.initialCenterChanged = true;
+    });
 
-    tf.state.setup();
+    tf.state.setup(tf.ui.stateSetupDone);
+
+    tf.ui.map.setView(tf.ui.view);
 
     if (tf.state.isCordova) {
         navigator.splashscreen.hide();

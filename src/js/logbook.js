@@ -9,10 +9,11 @@ goog.require('tf.Pod');
 /**
  * @constructor
  */
-tf.LogBook = function(boatName, startNo, race, log) {
+tf.LogBook = function(boatName, startNo, startPoint, race, log) {
     this.onLogUpdateFns = [];
     this.boatName = boatName,
     this.startNo = startNo;
+    this.startPoint = startPoint;
     this.log = log || [];
     for (var i = 0; i < this.log.length; i++) {
         this.log[i].time = moment(this.log[i].time);
@@ -225,6 +226,10 @@ tf.LogBook.prototype.getLastPoint = function() {
     } else {
         return null;
     }
+};
+
+tf.LogBook.prototype.getStartPoint = function() {
+    return this.startPoint;
 };
 
 /**
