@@ -24,7 +24,7 @@ all: 	build/deps \
 	build/icomoon.css \
 	build/fonts
 
-build/index.html: src/html/index.html.src $(HTML_SRC)
+build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
 build/24h.js: $(JS_SRC)
