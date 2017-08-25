@@ -180,14 +180,14 @@ html, body, #map {
     margin-right: 0;
 }
 
-.log-book-delete-all, .log-book-edit {
+.log-book-add-entry, .log-book-edit {
     color: #333;
     text-decoration: none;
 }
-.log-book-delete-all, .log-book-edit:hover {
+.log-book-add-entry, .log-book-edit:hover {
     text-decoration: none;
 }
-.log-book-delete-all, .log-book-edit:focus {
+.log-book-add-entry, .log-book-edit:focus {
     text-decoration: none;
 }
 .log-book-invalid-dist {

@@ -95,10 +95,10 @@ tf.ui.logBook.openLogBook = function(options) {
     }
     if (log.length > 0) {
         rows += '<tr>' +
-            '<td><a tabindex="0" class="log-book-delete-all"' +
+            '<td><a tabindex="0" class="log-book-add-entry"' +
             ' role="button"' +
-            ' onclick="tf.ui.logBook.deleteAllClick();"' +
-            '><span class="icon-trash"></span></a></td>' +
+            ' onclick="tf.ui.logBook.addEntryClick();"' +
+            '><span class="icon-plus"></span></a></td>' +
             '</tr>';
     }
     var dist = logBook.getSailedDistance();
@@ -127,6 +127,10 @@ tf.ui.logBook.openLogBook = function(options) {
     }
     document.activeElement.blur();
 };
+
+tf.ui.logBook.addEntryClick = function(col) {
+    tf.ui.logBook.openLogEntry({});
+}
 
 tf.ui.logBook.deleteAllClick = function(col) {
     tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
@@ -210,7 +214,7 @@ $(document).ready(function() {
             tf.ui.alert('<p>Loggboken har redan skickats in.</p');
         } else if (!logBook.hasFinished()) {
             tf.ui.alert('<p>Loggboken kan inte skickas in förrän du ' +
-                        'loggat "Målgång".</p>');
+                        'loggat en punkt som "Målgång".</p>');
         } else {
             tf.ui.confirm('<p>Du kan inte göra fler ändringar av loggboken ' +
                           'när du har skickat in den.</p>' +
@@ -241,8 +245,19 @@ $(document).ready(function() {
         }
         return false;
     });
-    $('#log-book-add').on('click', function() {
-        tf.ui.logBook.openLogEntry({});
+    $('#log-book-delete-all').on('click', function() {
+        tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
+                      '</p>',
+                      'Nej',
+                      'Ja',
+                      function() {
+                          var logBookPage =
+                              document.getElementById('log-book-page');
+                          var logBook = logBookPage.logBook;
+                          logBook.deleteAllLogEntries();
+                          tf.ui.logBook.openLogBook({
+                              logBook: logBookPage.logBook});
+                      });
         return false;
     });
     $(document).on('click', '#log-book-btn-edit', function(event) {
