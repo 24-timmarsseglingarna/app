@@ -1,0 +1,10 @@
+1.0.3 - 2017-08-26
+
+  - Kartan centreras nu vid senast loggade punkt, anmäld startpunkt,
+    eller enhetens position om ingen punkt finns.
+
+  - Diverse förbättringar i hanteringen av planeringsverktyget.
+
+1.0.1 - 2017-08-16
+
+  - Första versionen för Apple App Store och Google Play Store.
