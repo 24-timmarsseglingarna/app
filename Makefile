@@ -47,7 +47,7 @@ build/24h.css: src/css/24h.css
 	cp $< $@
 
 build/fonts: src/icomoon/fonts
-	cp -r $< $@
+	cp -r $< build/
 
 # copy all dependencies except the compiler and the map
 build/deps: deps
