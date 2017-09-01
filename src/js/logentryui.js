@@ -158,6 +158,9 @@ tf.ui.logEntry.openLogEntry = function(options) {
     boatsElement = document.getElementById('log-entry-boats');
     // populate 'boats' with list of boats from current regatta
     var teams = tf.serverData.getTeamsData(options.logBook.race.getRegattaId());
+    teams.sort(function(a, b) {
+        return Number(a.start_number) - Number(b.start_number);
+    });
     boatsOptions = '';
     for (var i = 0; teams && i < teams.length; i++) {
         var sn = teams[i].start_number;
