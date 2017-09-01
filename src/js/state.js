@@ -29,15 +29,16 @@ tf.state.isLoggedIn = false;
 tf.state.isCordova = 'cordova' in window;
 
 
-tf.state.setup = function(continuationfn) {
-
+tf.state.init = function() {
     // initialize local storage handler
     tf.storage.init();
 
     // initialize server data; doesn't read from the server, but will
     // read cached data from local storage.
     tf.serverData.init();
+};
 
+tf.state.setupLogin = function(continuationfn) {
     // check if we're authenticated and possibly login
     var hasNetwork = (!tf.state.isCordova ||
                       navigator.connection.type != Connection.NONE);

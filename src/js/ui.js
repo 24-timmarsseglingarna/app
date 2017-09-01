@@ -1201,7 +1201,9 @@ tf.ui.onDeviceReady = function() {
         tf.ui.initialCenterChanged = true;
     });
 
-    tf.state.setup(tf.ui.stateSetupDone);
+    tf.state.init();
+
+    tf.state.setupLogin(tf.ui.stateSetupDone);
 
     tf.ui.map.setView(tf.ui.view);
 
