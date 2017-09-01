@@ -1301,6 +1301,34 @@ tf.ui.onDeviceReady = function() {
 
     if (tf.state.isCordova) {
         navigator.splashscreen.hide();
+    } else {
+        // This is the web version.  We can assume we have network.
+        // Parse query parameters
+        var query = window.location.search.slice(1);
+        var params = {}
+        if (query) {
+            var arr = query.split('&');
+            for (var i = 0; i < arr.length; i++) {
+                var a = arr[i].split('=');
+                var val = typeof(a[1])==='undefined' ? true : a[1];
+                params[a[0]] = val
+            }
+        }
+        // Experimental and undocumented feature - show a given plan
+        var plan = params['plan']
+        // create a plan from the given string
+        if (plan) {
+            points = plan.split(',');
+            var planX = new tf.Plan('Plan X', new tf.Pod(basePodSpec),
+                                    undefined);
+            for (var i = 0; i < points.length; i++) {
+                planX.addPoint(points[i]);
+            }
+            tf.state.curPlan.set(planX);
+            tf.ui.showPlan = true;
+            tf.ui.inshoreLegsLayer.changed();
+            tf.ui.offshoreLegsLayer.changed();
+        }
     }
 
 /* I don't know if this is a good idea or not...
