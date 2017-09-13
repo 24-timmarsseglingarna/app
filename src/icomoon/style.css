@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?4qs62j');
-  src:  url('fonts/icomoon.eot?4qs62j#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?4qs62j') format('truetype'),
-    url('fonts/icomoon.woff?4qs62j') format('woff'),
-    url('fonts/icomoon.svg?4qs62j#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?8ieglx');
+  src:  url('fonts/icomoon.eot?8ieglx#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?8ieglx') format('truetype'),
+    url('fonts/icomoon.woff?8ieglx') format('woff'),
+    url('fonts/icomoon.svg?8ieglx#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -66,12 +66,15 @@
 .icon-edit:before {
   content: "\e902";
 }
-.icon-pencil:before {
-  content: "\e900";
+.icon-sailing-boat:before {
+  content: "\e903";
 }
 .icon-stack:before {
   content: "\e92e";
 }
 .icon-plan2:before {
   content: "\ea82";
+}
+.icon-pencil:before {
+  content: "\e900";
 }
