@@ -50,11 +50,11 @@ tf.Plan.prototype.attachLogBook = function(logbook) {
     this.logbook = logbook;
     if (logbook != undefined) {
         this._resetPlan();
+        var self = this;
+        logbook.onLogUpdate(function() {
+            self._logBookChanged();
+        }, 10);
     }
-    var self = this;
-    logbook.onLogUpdate(function() {
-        self._logBookChanged();
-    }, 10);
 };
 
 tf.Plan.prototype.addPoint = function(point) {
@@ -218,6 +218,9 @@ tf.Plan.prototype.getPlannedDistance = function() {
 };
 
 tf.Plan.prototype.getPlannedSpeed = function() {
+    if (this.logbook == undefined) {
+        return 0;
+    }
     var dist = this.totalDist / 10;
     var start = this.logbook.getStartTime();
     var raceLengthMinutes = this.logbook.race.getRaceLengthHours() * 60;
@@ -324,7 +327,7 @@ tf.Plan.prototype._updateState = function(informSubscribers) {
     }
     this.totalDist = totalDist;
     this.nlegs = nlegs;
-    var loggedPoints = this.logbook.getPoints();
+    var loggedPoints = this.logbook ? this.logbook.getPoints(): [];
     if (loggedPoints.length > 0) {
         var time = loggedPoints[loggedPoints.length - 1].time;
         var offset;
