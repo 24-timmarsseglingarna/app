@@ -29,44 +29,25 @@ goog.require('ol.style.Text');
 
 
 /**
- * We define three zoom levels: MIN, MED, MAX.
- *   MIN: resolution > RESOLUTION_MIN_MED
- *   MED: RESOLUTION_MIN_MED > resolution > RESOLUTION_MED_MAX
- *   MEX: RESOLUTION_MED_MAX > resolution
- */
-
-/**
- * Resolution limit beteen levels MIN and MED.
- * @const {number}
- */
-tf.ui.RESOLUTION_MIN_MED = 100;
-
-/**
- * Resolution limit beteen levels MED and MAX.
- * @const {number}
- */
-tf.ui.RESOLUTION_MED_MAX = 50;
-
-/**
- * Font for point labels on MIN zoom levels.
+ * Font for point labels on zoom levels 1-3
  * @const {string}
  */
 tf.ui.POINT_LABEL_FONT_ZOOM_MIN = 'bold 13px sans-serif';
 
 /**
- * Font for point labels on MED and MAX zoom levels.
+ * Font for point labels on zoom levels 4-5.
  * @const {string}
  */
 tf.ui.POINT_LABEL_FONT_ZOOM_MED = 'bold 15px sans-serif';
 
 /**
- * Font for leg labels on MIN and MED zoom levels.
+ * Font for leg labels on zoom levels 1-4.
  * @const {string}
  */
 tf.ui.LEG_LABEL_FONT_ZOOM_MED = 'bold 13px sans-serif';
 
 /**
- * Font for leg labels on MAX zoom levels.
+ * Font for leg labels on zoom level 5.
  * @const {string}
  */
 tf.ui.LEG_LABEL_FONT_ZOOM_MAX = 'bold 15px sans-serif';
@@ -208,6 +189,24 @@ window.addEventListener('popstate', function(event) {
         }
     }
 });
+
+/**
+ * We define 5 zoom levels; 5 is max zoomed in (small area)
+ * and 1 is max zoomed out (large area).
+ */
+tf.ui.getZoomLevel = function(resolution) {
+    if (resolution > 650) {
+        return 1;
+    } else if (resolution > 300) {
+        return 2;
+    } else if (resolution > 100) {
+        return 3;
+    } else if (resolution > 50) {
+        return 4;
+    } else {
+        return 5;
+    }
+};
 
 /**
  * Define the Map
@@ -503,17 +502,19 @@ tf.ui.mkPointStyleFunc = function(color) {
         function(feature, resolution) {
             tf.ui.resolution = resolution;
             var number = feature.get('number');
+            var label = number + ' ' + feature.get('name');
             var styleName = number + '1';
             var font = tf.ui.POINT_LABEL_FONT_ZOOM_MIN;
             var pointStyle = zoomMinPointStyle;
-            if (resolution < tf.ui.RESOLUTION_MIN_MED) {
-                // zoom: med || max
+            if (tf.ui.getZoomLevel(resolution) > 3) {
                 font = tf.ui.POINT_LABEL_FONT_ZOOM_MED;
                 styleName = number + '2';
                 pointStyle = basicPointStyle;
+            } else if (tf.ui.getZoomLevel(resolution) < 3) {
+                styleName = number + '3';
+                label = number;
             }
             var labelStyle = tf.ui.styleCache[styleName];
-            var label = number + ' ' + feature.get('name');
             if (!labelStyle) {
                 labelStyle = new ol.style.Style({
                     text: new ol.style.Text({
@@ -523,6 +524,9 @@ tf.ui.mkPointStyleFunc = function(color) {
                     })
                 });
                 tf.ui.styleCache[styleName] = labelStyle;
+            }
+            if (tf.ui.getZoomLevel(resolution) < 2) {
+                return [pointStyle, tapPointStyle];
             }
             return [pointStyle, tapPointStyle, labelStyle];
         };
@@ -629,9 +633,9 @@ tf.ui.mkLegStyleFunc = function(color) {
             var legStyle = basicLegStyle1;
             var nextLegStyle = nextLegStyle1;
             var labelNo = '1';
-            if (resolution < tf.ui.RESOLUTION_MED_MAX) {
+            if (tf.ui.getZoomLevel(resolution) > 4) {
                 labelNo = '2';
-            } else if (resolution > tf.ui.RESOLUTION_MIN_MED) {
+            } else if (tf.ui.getZoomLevel(resolution) < 4) {
                 legStyle = basicLegStyle0;
                 nextLegStyle = nextLegStyle0;
             }
@@ -681,7 +685,7 @@ tf.ui.mkLegStyleFunc = function(color) {
             if (tf.ui.showLegs &&
                 (tf.ui.forceLegDistances == 1 ||
                  (tf.ui.forceLegDistances == 0 &&
-                  resolution < tf.ui.RESOLUTION_MIN_MED))) {
+                  tf.ui.getZoomLevel(resolution) > 3))) {
                 // If zoomed in - show the distance as a text string
                 var label = src + '-' + dst + labelNo;
                 var labelStyle = tf.ui.styleCache[label];
@@ -692,7 +696,7 @@ tf.ui.mkLegStyleFunc = function(color) {
                     var offsetX;
                     var offsetY;
                     var font = tf.ui.LEG_LABEL_FONT_ZOOM_MED;
-                    if (resolution < tf.ui.RESOLUTION_MED_MAX) {
+                    if (tf.ui.getZoomLevel(resolution) > 4) {
                         font = tf.ui.LEG_LABEL_FONT_ZOOM_MAX;
                     }
                     geometry.forEachSegment(function(start, end) {
