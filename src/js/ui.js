@@ -214,6 +214,10 @@ tf.ui.getZoomLevel = function(resolution) {
 
 tf.ui.map = new ol.Map({
     target: 'map',
+    /*
+     * Increase moveTolerance in order to detect taps correctly on
+     * Sony Xperia Z3 Compact and Z4 Tablet.
+     */
     moveTolerance: 1.5,
     loadTilesWhileInteracting: true,
     //loadTilesWhileAnimating: true,
