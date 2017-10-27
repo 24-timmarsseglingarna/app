@@ -6,7 +6,7 @@ JS_SRC = $(wildcard src/js/*.js)
 
 HTML_SRC = $(wildcard src/html/*.html)
 
-CLOSURE_COMPILER_VSN=20170409
+CLOSURE_COMPILER_VSN=20170910
 
 ifeq ($(DEBUG),true)
   CLOSURE_ARGS= -O simple --debug --formatting=PRETTY_PRINT
@@ -152,7 +152,7 @@ deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
 
-OL_VSN=4.2.0
+OL_VSN=4.4.2
 deps/ol:
 	cd deps; \
 	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
@@ -162,7 +162,7 @@ deps/ol:
 	mv v$(OL_VSN)-dist/ol.css .; \
 	rm -rf v$(OL_VSN)-dist
 
-DIALOG_POLYFILL_VSN=0.4.7
+DIALOG_POLYFILL_VSN=0.4.9
 deps/dialog-polyfill:
 	cd deps; \
 	wget https://github.com/GoogleChrome/dialog-polyfill/archive/$(DIALOG_POLYFILL_VSN).tar.gz; \
