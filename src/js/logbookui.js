@@ -65,6 +65,15 @@ tf.ui.logBook.openLogBook = function(options) {
             'Radera</button>' +
             '</div>';
 
+        var wind;
+        if (e.wind != undefined) {
+            wind = e.wind.dir + ' ' + e.wind.speed;
+        }
+        var boats;
+        if (e.boats != undefined) {
+            boats = e.boats.join(',');
+        }
+
         rows += '<tr>' +
             '<td><a tabindex="0" class="log-book-edit"' +
             ' role="button"' +
@@ -84,12 +93,12 @@ tf.ui.logBook.openLogBook = function(options) {
                        .replace(/\s/g, '&nbsp;') + '</td>' +
             '<td>' + e.point + '</td>' +
             distTD + distance + '</td>' +
-            '<td>' + e.wind.dir + ' ' + e.wind.speed + '</td>' +
-            intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt, true) + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtProtest(e.protest, true) + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtSails(e.sails, true) + '</td>' +
-            '<td>' + e.boats.join(',') + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtOther(e, true) + '</td>' +
+            '<td>' + wind + '</td>' +
+            intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt) + '</td>' +
+            '<td>' + tf.ui.logEntry.fmtProtest(e.protest) + '</td>' +
+            '<td>' + tf.ui.logEntry.fmtSails(e.sails) + '</td>' +
+            '<td>' + boats + '</td>' +
+            '<td>' + tf.ui.logEntry.fmtOther(e) + '</td>' +
             '<td>' + e.comment + '</td>' +
             '</tr>';
     }

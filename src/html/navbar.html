@@ -5,13 +5,13 @@
 <div id="tf-nav-bar">
 
   <!-- temporary test button -->
-  <!--
-      <div id="tf-nav-test" class="tf-nav-cell">
-      <div class="tf-nav-icon">
+<!--
+  <div id="tf-nav-test" class="tf-nav-cell">
+    <div class="tf-nav-icon">
       <span class="icon-close"></span>
-      </div>
-      </div>
-  -->
+    </div>
+  </div>
+-->
 
   <div class="dropup">
     <div id="tf-nav-more" class="tf-nav-cell" data-toggle="dropdown">
@@ -19,7 +19,7 @@
         <span class="icon-ellipsis-v"></span>
       </div>
     </div>
-    <ul class="dropdown-menu" id="tf-nav-show-more">
+    <ul class="dropdown-menu">
       <li>
         <div id="tf-nav-show-activate-race">Aktivera segling</div>
       </li>
@@ -93,10 +93,49 @@
     </ul>
   </div>
 
-  <div id="tf-nav-logentry" class="tf-nav-cell">
-    <div class="tf-nav-icon">
-      <span class="icon-plus"></span>
+  <div class="dropup">
+    <div id="tf-nav-log" class="tf-nav-cell" data-toggle="dropdown">
+      <div class="tf-nav-icon">
+        <span class="icon-plus"></span>
+      </div>
     </div>
+    <ul class="dropdown-menu dropdown-menu-center">
+      <li class="dropdown-header">Logga händelse</li>
+      <li>
+        <div class="tf-nav-log"
+             data-type="seeOtherBoats">Siktar andra båtar</div>
+      </li>
+      <li>
+        <div class="tf-nav-log"
+             data-type="changeSails">Segelskifte</div>
+      </li>
+      <li>
+        <div class="tf-nav-log"
+             data-type="protest">Observation av möjligt regelbrott</div>
+      </li>
+      <li role="separator" class="divider"></li>
+      <li>
+        <div class="tf-nav-log" id="tf-nav-log-lanterns"
+             data-type="lanterns"><!-- set by code --></div>
+      </li>
+      <li>
+        <div class="tf-nav-log" id="tf-nav-log-engine"
+             data-type="engine"><!-- set by code --></div>
+      </li>
+      <li>
+        <div class="tf-nav-log"
+             data-type="endOfRace">Seglar på övertid</div>
+      </li>
+      <li>
+        <div class="tf-nav-log"
+             data-type="interrupt">Avbrott</div>
+      </li>
+      <li role="separator" class="divider"></li>
+      <li>
+        <div class="tf-nav-log"
+             data-type="other">Annat</div>
+      </li>
+    </ul>
   </div>
 
   <div id="tf-nav-logbook" class="tf-nav-cell">

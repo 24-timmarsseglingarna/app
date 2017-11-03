@@ -24,6 +24,16 @@ tf.state.curRace = null;
 tf.state.curLogBook = null;
 tf.state.curPlan = null;
 
+// this is initialized at startup by analyzing the log book, if there is one
+tf.state.boatState = {
+    'engine': false,
+    'lanterns': false
+};
+
+// this is initialized at startup by analyzing the log book, if there is one
+tf.state.activeInterrupt = false;
+
+
 tf.state.isLoggedIn = false;
 
 tf.state.isCordova = 'cordova' in window;
@@ -141,6 +151,11 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
                                              teamData.start_point,
                                              tf.state.curRace, log);
 
+        tf.state.curLogBook.onLogUpdate(function(logBook) {
+            tf.state.boatState.engine = logBook.getEngine();
+            tf.state.boatState.lanterns = logBook.getLanterns();
+            tf.state.activeInterrupt = logBook.getInterrupt();
+        }, 90);
         tf.state.curLogBook.onLogUpdate(tf.ui.logBookChanged, 100);
         tf.state.curLogBook.onLogUpdate(function(logBook) {
             tf.storage.setRaceLog(logBook.race.getId(), logBook.getLog());

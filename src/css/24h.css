@@ -4,7 +4,7 @@ html, body, #map {
 
 /* place zoom buttons below the status bar */
 .ol-zoom {
-    top: 75px;
+    top: 100px;
 }
 
 
@@ -13,6 +13,9 @@ html, body, #map {
     top: 0%;
     left: 0%;
     z-index: 10;
+}
+
+.tf-status-row {
     display: -webkit-box;
     display: -webkit-flex;
     display:flex;
@@ -30,6 +33,16 @@ html, body, #map {
 
 .tf-status-cell:first-child {
     border-width: 1px 1px 1px 1px;
+}
+
+/* add some padding to the state icons */
+#tf-status-state-content {
+    padding: 6px;
+}
+
+.tf-status-icon {
+    font-size: 26px;
+    color: grey;
 }
 
 /* add some additional padding on non-phones */
@@ -293,4 +306,12 @@ dialog {
   color: #262626;
   text-decoration: none;
   background-color: #f5f5f5;
+}
+
+.dropdown-menu-center {
+    right: auto;
+    left: 50%;
+    -webkit-transform: translate(-50%, 0);
+    -o-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
 }

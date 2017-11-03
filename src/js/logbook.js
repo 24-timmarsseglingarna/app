@@ -5,7 +5,6 @@ goog.provide('tf.LogBook');
 goog.require('tf');
 goog.require('tf.Pod');
 
-
 /**
  * @constructor
  */
@@ -305,6 +304,48 @@ tf.LogBook.prototype.getTimeOffset = function() {
 tf.LogBook.prototype.getDistOffset = function() {
     return this.distOffset;
 };
+
+tf.LogBook.prototype.getEngine = function() {
+    var res = false;
+    for (var i = 0; i < this.log.length; i++) {
+        e = this.log[i];
+        if (e.engine == 'on') {
+            res = true;
+        } else if (e.engine == 'off') {
+            res = false;
+        }
+    }
+    return res;
+};
+
+tf.LogBook.prototype.getLanterns = function() {
+    var res = false;
+    for (var i = 0; i < this.log.length; i++) {
+        e = this.log[i];
+        if (e.lanterns == 'on') {
+            res = true;
+        } else if (e.lanterns == 'off') {
+            res = false;
+        }
+    }
+    return res;
+};
+
+tf.LogBook.prototype.getInterrupt = function() {
+    var res = false;
+    for (var i = 0; i < this.log.length; i++) {
+        e = this.log[i];
+        if (e.interrupt == undefined) {
+            continue;
+        } else if (e.interrupt.type != 'done') {
+            res = true;
+        } else {
+            res = false;
+        }
+    }
+    return res;
+};
+
 
 tf.LogBook.prototype.deleteLogEntry = function(index) {
     this.deleted.push(this.log[index].id);

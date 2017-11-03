@@ -303,6 +303,7 @@ tf.ui.mkPointPopupHTML = function(number, name, descr, eta) {
 tf.ui.logPoint = function(number) {
     tf.ui.pointPopup.hide();
     tf.ui.logEntry.openLogEntry({point: number,
+                                 type: 'round',
                                  logBook: tf.state.curLogBook});
 };
 
@@ -770,8 +771,6 @@ tf.ui.planModeActivate = function(active) {
         }
         tf.ui.planMode = true;
         $('#tf-nav-plan-mode').addClass('ol-active');
-        // When we enter planning mode, we show the plan
-        tf.ui.showPlanActivate(true);
     } else {
         tf.ui.planMode = false;
         $('#tf-nav-plan-mode').removeClass('ol-active');
@@ -805,12 +804,12 @@ tf.ui.showPlanActivate = function(active) {
     tf.ui.updateStatusBar();
 };
 
-
-function test() {
-
-}
-
 $(document).ready(function() {
+    $('#tf-status-interrupt').on('click', function(event) {
+        tf.ui.alert('<p>Du har ett pågående avbrott</p>');
+        return false;
+    });
+
     $('#tf-nav-plan-mode').on('click', function(event) {
         if (!tf.state.curRace) {
             tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
@@ -845,21 +844,44 @@ $(document).ready(function() {
         tf.ui.offshoreLegsLayer.changed();
     });
 
+/*
     $('#tf-nav-test').on('click', function(event) {
-        test();
+        tf.ui.addLogEntry.openPage();
         return false;
     });
+*/
 
-    $('#tf-nav-logentry').on('click', function(event) {
+    $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {
             tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
                         'göra en loggboksanteckning.</p>');
+            return false;
         } else {
-            tf.ui.logEntry.openLogEntry({
-                logBook: tf.state.curLogBook
-            });
+            /* Modify the text depending on current state */
+            if (!tf.state.boatState.lanterns) {
+                $('#tf-nav-log-lanterns').text("Tänder lanternor");
+            } else {
+                $('#tf-nav-log-lanterns').text("Släcker lanternor");
+            }
+            if (!tf.state.boatState.engine) {
+                $('#tf-nav-log-engine').text("Startar motor för laddning");
+            } else {
+                $('#tf-nav-log-engine').text("Stänger av motor för laddning");
+            }
+            if (!tf.state.activeInterrupt) {
+                $('#tf-nav-log-interrupt').text("Avbrott");
+            } else {
+                $('#tf-nav-log-interrupt').text("Återupptar segling");
+            }
         }
-        return false;
+    });
+
+    $('.tf-nav-log').on('click', function(event) {
+        $('#tf-nav-log').dropdown('toggle');
+        tf.ui.logEntry.openLogEntry({
+            logBook: tf.state.curLogBook,
+            type: $(event.target).data('type') // html5 data-type attribute
+        });
     });
 
     $('#tf-nav-logbook').on('click', function(event) {
@@ -1062,7 +1084,7 @@ tf.ui.updateStatusBar = function() {
     }
     $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
     $('#tf-status-distance').text(dist.toFixed(1) + ' M');
-    if (tf.ui.showPlan && tf.state.curPlan) {
+    if ((tf.ui.showPlan || tf.ui.planMode) && tf.state.curPlan) {
         var planDist = tf.state.curPlan.getPlannedDistance();
         var planSpeed = tf.state.curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;
@@ -1075,6 +1097,22 @@ tf.ui.updateStatusBar = function() {
         $('.tf-status-plan').show();
     } else {
         $('.tf-status-plan').hide();
+    }
+
+    if (tf.state.boatState.lanterns) {
+        $('#tf-status-lanterns-on').show();
+    } else {
+        $('#tf-status-lanterns-on').hide();
+    }
+    if (tf.state.boatState.engine) {
+        $('#tf-status-engine-on').show();
+    } else {
+        $('#tf-status-engine-on').hide();
+    }
+    if (tf.state.activeInterrupt) {
+        $('#tf-status-interrupt').show();
+    } else {
+        $('#tf-status-interrupt').hide();
     }
 };
 

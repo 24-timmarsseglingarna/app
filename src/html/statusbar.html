@@ -4,29 +4,45 @@
 -->
 
 <div id="tf-status-bar">
-  <!-- don't show boatname on phone -->
-  <div class="tf-status-cell hidden-xs" id="tf-status-cell-boat">
-    <div id="tf-status-boat" class="tf-status-val"></div>
-    <div class="tf-status-label">Båt</div>
+  <div class="tf-status-row">
+    <!-- don't show boatname on phone -->
+    <div class="tf-status-cell hidden-xs" id="tf-status-cell-boat">
+      <div id="tf-status-boat" class="tf-status-val"></div>
+      <div class="tf-status-label">Båt</div>
+    </div>
+    <div class="tf-status-cell">
+      <div id="tf-status-time" class="tf-status-val"></div>
+      <div id="tf-status-time-text" class="tf-status-label">Tid kvar</div>
+    </div>
+    <div class="tf-status-cell">
+      <div id="tf-status-distance" class="tf-status-val"></div>
+      <div class="tf-status-label">Seglad distans</div>
+    </div>
+    <div class="tf-status-cell">
+      <div id="tf-status-speed" class="tf-status-val"></div>
+      <div class="tf-status-label">Medelfart</div>
+    </div>
+    <div class="tf-status-cell tf-status-plan">
+      <div id="tf-status-planned-distance" class="tf-status-val"></div>
+      <div class="tf-status-label">Plan distans</div>
+    </div>
+    <div class="tf-status-cell tf-status-plan">
+      <div id="tf-status-planned-speed" class="tf-status-val"></div>
+      <div class="tf-status-label">Målfart</div>
+    </div>
   </div>
-  <div class="tf-status-cell">
-    <div id="tf-status-time" class="tf-status-val"></div>
-    <div id="tf-status-time-text" class="tf-status-label">Tid kvar</div>
-  </div>
-  <div class="tf-status-cell">
-    <div id="tf-status-distance" class="tf-status-val"></div>
-    <div class="tf-status-label">Seglad distans</div>
-  </div>
-  <div class="tf-status-cell">
-    <div id="tf-status-speed" class="tf-status-val"></div>
-    <div class="tf-status-label">Medelfart</div>
-  </div>
-  <div class="tf-status-cell tf-status-plan">
-    <div id="tf-status-planned-distance" class="tf-status-val"></div>
-    <div class="tf-status-label">Total distans</div>
-  </div>
-  <div class="tf-status-cell tf-status-plan">
-    <div id="tf-status-planned-speed" class="tf-status-val"></div>
-    <div class="tf-status-label">Målfart</div>
+
+  <div class="tf-status-row">
+      <div id="tf-status-state-content">
+        <span id="tf-status-lanterns-on" class="tf-status-icon">
+          <span class="icon-light"></span>
+        </span>
+        <span id="tf-status-engine-on" class="tf-status-icon">
+          <span class="icon-engine-charging"></span>
+        </span>
+        <span id="tf-status-interrupt" class="tf-status-icon">
+          <span class="icon-no-sailing"></span>
+        </span>
+      </div>
   </div>
 </div>
