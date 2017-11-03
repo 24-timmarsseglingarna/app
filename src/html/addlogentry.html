@@ -1,0 +1,73 @@
+<!--
+    Add Log Entry
+    Controlled by addlogentryui.js.
+-->
+<dialog id="add-log-entry-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Logga händelse</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <div class="list-group">
+              <div class="col-sm-offset-2 col-sm-8">
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        data-type="seeOtherBoats">
+                  Siktar andra båtar
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        data-type="changeSails">
+                  Segelskifte
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        data-type="protest">
+                  Observation av möjligt regelbrott
+                </button>
+              </div>
+              <div class="col-sm-offset-2 col-sm-8">
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        id="tf-log-lanterns"
+                        data-type="lanterns">
+                  <!-- set by code -->
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        id="tf-log-engine"
+                        data-type="engine">
+                  <!-- set by code -->
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        data-type="endOfRace">
+                  Seglar på övertid
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        data-type="interrupt">
+                  Avbrott
+                </button>
+              </div>
+              <div class="col-sm-offset-2 col-sm-8">
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-log-item"
+                        data-type="other">
+                  Annat
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-primary dialog-close"
+               value="Avbryt"/>
+      </div>
+    </div>
+  </div>
+</dialog>

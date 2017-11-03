@@ -169,7 +169,22 @@ tf.ui.pushPage = function(sentinel) {
     history.pushState(tf.ui.pageStack.length, document.title, location.href);
 };
 
-tf.ui.popPage = function() {
+/*
+ * Note that this is an asynchronous function (on chrome), which means
+ * that if you need to do more work after the page has closed (e.g.,
+ * open a new page), it must be done in the continueFn.
+ */
+tf.ui.popPage = function(continueFn) {
+    if (continueFn) {
+        // ensure that we run both the original sentinel, and the
+        // continueFn when the history.back's popstate event actually
+        // triggers.
+        sentinel = tf.ui.pageStack.pop();
+        tf.ui.pageStack.push(function() {
+            sentinel();
+            continueFn();
+        });
+    }
     history.back();
 };
 
@@ -844,12 +859,15 @@ $(document).ready(function() {
         tf.ui.offshoreLegsLayer.changed();
     });
 
-/*
     $('#tf-nav-test').on('click', function(event) {
+        if (!tf.state.curLogBook) {
+            tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
+                        'göra en loggboksanteckning.</p>');
+            return false;
+        }
         tf.ui.addLogEntry.openPage();
         return false;
     });
-*/
 
     $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {

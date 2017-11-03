@@ -8,13 +8,12 @@ goog.provide('tf.ui.confirm');
 
 goog.require('tf.ui');
 
-tf.ui.confirm = function(html, cancelLabel, continueLabel, continueFun) {
+tf.ui.confirm = function(html, cancelLabel, continueLabel, continueFn) {
     $('#confirm-body').html(html);
     $('#confirm-cancel').prop('value', cancelLabel);
     $('#confirm-continue').prop('value', continueLabel);
     $('#confirm-continue').on('click', function() {
-        tf.ui.popPage();
-        continueFun();
+        tf.ui.popPage(continueFn);
         return false;
     });
     tf.ui.pushPage(function() {

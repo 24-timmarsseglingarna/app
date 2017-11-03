@@ -29,16 +29,18 @@ tf.ui.settings.openPage = function() {
  */
 $(document).ready(function() {
     $('#settings-login-btn').on('click', function() {
-        tf.ui.popPage();
-        tf.ui.loginPage.openPage();
+        tf.ui.popPage(function() {
+            tf.ui.loginPage.openPage();
+        });
         return false;
     });
 
     $('#settings-logout-btn').on('click', function() {
         tf.state.logout();
-        tf.ui.popPage();
-        // after logout, go to login page
-        tf.ui.loginPage.openPage();
+        tf.ui.popPage(function() {
+            // after logout, go to login page
+            tf.ui.loginPage.openPage();
+        });
         return false;
     });
 

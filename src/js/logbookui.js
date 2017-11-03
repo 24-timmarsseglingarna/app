@@ -138,7 +138,7 @@ tf.ui.logBook.openLogBook = function(options) {
 };
 
 tf.ui.logBook.addEntryClick = function(col) {
-    tf.ui.logBook.openLogEntry({});
+    tf.ui.addLogEntry.openPage();
 }
 
 tf.ui.logBook.deleteAllClick = function(col) {
@@ -289,7 +289,7 @@ $(document).ready(function() {
         }
         var new_ = moment(cur.time).add(addSeconds, 'seconds');
         $('.log-book-edit').popover('hide');
-        tf.ui.logBook.openLogEntry({time: new_});
+        tf.ui.addLogEntry.openPage({time: new_});
     });
     $(document).on('click', '#log-book-btn-del', function(event) {
         // delete the log entry

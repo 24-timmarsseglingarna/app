@@ -57,6 +57,7 @@ m4_include(confirm.html)
 m4_include(login.html)
 m4_include(settings.html)
 m4_include(activaterace.html)
+m4_include(addlogentry.html)
 m4_include(logbook.html)
 m4_include(logentry.html)
 
