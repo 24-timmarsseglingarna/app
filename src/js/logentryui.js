@@ -87,11 +87,15 @@ tf.ui.logEntry.fmtSails = function(sails) {
 
 tf.ui.logEntry.fmtOther = function(e) {
     var s = [];
-    if (e.lanterns) {
-        s.push('lanternor');
+    if (e.lanterns == 'on') {
+        s.push('lanternor på');
+    } else if (e.lanterns == 'off') {
+        s.push('lanternor på');
     }
-    if (e.engine) {
-        s.push('motor');
+    if (e.engine == 'on') {
+        s.push('motor på');
+    } else if (e.engine == 'off') {
+        s.push('motor av');
     }
     if (e.endofrace != undefined) {
         s.push('segling slut');
@@ -151,13 +155,13 @@ tf.ui.logEntry.openLogEntry = function(options) {
     case 'round':
         title = 'Rundning';
         $('#log-entry-form-point').show();
+        $('#log-entry-form-wind').show();
         if (isStart) {
             title = 'Start';
             tf.ui.logEntry._initBoats(regattaId);
             $('#log-entry-form-finish').hide();
             $('#log-entry-form-boats').show();
             $('#log-entry-form-sail').show();
-            $('#log-entry-form-wind').show();
         }
         break;
     case 'endOfRace':
@@ -192,12 +196,13 @@ tf.ui.logEntry.openLogEntry = function(options) {
         $('#log-entry-form-wind').show();
         break;
     case 'engine':
-        $('#log-entry-form-engine').show();
         title = 'Motor för laddning';
+        $('#log-entry-form-engine').show();
         break;
     case 'lanterns':
-        // FIXME
         title = 'Lanternor';
+        $('#log-entry-form-lanterns').show();
+        $('#log-entry-form-position').show();
         break;
     case 'other':
         // FIXME
@@ -223,7 +228,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
 
         if (entry.wind != undefined) {
-            tf.ui.logEntry._initWind(entry);
+            tf.ui.logEntry._initWind(entry.wind);
         }
 
         if (entry.interrupt != undefined) {
@@ -250,7 +255,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
                 $('#log-entry-interrupt-rescue-time').prop('checked', true);
                 break;
             case 'rescue-dist':
-                $('#log-entry-interrupt-rescue-dist').prop('checked', true);
+                $('#log-entry-interrupt-rescue-distance').prop('checked', true);
                 break;
             }
         }
@@ -277,7 +282,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
 
         if (entry.sails != undefined) {
-            tf.ui.logEntry._initSails(entry);
+            tf.ui.logEntry._initSails(entry.sails);
         }
 
         if (entry.boats != undefined) {
@@ -321,33 +326,66 @@ tf.ui.logEntry.openLogEntry = function(options) {
         $('#log-entry-finish').prop('checked', false);
         $('#log-entry-comment').val('');
         $('#log-entry-end-of-race').prop('checked', false);
-        // init sails to same as last one found
-        if (type == 'changeSails') {
+
+        if (type == 'changeSails' || type == 'round') {
             var found = false;
-            var foundWind = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
                 // if we find a wind observation from some other entry, use it
-                if (log[i].type == 'wind' && log[i].wind) {
-                    tf.ui.logEntry._initWind(log[i]);
-                    foundWind = true;
-                }
-                if (log[i].type == type && log[i].sails) {
-                    tf.ui.logEntry._initSails(log[i]);
-                    if (!foundWind) {
-                        tf.ui.logEntry._initWind(log[i]);
-                    }
+                if (log[i].wind) {
+                    tf.ui.logEntry._initWind(log[i].wind);
                     found = true;
                 }
             }
         }
-        // init wind to same as last one found
-        if (type == 'wind') {
+        if (type == 'changeSails') {
             var found = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
-                if (log[i].type == type && log[i].wind) {
-                    tf.ui.logEntry._initWind(log[i]);
+                console.log('i: ' + i + ' sails: ' + log[i].sails);
+                if (log[i].sails) {
+                    tf.ui.logEntry._initSails(log[i].sails);
                     found = true;
                 }
+            }
+        }
+        if (type == 'round') {
+            tf.ui.logEntry._initSails({});
+        }
+        if (type == 'engine') {
+            var found = false;
+            for (var i = log.length - 1; !found && i >= 0; i--) {
+                if (log[i].type == type && log[i].engine) {
+                    switch (log[i].engine) {
+                    case 'on':
+                        $('#log-entry-engine-off').prop('checked', true);
+                        break;
+                    case 'off':
+                        $('#log-entry-engine-on').prop('checked', true);
+                        break;
+                    }
+                    found = true;
+                }
+            }
+            if (!found) {
+                $('#log-entry-engine-on').prop('checked', true);
+            }
+        }
+        if (type == 'lanterns') {
+            var found = false;
+            for (var i = log.length - 1; !found && i >= 0; i--) {
+                if (log[i].type == type && log[i].lanterns) {
+                    switch (log[i].lanterns) {
+                    case 'on':
+                        $('#log-entry-lanterns-off').prop('checked', true);
+                        break;
+                    case 'off':
+                        $('#log-entry-lanterns-on').prop('checked', true);
+                        break;
+                    }
+                    found = true;
+                }
+            }
+            if (!found) {
+                $('#log-entry-lanterns-on').prop('checked', true);
             }
         }
 
@@ -358,6 +396,9 @@ tf.ui.logEntry.openLogEntry = function(options) {
     logEntryPage.logBook = options.logBook;
     logEntryPage.logEntryIndex = options.index;
     logEntryPage.logEntryType = type;
+    if (isStart) {
+        logEntryPage.logEntryType = 'start';
+    }
     tf.ui.pushPage(function() {
         tf.ui.logEntry.closeLogEntry();
     });
@@ -441,21 +482,20 @@ tf.ui.logEntry._initProtest = function(regattaId) {
     boatElement.options[0].selected = true;
 };
 
-tf.ui.logEntry._initSails = function(entry) {
-    $('#log-entry-sail-main').prop('checked', entry.sails.main);
-    $('#log-entry-sail-reef').prop('checked', entry.sails.reef);
-    $('#log-entry-sail-jib').prop('checked', entry.sails.jib);
-    $('#log-entry-sail-genoa').prop('checked', entry.sails.genoa);
-    $('#log-entry-sail-code').prop('checked', entry.sails.code);
-    $('#log-entry-sail-gennaker').prop('checked', entry.sails.gennaker);
-    $('#log-entry-sail-spinnaker').prop('checked',
-                                        entry.sails.spinnaker);
-    $('#log-entry-sail-other').val(entry.sails.other);
+tf.ui.logEntry._initSails = function(sails) {
+    $('#log-entry-sail-main').prop('checked', sails.main);
+    $('#log-entry-sail-reef').prop('checked', sails.reef);
+    $('#log-entry-sail-jib').prop('checked', sails.jib);
+    $('#log-entry-sail-genoa').prop('checked', sails.genoa);
+    $('#log-entry-sail-code').prop('checked', sails.code);
+    $('#log-entry-sail-gennaker').prop('checked', sails.gennaker);
+    $('#log-entry-sail-spinnaker').prop('checked', sails.spinnaker);
+    $('#log-entry-sail-other').val(sails.other);
 };
 
-tf.ui.logEntry._initWind = function(entry) {
-    $('#log-entry-wind-dir').val(entry.wind.dir);
-    $('#log-entry-wind-speed').val(entry.wind.speed);
+tf.ui.logEntry._initWind = function(wind) {
+    $('#log-entry-wind-dir').val(wind.dir);
+    $('#log-entry-wind-speed').val(wind.speed);
 };
 
 tf.ui.logEntry.closeLogEntry = function() {
@@ -533,6 +573,11 @@ tf.ui.logEntry.getEndOfRace = function() {
 tf.ui.logEntry.logEntrySave = function() {
     var logEntryPage = document.getElementById('log-entry-page');
     var type = logEntryPage.logEntryType;
+    var isStart = false;
+    if (type == 'start') {
+        isStart = true;
+        type = 'round';
+    }
     var point = $('#log-entry-point').val();
     var finish = $('#log-entry-finish').prop('checked');
     var time = $('#log-entry-timepicker').data('DateTimePicker').date();
@@ -544,8 +589,8 @@ tf.ui.logEntry.logEntrySave = function() {
         speed: windSpeed
     };
     var boatsElement = document.getElementById('log-entry-boats');
-    var lanterns = $('#log-entry-lanterns').prop('checked');
-    var engine = $('#log-entry-engine').prop('checked');
+    var lanterns = $('#log-entry-form-lanterns input:checked').val();
+    var engine = $('#log-entry-form-engine input:checked').val();
     var comment = $('#log-entry-comment').val();
     var position = $('#log-entry-position').val();
     var boats = [];
@@ -570,14 +615,19 @@ tf.ui.logEntry.logEntrySave = function() {
     var logEntry = {
         type: type,
         time: moment(t),
-        comment: comment
     };
+
+    if (comment != '') {
+        logEntry.comment = comment;
+    }
 
     switch (type) {
     case 'round':
         logEntry.point = point;
         logEntry.wind = wind;
-        logEntry.sails = sails;
+        if (isStart) {
+            logEntry.sails = sails;
+        }
         logEntry.boats = boats;
         break;
     case 'endOfRace':
@@ -604,6 +654,7 @@ tf.ui.logEntry.logEntrySave = function() {
         break;
     case 'lanterns':
         logEntry.lanterns = lanterns;
+        logEntry.position = position;
         break;
     case 'other':
         break;

@@ -308,22 +308,36 @@
             </div>
           </div>
 
+          <!-- Lanterns -->
+          <div class="form-group log-entry-form" id="log-entry-form-lanterns">
+            <label class="col-xs-12 col-sm-4 control-label">
+            Lanternor</label>
+            <div class="col-sm-8">
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         id="log-entry-lanterns-on"
+                         name="log-entry-lanterns-type"
+                         value="on"/>
+                  Tänder lanternor
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         id="log-entry-lanterns-off"
+                         name="log-entry-lanterns-type"
+                         value="off"/>
+                  Släcker lanternor
+                </label>
+              </div>
+            </div>
+          </div>
+
 
           <!-- FIXME -->
           <div class="form-group log-entry-form" id="log-entry-form-other">
             <label class="col-sm-4 control-label">Övrigt</label>
-            <div class="col-sm-8">
-              <label for="log-entry-lanterns"
-                     class="checkbox-inline">
-                <input name="lanterns" type="checkbox"
-                       id="log-entry-lanterns"/>Tänder lanternor
-              </label>
-              <label for="log-entry-engine"
-                     class="checkbox-inline">
-                <input name="engine" type="checkbox"
-                       id="log-entry-engine"/>Motor igång för laddning
-              </label>
-            </div>
             <div class="col-sm-offset-4 col-sm-8">
               <label for="log-entry-end-of-race"
                      data-toggle="collapse"

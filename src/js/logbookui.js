@@ -74,6 +74,7 @@ tf.ui.logBook.openLogBook = function(options) {
         if (e.boats != undefined) {
             boats = e.boats.join(',');
         }
+        var comment = e.comment || "";
 
         rows += '<tr>' +
             '<td><a tabindex="0" class="log-book-edit"' +
@@ -100,7 +101,7 @@ tf.ui.logBook.openLogBook = function(options) {
             '<td>' + tf.ui.logEntry.fmtSails(e.sails) + '</td>' +
             '<td>' + boats + '</td>' +
             '<td>' + tf.ui.logEntry.fmtOther(e) + '</td>' +
-            '<td>' + e.comment + '</td>' +
+            '<td>' + comment + '</td>' +
             '</tr>';
     }
     rows += '<tr>' +

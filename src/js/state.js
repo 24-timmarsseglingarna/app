@@ -151,6 +151,9 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
                                              teamData.start_point,
                                              tf.state.curRace, log);
 
+        tf.state.boatState.engine = tf.state.curLogBook.getEngine();
+        tf.state.boatState.lanterns = tf.state.curLogBook.getLanterns();
+        tf.state.activeInterrupt = tf.state.curLogBook.getInterrupt();
         tf.state.curLogBook.onLogUpdate(function(logBook) {
             tf.state.boatState.engine = logBook.getEngine();
             tf.state.boatState.lanterns = logBook.getLanterns();
