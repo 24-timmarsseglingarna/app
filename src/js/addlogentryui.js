@@ -45,6 +45,7 @@ $(document).ready(function() {
             tf.ui.logEntry.openLogEntry({
                 logBook: tf.state.curLogBook,
                 time: page.tfOptions.time,
+                onclose: page.tfOptions.onclose,
                 type: $(event.target).data('type') // html5 data-type attribute
             });
         });

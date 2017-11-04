@@ -117,17 +117,25 @@ tf.ui.logEntry.openLogEntry = function(options) {
     }
     var type;
     var title;
-    var isStart;
+    var isStart = false;
+    var log = options.logBook.log;
+
     if (options.type) {
         type = options.type;
     } else if (options.index != undefined) {
-        type = options.logBook.log[options.index].type;
-        if (type == 'round') {
-            isStart = true;
-            for (var i = 0; i < options.index && isStart; i++) {
-                if (options.logBook.log[i].type == 'round') {
-                    isStart = false;
-                }
+        type = log[options.index].type;
+    }
+    if (type == 'round') {
+        isStart = true;
+        var end;
+        if (options.index) {
+            end = options.index;
+        } else {
+            end = log.length;
+        }
+        for (var i = 0; i < end && isStart; i++) {
+            if (log[i].type == 'round') {
+                isStart = false;
             }
         }
     }
@@ -144,6 +152,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         title = 'Rundning';
         $('#log-entry-form-point').show();
         if (isStart) {
+            title = 'Start';
             tf.ui.logEntry._initBoats(regattaId);
             $('#log-entry-form-finish').hide();
             $('#log-entry-form-boats').show();
@@ -161,6 +170,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         title = 'Siktar båtar';
         tf.ui.logEntry._initBoats(regattaId);
         $('#log-entry-form-boats').show();
+        $('#log-entry-form-position').show();
         break;
     case 'protest':
         title = 'Observation regelbrott';
@@ -199,7 +209,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
 
     if (options.index != undefined) {
         /* open an existing log entry */
-        var entry = options.logBook.log[options.index];
+        var entry = log[options.index];
 
         var dt = moment(entry.time);
         $('#log-entry-timepicker').data('DateTimePicker').date(dt);
@@ -213,8 +223,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
 
         if (entry.wind != undefined) {
-            $('#log-entry-wind-dir').val(entry.wind.dir);
-            $('#log-entry-wind-speed').val(entry.wind.speed);
+            tf.ui.logEntry._initWind(entry);
         }
 
         if (entry.interrupt != undefined) {
@@ -268,15 +277,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
 
         if (entry.sails != undefined) {
-            $('#log-entry-sail-main').prop('checked', entry.sails.main);
-            $('#log-entry-sail-reef').prop('checked', entry.sails.reef);
-            $('#log-entry-sail-jib').prop('checked', entry.sails.jib);
-            $('#log-entry-sail-genoa').prop('checked', entry.sails.genoa);
-            $('#log-entry-sail-code').prop('checked', entry.sails.code);
-            $('#log-entry-sail-gennaker').prop('checked', entry.sails.gennaker);
-            $('#log-entry-sail-spinnaker').prop('checked',
-                                                entry.sails.spinnaker);
-            $('#log-entry-sail-other').val(entry.sails.other);
+            tf.ui.logEntry._initSails(entry);
         }
 
         if (entry.boats != undefined) {
@@ -316,11 +317,40 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
         $('#log-entry-timepicker').data('DateTimePicker').date(time);
         $('#log-entry-datepicker').data('DateTimePicker').date(time);
-        // reset some fields to empty, but do *not* reset
-        // sails and wind (high probability of being same as last time)
+        // reset some fields to empty
         $('#log-entry-finish').prop('checked', false);
         $('#log-entry-comment').val('');
         $('#log-entry-end-of-race').prop('checked', false);
+        // init sails to same as last one found
+        if (type == 'changeSails') {
+            var found = false;
+            var foundWind = false;
+            for (var i = log.length - 1; !found && i >= 0; i--) {
+                // if we find a wind observation from some other entry, use it
+                if (log[i].type == 'wind' && log[i].wind) {
+                    tf.ui.logEntry._initWind(log[i]);
+                    foundWind = true;
+                }
+                if (log[i].type == type && log[i].sails) {
+                    tf.ui.logEntry._initSails(log[i]);
+                    if (!foundWind) {
+                        tf.ui.logEntry._initWind(log[i]);
+                    }
+                    found = true;
+                }
+            }
+        }
+        // init wind to same as last one found
+        if (type == 'wind') {
+            var found = false;
+            for (var i = log.length - 1; !found && i >= 0; i--) {
+                if (log[i].type == type && log[i].wind) {
+                    tf.ui.logEntry._initWind(log[i]);
+                    found = true;
+                }
+            }
+        }
+
     }
 
     var logEntryPage = document.getElementById('log-entry-page');
@@ -365,7 +395,12 @@ tf.ui.logEntry._initGeoPosition = function() {
             },
             function(error) {
                 //alert('geo-error: ' + error.code);
-            });
+            },
+            {
+                timeout: 1 * 60 * 1000,   // 1 minute
+                maximumAge: 2 * 60 * 1000 // 2 minutes old is ok
+            }
+        );
     }
 };
 
@@ -401,8 +436,26 @@ tf.ui.logEntry._initProtest = function(regattaId) {
     boatElement = document.getElementById('log-entry-protest-boat');
     boatElement.innerHTML =
         '<option value="-1">-- ingen båt vald --</option>' +
+        '<option value="0">Okänd båt</option>' +
         tf.ui.logEntry._getBoatsOptions(regattaId);
     boatElement.options[0].selected = true;
+};
+
+tf.ui.logEntry._initSails = function(entry) {
+    $('#log-entry-sail-main').prop('checked', entry.sails.main);
+    $('#log-entry-sail-reef').prop('checked', entry.sails.reef);
+    $('#log-entry-sail-jib').prop('checked', entry.sails.jib);
+    $('#log-entry-sail-genoa').prop('checked', entry.sails.genoa);
+    $('#log-entry-sail-code').prop('checked', entry.sails.code);
+    $('#log-entry-sail-gennaker').prop('checked', entry.sails.gennaker);
+    $('#log-entry-sail-spinnaker').prop('checked',
+                                        entry.sails.spinnaker);
+    $('#log-entry-sail-other').val(entry.sails.other);
+};
+
+tf.ui.logEntry._initWind = function(entry) {
+    $('#log-entry-wind-dir').val(entry.wind.dir);
+    $('#log-entry-wind-speed').val(entry.wind.speed);
 };
 
 tf.ui.logEntry.closeLogEntry = function() {
@@ -431,7 +484,8 @@ tf.ui.logEntry.getProtest = function() {
     var boatElement = document.getElementById('log-entry-protest-boat');
     var boat = undefined;
     for (var i = 0; i < boatElement.options.length; i++) {
-        if (boatElement.options[i].selected) {
+        if (boatElement.options[i].selected
+            && boatElement.options[i].value != -1) {
             boat = boatElement.options[i].value;
         }
     }

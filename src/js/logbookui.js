@@ -65,11 +65,12 @@ tf.ui.logBook.openLogBook = function(options) {
             'Radera</button>' +
             '</div>';
 
-        var wind;
-        if (e.wind != undefined) {
+        var point = e.point || "";
+        var wind = "";
+        if (e.wind) {
             wind = e.wind.dir + ' ' + e.wind.speed;
         }
-        var boats;
+        var boats = "";
         if (e.boats != undefined) {
             boats = e.boats.join(',');
         }
@@ -91,7 +92,7 @@ tf.ui.logBook.openLogBook = function(options) {
             '><span class="icon-pencil"></span></a></td>' +
             '<td>' + e.time.format('HH:mm DD MMM')
                        .replace(/\s/g, '&nbsp;') + '</td>' +
-            '<td>' + e.point + '</td>' +
+            '<td>' + point + '</td>' +
             distTD + distance + '</td>' +
             '<td>' + wind + '</td>' +
             intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt) + '</td>' +
@@ -102,14 +103,13 @@ tf.ui.logBook.openLogBook = function(options) {
             '<td>' + e.comment + '</td>' +
             '</tr>';
     }
-    if (log.length > 0) {
-        rows += '<tr>' +
-            '<td><a tabindex="0" class="log-book-add-entry"' +
-            ' role="button"' +
-            ' onclick="tf.ui.logBook.addEntryClick();"' +
-            '><span class="icon-plus"></span></a></td>' +
-            '</tr>';
-    }
+    rows += '<tr>' +
+        '<td><a tabindex="0" class="log-book-add-entry"' +
+        ' role="button"' +
+        ' onclick="tf.ui.logBook.addEntryClick();"' +
+        '><span class="icon-plus"></span></a></td>' +
+        '</tr>';
+
     var dist = logBook.getSailedDistance();
     var speed = logBook.getAverageSpeed();
 
@@ -138,8 +138,14 @@ tf.ui.logBook.openLogBook = function(options) {
 };
 
 tf.ui.logBook.addEntryClick = function(col) {
-    tf.ui.addLogEntry.openPage();
-}
+    var logBookPage = document.getElementById('log-book-page');
+    tf.ui.addLogEntry.openPage({
+        onclose: function() {
+            // refresh the log book
+            tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+        }
+    });
+};
 
 tf.ui.logBook.deleteAllClick = function(col) {
     tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
@@ -289,7 +295,13 @@ $(document).ready(function() {
         }
         var new_ = moment(cur.time).add(addSeconds, 'seconds');
         $('.log-book-edit').popover('hide');
-        tf.ui.addLogEntry.openPage({time: new_});
+        tf.ui.addLogEntry.openPage({
+            time: new_,
+            onclose: function() {
+                // refresh the log book
+                tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+            }
+        });
     });
     $(document).on('click', '#log-book-btn-del', function(event) {
         // delete the log entry

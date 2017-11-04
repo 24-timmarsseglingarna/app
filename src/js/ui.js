@@ -859,6 +859,7 @@ $(document).ready(function() {
         tf.ui.offshoreLegsLayer.changed();
     });
 
+/*
     $('#tf-nav-test').on('click', function(event) {
         if (!tf.state.curLogBook) {
             tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
@@ -868,38 +869,16 @@ $(document).ready(function() {
         tf.ui.addLogEntry.openPage();
         return false;
     });
+*/
 
     $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {
             tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
                         'göra en loggboksanteckning.</p>');
             return false;
-        } else {
-            /* Modify the text depending on current state */
-            if (!tf.state.boatState.lanterns) {
-                $('#tf-nav-log-lanterns').text("Tänder lanternor");
-            } else {
-                $('#tf-nav-log-lanterns').text("Släcker lanternor");
-            }
-            if (!tf.state.boatState.engine) {
-                $('#tf-nav-log-engine').text("Startar motor för laddning");
-            } else {
-                $('#tf-nav-log-engine').text("Stänger av motor för laddning");
-            }
-            if (!tf.state.activeInterrupt) {
-                $('#tf-nav-log-interrupt').text("Avbrott");
-            } else {
-                $('#tf-nav-log-interrupt').text("Återupptar segling");
-            }
         }
-    });
-
-    $('.tf-nav-log').on('click', function(event) {
-        $('#tf-nav-log').dropdown('toggle');
-        tf.ui.logEntry.openLogEntry({
-            logBook: tf.state.curLogBook,
-            type: $(event.target).data('type') // html5 data-type attribute
-        });
+        tf.ui.addLogEntry.openPage();
+        return false;
     });
 
     $('#tf-nav-logbook').on('click', function(event) {
@@ -1192,7 +1171,7 @@ tf.ui.stateSetupDone = function() {
     // 1. center on 580 initially
     // 2. then if we have a latest logged position, center there.
     // 3. else if we have start point, center there.
-    // 3. otherwise use geolocation.
+    // 4. otherwise use geolocation.
     //
     // In this process, 2 and 3 may be, and 4 will be, delayed
     // operations.  If the user has panned the map, don't change the
@@ -1228,7 +1207,11 @@ tf.ui.stateSetupDone = function() {
             },
             function(error) {
                 //alert('geo-error: ' + error.code);
-            });
+            },
+            {
+                timeout: 1 * 60 * 1000,   // 1 minute
+                maximumAge: 2 * 60 * 1000 // 2 minutes old is ok
+            })
     }
     tf.ui.logBookChanged();
 };

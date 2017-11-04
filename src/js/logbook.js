@@ -160,12 +160,12 @@ tf.LogBook.prototype._updateLog = function() {
             curTimeOffset = 0;
             curDistOffset = 0;
             prev = e;
-        } else if (e.interrupt.type != 'none' && e.interrupt.type != 'done') {
+        } else if (e.interrupt && e.interrupt.type != 'done') {
             // Find the corresponding log entry for interrupt done
             var found = false;
             for (var j = i+1; !found && j < this.log.length; j++) {
                 var f = this.log[j];
-                if (f.interrupt.type == 'done') {
+                if (f.interrupt && f.interrupt.type == 'done') {
                     var interrupttime = f.time.diff(e.time, 'minutes');
                     if (e.interrupt.type == 'rescue-dist') {
                         curDistOffset += interrupttime;
@@ -178,7 +178,7 @@ tf.LogBook.prototype._updateLog = function() {
                     // error
                     e._interruptStatus = 'no-done'
                     found = true;
-                } else if (f.interrupt.type != 'none') {
+                } else {
                     // A new interrupt 'replaced' this one
                     found = true;
                 }
