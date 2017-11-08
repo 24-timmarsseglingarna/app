@@ -35,14 +35,19 @@ html, body, #map {
     border-width: 1px 1px 1px 1px;
 }
 
-/* add some padding to the state icons */
-#tf-status-state-content {
-    padding: 6px;
-}
-
 .tf-status-icon {
+    color: black;
+    background-color: #ddd;
+    opacity: 0.9;
+    border-radius: 10px; /* rounded corners */
+    margin: 5px;         /* space between icons */
     font-size: 26px;
-    color: grey;
+    width: 42px;
+    height: 38px;
+    /* next three lines to get centered icons */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* add some additional padding on non-phones */
