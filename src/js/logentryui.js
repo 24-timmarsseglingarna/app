@@ -143,6 +143,12 @@ tf.ui.logEntry.openLogEntry = function(options) {
             }
         }
     }
+    // if a point was clicked, make this field read-only
+    if (options.point) {
+        $('#log-entry-point').prop("readonly", true);
+    } else {
+        $('#log-entry-point').prop("readonly", false);
+    }
 
     // hide everything except time and comment
     $('.log-entry-form').hide();
@@ -624,6 +630,12 @@ tf.ui.logEntry.logEntrySave = function() {
     switch (type) {
     case 'round':
         logEntry.point = point;
+        // validate point
+        if (!logEntryPage.logBook.getRace().getPod().getPoint(point)) {
+            tf.ui.alert('<p>Punkten "' + point +
+                        '" är inte en giltig punkt</p>');
+            return false;
+        }
         logEntry.wind = wind;
         if (isStart) {
             logEntry.sails = sails;
@@ -662,6 +674,7 @@ tf.ui.logEntry.logEntrySave = function() {
 
     // save the current logbook in the page
     logEntryPage.logBook.saveToLog(logEntry, logEntryPage.logEntryIndex);
+    return true;
 };
 
 tf.ui.logEntry.sailChanged = function(element) {
@@ -742,7 +755,9 @@ $(document).ready(function() {
         return false;
     });
     $('#log-entry-save').on('click', function(event) {
-        tf.ui.logEntry.logEntrySave();
+        if (!tf.ui.logEntry.logEntrySave()) {
+            return false;
+        }
         tf.ui.popPage();
         return false;
     });
@@ -760,4 +775,14 @@ $(document).ready(function() {
     $('.log-entry-sail').change(function(event) {
         tf.ui.logEntry.sailChanged(event.target);
     });
+
+    $('#log-entry-point').blur(function() {
+        var point = $('#log-entry-point').val();
+        if (!logEntryPage.logBook.getRace().getPod().getPoint(point)) {
+            $('#log-entry-point-field').addClass('has-error');
+        } else {
+            $('#log-entry-point-field').removeClass('has-error');
+        }
+    });
+
 });

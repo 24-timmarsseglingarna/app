@@ -45,6 +45,10 @@ tf.LogBook.prototype.getLog = function() {
     return this.log;
 };
 
+tf.LogBook.prototype.getRace = function() {
+    return this.race;
+};
+
 tf.LogBook.prototype.saveToLog = function(logEntry, index) {
     if (index != undefined) {
         // update of an existing entry, keep id and mark it as dirty
