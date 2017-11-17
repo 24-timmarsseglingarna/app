@@ -16,6 +16,7 @@ tf.Race = function(regatta, raceData, pod) {
     this.regatta = regatta;
     this.raceData = raceData;
     this.pod = pod;
+    this.plans = {};
 };
 
 tf.Race.prototype.getId = function() {
@@ -32,4 +33,11 @@ tf.Race.prototype.getPod = function() {
 
 tf.Race.prototype.getRaceLengthHours = function() {
     return this.raceData.period;
+};
+
+tf.Race.prototype.getPlan = function(name) {
+    if (!this.plans[name]) {
+        this.plans[name] = new tf.Plan(name, this.pod, undefined);
+    }
+    return this.plans[name];
 };

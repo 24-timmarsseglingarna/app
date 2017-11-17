@@ -60,6 +60,7 @@ m4_include(activaterace.html)
 m4_include(addlogentry.html)
 m4_include(logbook.html)
 m4_include(logentry.html)
+m4_include(planmenu.html)
 
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="deps/jquery.min.js"></script>

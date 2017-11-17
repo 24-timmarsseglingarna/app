@@ -114,9 +114,14 @@ html, body, #map {
     line-height: 0;
 }
 
-.tf-nav-cell.ol-active
-{
+.tf-plan-active {
     background: rgba(60, 136, 0, 0.7)
+}
+
+#tf-nav-plan-name {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .ol-popup {

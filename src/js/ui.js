@@ -401,7 +401,7 @@ tf.ui.handleMapClick = function(event) {
                             return;
                         }
                         var eta = [];
-                        if (tf.ui.showPlan) {
+                        if (tf.ui.showPlan && tf.state.curPlan) {
                             eta = tf.state.curPlan.getETA(number);
                         }
                         // show the popup from the center of the point
@@ -781,16 +781,11 @@ tf.ui.mkLegsLayer = function(legs, title, color) {
 
 tf.ui.planModeActivate = function(active) {
     if (active) {
-        if (!tf.state.curPlan) {
-            tf.state.curPlan = new tf.Plan('Plan A', tf.state.curRace.getPod(),
-                                           tf.state.curLogBook);
-            tf.state.curPlan.onPlanUpdate(tf.ui.logBookChanged);
-        }
         tf.ui.planMode = true;
-        $('#tf-nav-plan-mode').addClass('ol-active');
+        $('#tf-nav-plan-mode').addClass('tf-plan-active');
     } else {
         tf.ui.planMode = false;
-        $('#tf-nav-plan-mode').removeClass('ol-active');
+        $('#tf-nav-plan-mode').removeClass('tf-plan-active');
     }
     tf.ui.inshoreLegsLayer.changed();
     tf.ui.offshoreLegsLayer.changed();
@@ -830,10 +825,8 @@ $(document).ready(function() {
     $('#tf-nav-plan-mode').on('click', function(event) {
         if (!tf.state.curRace) {
             tf.ui._alert_no_log('planera en rutt');
-        } else {
-            tf.ui.planModeActivate(
-                !$('#tf-nav-plan-mode').hasClass('ol-active'));
         }
+        tf.ui.planMenu.openPage();
         return false;
     });
 

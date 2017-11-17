@@ -1,0 +1,55 @@
+<!--
+    Plan Menu
+    Controlled by planmenuui.js.
+-->
+<dialog id="plan-menu-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Välj plan</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <div class="list-group">
+              <div class="col-sm-offset-2 col-sm-8">
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-plan-item"
+                        id="tf-plan-item-none"
+                        data-name="none">
+                  Ingen plan
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-plan-item"
+                        id="tf-plan-item-A"
+                        data-name="A">
+                  Plan A
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-plan-item"
+                        id="tf-plan-item-B"
+                        data-name="B">
+                  Plan B
+                </button>
+                <button type="button" autocomplete="off"
+                        class="list-group-item tf-plan-item"
+                        id="tf-plan-item-C"
+                        data-name="C">
+                  Plan C
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-default"
+               id="tf-plan-normal"
+               value="Normalläge"/>
+        <input type="button" class="btn tf-plan-active"
+               id="tf-plan-plan"
+               value="Planeringsläge"/>
+      </div>
+    </div>
+  </div>
+</dialog>
