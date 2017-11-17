@@ -16,7 +16,7 @@ tf.ui.settings.openPage = function() {
         $('#settings-logout-block').hide();
     }
 
-    var page = document.getElementById('settings-page');
+    var page = $('#settings-page')[0];
     page.showModal();
     tf.ui.pushPage(function() {
         page.close();

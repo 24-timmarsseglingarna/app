@@ -126,7 +126,7 @@ tf.ui.logBook.openLogBook = function(options) {
     $('.log-book-invalid-interrupt').on('click', function(event) {
         tf.ui.logBook.logBookInvalidInterruptClick(event.currentTarget);
     });
-    var logBookPage = document.getElementById('log-book-page');
+    var logBookPage = $('#log-book-page')[0];
     // save the current logBook in the page
     logBookPage.logBook = logBook;
     if (!logBookPage.open) {
@@ -139,7 +139,7 @@ tf.ui.logBook.openLogBook = function(options) {
 };
 
 tf.ui.logBook.addEntryClick = function(col) {
-    var logBookPage = document.getElementById('log-book-page');
+    var logBookPage = $('#log-book-page')[0];
     tf.ui.addLogEntry.openPage({
         onclose: function() {
             // refresh the log book
@@ -154,8 +154,7 @@ tf.ui.logBook.deleteAllClick = function(col) {
                   'Nej',
                   'Ja',
                   function() {
-                      var logBookPage =
-                          document.getElementById('log-book-page');
+                      var logBookPage = $('#log-book-page')[0];
                       var logBook = logBookPage.logBook;
                       logBook.deleteAllLogEntries();
                       tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
@@ -163,7 +162,7 @@ tf.ui.logBook.deleteAllClick = function(col) {
 };
 
 tf.ui.logBook.logBookInvalidDistClick = function(col) {
-    var logBookPage = document.getElementById('log-book-page');
+    var logBookPage = $('#log-book-page')[0];
     var text = '';
     logBook = logBookPage.logBook;
     e = logBook.log[col.parentElement.rowIndex - 1];
@@ -187,7 +186,7 @@ tf.ui.logBook.logBookInvalidDistClick = function(col) {
 };
 
 tf.ui.logBook.logBookInvalidInterruptClick = function(col) {
-    var logBookPage = document.getElementById('log-book-page');
+    var logBookPage = $('#log-book-page')[0];
     logBook = logBookPage.logBook;
     e = logBook.log[col.parentElement.rowIndex - 1];
     var text = '';
@@ -201,7 +200,7 @@ tf.ui.logBook.logBookInvalidInterruptClick = function(col) {
 };
 
 tf.ui.logBook.openLogEntry = function(options) {
-    var logBookPage = document.getElementById('log-book-page');
+    var logBookPage = $('#log-book-page')[0];
     options.logBook = logBookPage.logBook;
     options.onclose = function() {
         // refresh the log book
@@ -211,7 +210,7 @@ tf.ui.logBook.openLogEntry = function(options) {
 };
 
 tf.ui.logBook.closeLogBook = function() {
-    document.getElementById('log-book-page').close();
+    $('#log-book-page')[0].close();
 };
 
 
@@ -224,7 +223,7 @@ $(document).ready(function() {
         return false;
     });
     $('#log-book-send').on('click', function() {
-        var logBookPage = document.getElementById('log-book-page');
+        var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
         if (logBook.isSentToServer) {
             tf.ui.alert('<p>Loggboken har redan skickats in.</p');
@@ -239,8 +238,7 @@ $(document).ready(function() {
                           'Nej',
                           'Ja',
                           function() {
-                              var logBookPage =
-                                  document.getElementById('log-book-page');
+                              var logBookPage = $('#log-book-page')[0];
                               var logBook = logBookPage.logBook;
                               tf.ui.alert('<p>Denna funktion är inte ' +
                                           'implementerad ännu!</p>' +
@@ -267,8 +265,7 @@ $(document).ready(function() {
                       'Nej',
                       'Ja',
                       function() {
-                          var logBookPage =
-                              document.getElementById('log-book-page');
+                          var logBookPage = $('#log-book-page')[0];
                           var logBook = logBookPage.logBook;
                           logBook.deleteAllLogEntries();
                           tf.ui.logBook.openLogBook({
@@ -284,7 +281,7 @@ $(document).ready(function() {
     $(document).on('click', '#log-book-btn-add', function(event) {
         var idx = Number($(event.currentTarget.parentElement)
                          .attr('data-index'));
-        var logBookPage = document.getElementById('log-book-page');
+        var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
         var cur = logBook.log[idx];
         var addSeconds;
@@ -307,7 +304,7 @@ $(document).ready(function() {
     $(document).on('click', '#log-book-btn-del', function(event) {
         // delete the log entry
         var idx = $(event.currentTarget.parentElement).attr('data-index');
-        var logBookPage = document.getElementById('log-book-page');
+        var logBookPage = $('#log-book-page')[0];
         logBookPage.logBook.deleteLogEntry(idx);
         // re-open the log book
         $('.log-book-edit').popover('hide');

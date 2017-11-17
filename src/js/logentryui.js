@@ -278,7 +278,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
 
         if (entry.protest != undefined) {
-            boatElement = document.getElementById('log-entry-protest-boat');
+            boatElement = $('#log-entry-protest-boat')[0];
             boatElement.options[0].selected = true;
             for (var i = 1; i < boatElement.options.length; i++) {
                 if (boatElement.options[i].value == entry.protest.boat) {
@@ -292,7 +292,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
 
         if (entry.boats != undefined) {
-            boatsElement = document.getElementById('log-entry-boats');
+            boatsElement = $('#log-entry-boats')[0];
             for (var i = 0; i < boatsElement.options.length; i++) {
                 var val = boatsElement.options[i].value;
                 if ($.inArray(val, entry.boats) != -1) {
@@ -397,7 +397,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
 
     }
 
-    var logEntryPage = document.getElementById('log-entry-page');
+    var logEntryPage = $('#log-entry-page')[0];
     tf.ui.logEntry.onclose = options.onclose;
     logEntryPage.logBook = options.logBook;
     logEntryPage.logEntryIndex = options.index;
@@ -419,7 +419,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
 
 tf.ui.logEntry._initGeoPosition = function() {
     /* NOTE: the HTML and this code assumes lat N and long E */
-    var logEntryPage = document.getElementById('log-entry-page');
+    var logEntryPage = $('#log-entry-page')[0];
     if ($('#log-entry-position').val() == '' &&
         navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -474,13 +474,13 @@ tf.ui.logEntry._getBoatsOptions = function(regattaId) {
 };
 
 tf.ui.logEntry._initBoats = function(regattaId) {
-    boatsElement = document.getElementById('log-entry-boats');
+    boatsElement = $('#log-entry-boats')[0];
     // populate 'boats' with list of boats from current regatta
     boatsElement.innerHTML = tf.ui.logEntry._getBoatsOptions(regattaId);
 };
 
 tf.ui.logEntry._initProtest = function(regattaId) {
-    boatElement = document.getElementById('log-entry-protest-boat');
+    boatElement = $('#log-entry-protest-boat')[0];
     boatElement.innerHTML =
         '<option value="-1">-- ingen båt vald --</option>' +
         '<option value="0">Okänd båt</option>' +
@@ -507,7 +507,7 @@ tf.ui.logEntry._initWind = function(wind) {
 tf.ui.logEntry.closeLogEntry = function() {
     $('#log-entry-timepicker').data('DateTimePicker').hide();
     $('#log-entry-datepicker').data('DateTimePicker').hide();
-    document.getElementById('log-entry-page').close();
+    $('#log-entry-page')[0].close();
     if (tf.ui.logEntry.onclose != undefined) {
         tf.ui.logEntry.onclose();
         tf.ui.logEntry.onclose = undefined;
@@ -527,7 +527,7 @@ tf.ui.logEntry.getInterrupt = function() {
 };
 
 tf.ui.logEntry.getProtest = function() {
-    var boatElement = document.getElementById('log-entry-protest-boat');
+    var boatElement = $('#log-entry-protest-boat')[0];
     var boat = undefined;
     for (var i = 0; i < boatElement.options.length; i++) {
         if (boatElement.options[i].selected
@@ -577,7 +577,7 @@ tf.ui.logEntry.getEndOfRace = function() {
 };
 
 tf.ui.logEntry.logEntrySave = function() {
-    var logEntryPage = document.getElementById('log-entry-page');
+    var logEntryPage = $('#log-entry-page')[0];
     var type = logEntryPage.logEntryType;
     var isStart = false;
     if (type == 'start') {
@@ -594,7 +594,7 @@ tf.ui.logEntry.logEntrySave = function() {
         dir: windDir,
         speed: windSpeed
     };
-    var boatsElement = document.getElementById('log-entry-boats');
+    var boatsElement = $('#log-entry-boats')[0];
     var lanterns = $('#log-entry-form-lanterns input:checked').val();
     var engine = $('#log-entry-form-engine input:checked').val();
     var comment = $('#log-entry-comment').val();
@@ -689,13 +689,13 @@ tf.ui.logEntry.sailChanged = function(element) {
     switch (element.id) {
     case 'log-entry-sail-main':
         if (!checked) {
-            document.getElementById('log-entry-sail-reef').checked = false;
+            $('#log-entry-sail-reef')[0].checked = false;
         }
         found = true;
         break;
     case 'log-entry-sail-reef':
         if (checked) {
-            document.getElementById('log-entry-sail-main').checked = true;
+            $('#log-entry-sail-main')[0].checked = true;
         }
         found = true;
         break;
@@ -748,7 +748,7 @@ tf.ui.logEntry._setPosition = function(id, pos) {
  * Set up handlers for buttons and form input.
  */
 $(document).ready(function() {
-    var logEntryPage = document.getElementById('log-entry-page');
+    var logEntryPage = $('#log-entry-page')[0];
 
     $('#log-entry-cancel').on('click', function(event) {
         tf.ui.popPage();

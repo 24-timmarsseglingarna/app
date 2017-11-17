@@ -25,7 +25,7 @@ tf.ui.addLogEntry.openPage = function(options) {
         $('#tf-log-interrupt').text("Återupptar segling");
     }
 
-    var page = document.getElementById('add-log-entry-page');
+    var page = $('#add-log-entry-page')[0];
     page.tfOptions = options || {};
     tf.ui.pushPage(function() {
         page.close();
@@ -40,7 +40,7 @@ tf.ui.addLogEntry.openPage = function(options) {
 $(document).ready(function() {
     $('.tf-log-item').on('click', function(event) {
         // remove the addLogEntry page from page stack
-        var page = document.getElementById('add-log-entry-page');
+        var page = $('#add-log-entry-page')[0];
         tf.ui.popPage(function() {
             tf.ui.logEntry.openLogEntry({
                 logBook: tf.state.curLogBook,

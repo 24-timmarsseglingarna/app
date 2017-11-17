@@ -58,6 +58,7 @@ tf.Plan.prototype.attachLogBook = function(logbook) {
 };
 
 tf.Plan.prototype.addPoint = function(point) {
+    var prevLength = this.entries.length;
     if (this.entries.length == 0) {
         // first point in plan, just add it
         var entry = {point: point, dist: 0};
@@ -78,6 +79,9 @@ tf.Plan.prototype.addPoint = function(point) {
             this.entries.push(entry);
             prev = cur;
         }
+    }
+    if (this.firstPlanned == -1) {
+        this.firstPlanned = prevLength;
     }
     this._updateState();
 };
@@ -261,7 +265,7 @@ tf.Plan.prototype._resetPlan = function() {
 };
 
 tf.Plan.prototype._logBookChanged = function() {
-    var j;
+    var i;
     var loggedPoints = this.logbook.getPoints();
 
     // if the logbook has more entries than the plan, we'll just
@@ -272,7 +276,7 @@ tf.Plan.prototype._logBookChanged = function() {
     }
     // check if all logged points are also part of the plan;
     // the normal case is that a new point that was planned is now logged.
-    for (var i = 0;
+    for (i = 0;
          i < loggedPoints.length && i < this.entries.length;
          i++) {
         if (loggedPoints[i].point == this.entries[i].point) {
@@ -285,7 +289,7 @@ tf.Plan.prototype._logBookChanged = function() {
             return;
         }
     }
-    this.firstPlanned = j;
+    this.firstPlanned = i;
     // treat rest of entries as planned legs
     for (; i < this.entries.length; i++) {
         if (i > 0 && !this.entries[i].dist) {

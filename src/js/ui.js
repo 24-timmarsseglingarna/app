@@ -148,7 +148,7 @@ tf.ui.pageStack = [];
  */
 
 tf.ui.showLegs = true;
-tf.ui.showPlan = false;
+tf.ui.showPlan = true;
 tf.ui.planMode = false;
 tf.ui.dragState = null;
 tf.ui.initialCenterChanged = false;
@@ -642,12 +642,13 @@ tf.ui.mkLegStyleFunc = function(color) {
     // FIXME: in order to do this, we need to keep track of the leg's
     // direction ('580-581' vs '581-580') in the logbook and in the plan,
     // and use this style iff one direction is logged, and the other sailed.
+/*
     var plannedAndloggedLegStyle =
         tf.ui.getLegStyle('plannedAndloggedLegStyle',
                          {width: 8,
                           lineDash: [2, 15],
                           color: tf.ui.LOGGED_LEG_COLOR});
-
+*/
     legStyleFunction =
         function(feature, resolution) {
             var legStyle = basicLegStyle1;
@@ -666,7 +667,7 @@ tf.ui.mkLegStyleFunc = function(color) {
                 logged = tf.state.curLogBook.getLegSailed(src, dst);
             }
             var planned = 0;
-            if (tf.ui.showPlan && tf.state.curPlan) {
+            if (tf.state.curPlan) {
                 planned = tf.state.curPlan.isLegPlanned(src, dst);
             }
             if (logged) {
@@ -682,7 +683,7 @@ tf.ui.mkLegStyleFunc = function(color) {
                 } else {
                     legStyle = loggedLeg2Style;
                 }
-            } else if (planned) {
+            } else if (planned && (tf.ui.showPlan || tf.ui.planMode)) {
                 if (planned == 1) {
                     legStyle = plannedLeg1Style;
                 } else {
@@ -746,7 +747,8 @@ tf.ui.mkLegStyleFunc = function(color) {
                     tf.ui.styleCache[label] = labelStyle;
                 }
                 return [legStyle, labelStyle];
-            } else if (tf.ui.showLegs || logged || planned) {
+            } else if (tf.ui.showLegs || logged ||
+                       (planned && tf.ui.showPlan)) {
                 return [legStyle];
             } else {
                 return [];
@@ -827,8 +829,7 @@ $(document).ready(function() {
 
     $('#tf-nav-plan-mode').on('click', function(event) {
         if (!tf.state.curRace) {
-            tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
-                        'planera en rutt.</p>');
+            tf.ui._alert_no_log('planera en rutt');
         } else {
             tf.ui.planModeActivate(
                 !$('#tf-nav-plan-mode').hasClass('ol-active'));
@@ -859,22 +860,9 @@ $(document).ready(function() {
         tf.ui.offshoreLegsLayer.changed();
     });
 
-/*
-    $('#tf-nav-test').on('click', function(event) {
-        if (!tf.state.curLogBook) {
-            tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
-                        'göra en loggboksanteckning.</p>');
-            return false;
-        }
-        tf.ui.addLogEntry.openPage();
-        return false;
-    });
-*/
-
     $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {
-            tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
-                        'göra en loggboksanteckning.</p>');
+            tf.ui._alert_no_log('göra en loggboksanteckning');
             return false;
         }
         tf.ui.addLogEntry.openPage();
@@ -883,8 +871,7 @@ $(document).ready(function() {
 
     $('#tf-nav-logbook').on('click', function(event) {
         if (!tf.state.curLogBook) {
-            tf.ui.alert('<p>Du behöver aktivera en segling för att kunna ' +
-                        'öppna loggboken.</p>');
+            tf.ui._alert_no_log('öppna loggboken');
         } else {
             tf.ui.logBook.openLogBook({
                 logBook: tf.state.curLogBook
@@ -896,6 +883,11 @@ $(document).ready(function() {
     $('#tf-nav-show-activate-race').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
+        if (!tf.state.isLoggedIn) {
+            tf.ui.alert('<p>Du behöver logga in för att kunna ' +
+                        'aktivera en segling.</p>');
+            return false;
+        }
         tf.ui.activateRace.openPage();
         return false;
     });
@@ -910,7 +902,7 @@ $(document).ready(function() {
     $('#tf-nav-show-help').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        var page = document.getElementById('help-page');
+        var page = $('#help-page')[0];
         page.showModal();
         tf.ui.pushPage(function() {
             page.close();
@@ -922,7 +914,7 @@ $(document).ready(function() {
     $('#tf-nav-show-info').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        var page = document.getElementById('info-page');
+        var page = $('#info-page')[0];
         page.showModal();
         tf.ui.pushPage(function() {
             page.close();
@@ -936,6 +928,15 @@ $(document).ready(function() {
         return false;
     });
 });
+
+tf.ui._alert_no_log = function(w) {
+    var s = '<p>Du behöver ';
+    if (!tf.state.isLoggedIn) {
+        s += 'logga in och ';
+    }
+    s += 'aktivera en segling för att kunna ' + w + '.</p>';
+    tf.ui.alert(s);
+};
 
 /**
  * @constructor
@@ -1038,6 +1039,23 @@ tf.ui.updateStatusBar = function() {
     if (!tf.state.curRace) {
         $('#tf-status-time').text('--:--');
     }
+
+    if (tf.state.boatState.lanterns) {
+        $('#tf-status-lanterns-on').show();
+    } else {
+        $('#tf-status-lanterns-on').hide();
+    }
+    if (tf.state.boatState.engine) {
+        $('#tf-status-engine-on').show();
+    } else {
+        $('#tf-status-engine-on').hide();
+    }
+    if (tf.state.activeInterrupt) {
+        $('#tf-status-interrupt').show();
+    } else {
+        $('#tf-status-interrupt').hide();
+    }
+
     if (!tf.state.curLogBook) {
         $('#tf-status-distance').text('-.- M');
         $('#tf-status-speed').text('-.- kn');
@@ -1096,21 +1114,6 @@ tf.ui.updateStatusBar = function() {
         $('.tf-status-plan').hide();
     }
 
-    if (tf.state.boatState.lanterns) {
-        $('#tf-status-lanterns-on').show();
-    } else {
-        $('#tf-status-lanterns-on').hide();
-    }
-    if (tf.state.boatState.engine) {
-        $('#tf-status-engine-on').show();
-    } else {
-        $('#tf-status-engine-on').hide();
-    }
-    if (tf.state.activeInterrupt) {
-        $('#tf-status-interrupt').show();
-    } else {
-        $('#tf-status-interrupt').hide();
-    }
 };
 
 tf.ui.updateStatusBarTime = function() {

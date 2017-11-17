@@ -104,7 +104,7 @@ tf.serverData.getTeamsData = function(regattaId) {
 /**
  * Data Conversion Functions
  *
- * These functions maps from the server representation to the internal
+ * These functions map from the server representation to the internal
  * representation.  In most cases the internal representation is just a
  * subset of the server representation.
  */

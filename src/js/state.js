@@ -80,6 +80,7 @@ tf.state.setupLogin = function(continuationfn) {
                     } else {
                         // saved login not ok
                         tf.ui.loginPage.openPage();
+                        continuationfn();
                     }
                 });
             } else {
@@ -172,8 +173,9 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
 };
 
 tf.state.loggedIn = function() {
-    tf.state.isLoggedIn = true;
-    tf.state.onAuthenticatedOnline(function() { });
+    tf.state.onAuthenticatedOnline(function() {
+        tf.ui.logBookChanged();
+    });
 };
 
 tf.state.logout = function() {

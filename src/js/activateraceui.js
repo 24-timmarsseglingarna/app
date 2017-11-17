@@ -11,7 +11,7 @@ tf.ui.activateRace.openPage = function() {
     // fill the list of races in which the user participates
     tf.ui.activateRace._populateRaces();
 
-    var page = document.getElementById('activate-race-page');
+    var page = $('#activate-race-page')[0];
     page.showModal();
     tf.ui.pushPage(function() {
         page.close();
@@ -21,7 +21,10 @@ tf.ui.activateRace.openPage = function() {
 
 tf.ui.activateRace._populateRaces = function() {
     var racesData = tf.serverData.getRacesData();
-    var curActiveRaceId = tf.storage.getSetting('activeRaceId');
+    var curActiveRaceId;
+    if (tf.state.curRace) {
+        curActiveRaceId = tf.state.curRace.getId();
+    }
     if (racesData.length == 0) {
         $('#activate-race-list').hide();
         $('#activate-race-no-races').show();
