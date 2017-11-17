@@ -120,11 +120,11 @@ tf.state._setupContinue = function(continuationfn) {
     tf.state._setActiveRace2(activeRaceId, continuationfn);
 };
 
-tf.state.setActiveRace = function(raceId) {
+tf.state.setActiveRace = function(raceId, continuationfn) {
     if (raceId == tf.storage.getSetting('activeRaceId')) {
         return;
     }
-    tf.state._setActiveRace2(raceId, function() { });
+    tf.state._setActiveRace2(raceId, continuationfn);
 };
 
 tf.state._setActiveRace2 = function(raceId, continuationfn) {
@@ -135,7 +135,7 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
     // tf.state.cur* variables.
     // if we have data stored for this race, use that when we initialize
     // the Race object.
-    // if raceId is null, reset the tf.state.cur* variables.
+    // if raceId is 0, reset the tf.state.cur* variables.
 
     var raceData = tf.serverData.getRaceData(raceId);
     var teamData = tf.serverData.getMyTeamData(raceId);
@@ -164,11 +164,15 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         tf.state.curLogBook.onLogUpdate(function(logBook) {
             tf.storage.setRaceLog(logBook.race.getId(), logBook.getLog());
         }, 110);
-        continuationfn();
+        if (continuationfn) {
+            continuationfn();
+        }
     } else {
         tf.state.curRace = null;
         tf.state.curLogBook = null;
-        continuationfn();
+        if (continuationfn) {
+            continuationfn();
+        }
     }
 };
 

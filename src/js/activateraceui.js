@@ -21,7 +21,7 @@ tf.ui.activateRace.openPage = function() {
 
 tf.ui.activateRace._populateRaces = function() {
     var racesData = tf.serverData.getRacesData();
-    var curActiveRaceId;
+    var curActiveRaceId = 0;
     if (tf.state.curRace) {
         curActiveRaceId = tf.state.curRace.getId();
     }
@@ -33,6 +33,17 @@ tf.ui.activateRace._populateRaces = function() {
         $('#activate-race-list').show();
         $('#activate-race-no-races').hide();
         var s = '';
+        s += '<button type="button" autocomplete="off"' +
+             ' id="activate-race-button-0"' +
+             ' onclick="tf.ui.activateRace.buttonClick(0)"' +
+             ' class="list-group-item';
+        if (curActiveRaceId == 0) {
+            s += ' active';
+        }
+        s += '">' +
+            '<p>Ingen segling aktiverad</p>' +
+            '</button>';
+
         for (var i = 0; i < racesData.length; i++) {
             var isActive = (racesData[i].id == curActiveRaceId);
             var r = racesData[i];
@@ -59,7 +70,7 @@ tf.ui.activateRace._populateRaces = function() {
                     s += r.start_to.format('dddd D MMMM [kl.] HH:mm');
                 }
             }
-            s += '</p></button></div>';
+            s += '</p></button>';
         }
         $('#activate-race-buttons').html(s);
     }
@@ -71,5 +82,5 @@ tf.ui.activateRace.buttonClick = function(raceId) {
     btn.parent().find('button').removeClass('active');
     btn.addClass('active');
 
-    tf.state.setActiveRace(raceId);
+    tf.state.setActiveRace(raceId, function() { tf.ui.updateStatusBar(); });
 };
