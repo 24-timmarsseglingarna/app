@@ -53,7 +53,7 @@ tf.serverData.update = function(userId) {
                     }
                     if (rIds.length > 0) {
                         tf.serverAPI.getTeamsPerRegatta(rIds, function(r) {
-                            var teams  = null;
+                            var teams = null;
                             if (r) {
                                 teams = {};
                                 for (regattaId in r) {

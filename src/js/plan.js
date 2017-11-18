@@ -107,22 +107,22 @@ tf.Plan.prototype.delPoint = function(point) {
     if (this.entries.length == 0) {
         return false;
     }
-    if (this.entries[this.entries.length-1].point == point) {
+    if (this.entries[this.entries.length - 1].point == point) {
         // remove last point
         this.entries.pop();
         this._updateState();
         return true;
     }
-    for (var i = this.entries.length-2; i > 1; i--) {
+    for (var i = this.entries.length - 2; i > 1; i--) {
         if (this.entries[i].point == point) {
-            var prev = this.entries[i-1].point;
-            var next =  this.entries[i+1].point;
+            var prev = this.entries[i - 1].point;
+            var next = this.entries[i + 1].point;
             var path = this.pod.getShortestPath(prev, next, 6);
             if (!path) {
                 return false;
             }
             // keep the tail
-            var tail = this.entries.splice(i+1);
+            var tail = this.entries.splice(i + 1);
             // remove point
             this.entries.pop();
             // add the new paths
@@ -149,9 +149,9 @@ tf.Plan.prototype.delTail = function(point) {
     if (this.entries.length == 0) {
         return false;
     }
-    for (var i = this.entries.length-2; i > 0; i--) {
+    for (var i = this.entries.length - 2; i > 0; i--) {
         if (this.entries[i].point == point) {
-            this.entries.splice(i+1, this.entries.length - i + 1);
+            this.entries.splice(i + 1, this.entries.length - i + 1);
             this._updateState();
             return;
         }
@@ -168,10 +168,10 @@ tf.Plan.prototype.rePlan = function(oldPoint, newPoint) {
     // point so we start from 1.
     for (var i = 1; i < this.entries.length; i++) {
         if (this.entries[i].point == oldPoint) {
-            var prev = this.entries[i-1].point;
+            var prev = this.entries[i - 1].point;
             var next = null;
-            if (i+1 < this.entries.length) {
-                next =  this.entries[i+1].point;
+            if (i + 1 < this.entries.length) {
+                next = this.entries[i + 1].point;
             }
             var path1 = this.pod.getShortestPath(prev, newPoint, 6);
             var path2 = null;
@@ -185,7 +185,7 @@ tf.Plan.prototype.rePlan = function(oldPoint, newPoint) {
                 }
             }
             // keep the tail
-            var tail = this.entries.splice(i+1);
+            var tail = this.entries.splice(i + 1);
             // remove oldPoint
             this.entries.pop();
             // add the new paths
@@ -293,7 +293,7 @@ tf.Plan.prototype._logBookChanged = function() {
     // treat rest of entries as planned legs
     for (; i < this.entries.length; i++) {
         if (i > 0 && !this.entries[i].dist) {
-            var prev = this.entries[i-1].point;
+            var prev = this.entries[i - 1].point;
             var cur = this.entries[i].point;
             this.entries[i].dist = this.pod.getDistance(prev, cur);
         }
@@ -331,7 +331,7 @@ tf.Plan.prototype._updateState = function(informSubscribers) {
     }
     this.totalDist = totalDist;
     this.nlegs = nlegs;
-    var loggedPoints = this.logbook ? this.logbook.getPoints(): [];
+    var loggedPoints = this.logbook ? this.logbook.getPoints() : [];
     if (loggedPoints.length > 0) {
         var time = loggedPoints[loggedPoints.length - 1].time;
         var offset;

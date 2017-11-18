@@ -167,7 +167,7 @@ tf.LogBook.prototype._updateLog = function() {
         } else if (e.interrupt && e.interrupt.type != 'done') {
             // Find the corresponding log entry for interrupt done
             var found = false;
-            for (var j = i+1; !found && j < this.log.length; j++) {
+            for (var j = i + 1; !found && j < this.log.length; j++) {
                 var f = this.log[j];
                 if (f.interrupt && f.interrupt.type == 'done') {
                     var interrupttime = f.time.diff(e.time, 'minutes');
@@ -180,7 +180,7 @@ tf.LogBook.prototype._updateLog = function() {
                 } else if (f.point) {
                     // A rounding log entry before starting to sail again -
                     // error
-                    e._interruptStatus = 'no-done'
+                    e._interruptStatus = 'no-done';
                     found = true;
                 } else {
                     // A new interrupt 'replaced' this one

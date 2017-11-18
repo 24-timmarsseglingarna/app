@@ -2,9 +2,9 @@
 
 goog.provide('tf.ui.activateRace');
 
+goog.require('tf.serverAPI');
 goog.require('tf.ui');
 goog.require('tf.ui.alert');
-goog.require('tf.serverAPI');
 
 tf.ui.activateRace.openPage = function() {
 

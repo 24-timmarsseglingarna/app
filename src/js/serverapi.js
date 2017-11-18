@@ -154,7 +154,7 @@ tf.serverAPI.getRaces = function(teams, responsefn) {
  */
 tf.serverAPI.getLog = function(teamId, responsefn) {
     tf.serverAPI.getJSON('/api/v1/teams' + teamId + '/log_entries', responsefn);
-}
+};
 
 tf.serverAPI.deleteLogEntry = function(teamId, logid, responsefn) {
     tf.serverAPI.delObj('/api/v1/teams/' + teamId + '/log_entries/' + logid,

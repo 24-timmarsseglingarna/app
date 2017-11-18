@@ -10,7 +10,7 @@ tf.ui.planMenu.openPage = function() {
     $('.tf-plan-item').removeClass('active');
     $('#tf-plan-plan').removeClass('disabled');
     var activeId;
-    var curPlan = tf.state.curPlan.get()
+    var curPlan = tf.state.curPlan.get();
     if (!curPlan) {
         $('#tf-plan-plan').addClass('disabled');
         activeId = '#tf-plan-item-none';
@@ -36,7 +36,7 @@ tf.ui.planMenu.openPage = function() {
  */
 $(document).ready(function() {
     $('.tf-plan-item').on('click', function(event) {
-        var name = $(event.target).data('name') // html5 data-name attribute
+        var name = $(event.target).data('name'); // html5 data-name attribute
         var plan = null;
         if (name == 'none') {
             $('#tf-plan-plan').addClass('disabled');

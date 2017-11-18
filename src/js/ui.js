@@ -1192,7 +1192,7 @@ tf.ui.stateSetupDone = function() {
             {
                 timeout: 1 * 60 * 1000,   // 1 minute
                 maximumAge: 2 * 60 * 1000 // 2 minutes old is ok
-            })
+            });
     }
     tf.ui.logBookChanged();
 };
@@ -1231,7 +1231,7 @@ tf.ui.onDeviceReady = function() {
 
     tf.state.curPlan.onChange(function(val) {
         if (!val) {
-            $('#tf-nav-plan-name').html("");
+            $('#tf-nav-plan-name').html('');
         } else {
             $('#tf-nav-plan-name').html(val.name);
         }

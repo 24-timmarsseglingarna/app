@@ -99,7 +99,7 @@ tf.storage.init = function() {
     } catch (err) {
         tf.storage._raceIds = {};
     }
-    tf.storage._raceLogs  = {};
+    tf.storage._raceLogs = {};
     for (var raceId in tf.storage._raceIds) {
         var key = 'racelog-' + raceId;
         try {

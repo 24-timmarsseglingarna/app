@@ -145,9 +145,9 @@ tf.ui.logEntry.openLogEntry = function(options) {
     }
     // if a point was clicked, make this field read-only
     if (options.point) {
-        $('#log-entry-point').prop("readonly", true);
+        $('#log-entry-point').prop('readonly', true);
     } else {
-        $('#log-entry-point').prop("readonly", false);
+        $('#log-entry-point').prop('readonly', false);
     }
 
     // hide everything except time and comment
@@ -436,7 +436,7 @@ tf.ui.logEntry._initGeoPosition = function() {
                 // check that the position is still unset - we don't
                 // want to overwrite the user's input
                 if ($('#log-entry-position').val() == '') {
-                    var s = "N " + lat + "  O " + lng;
+                    var s = 'N ' + lat + '  O ' + lng;
                     $('#log-entry-position').val(s);
                 }
             },
@@ -530,8 +530,8 @@ tf.ui.logEntry.getProtest = function() {
     var boatElement = $('#log-entry-protest-boat')[0];
     var boat = undefined;
     for (var i = 0; i < boatElement.options.length; i++) {
-        if (boatElement.options[i].selected
-            && boatElement.options[i].value != -1) {
+        if (boatElement.options[i].selected &&
+            boatElement.options[i].value != -1) {
             boat = boatElement.options[i].value;
         }
     }
@@ -739,7 +739,7 @@ tf.ui.logEntry._setPosition = function(id, pos) {
     // check that the position is still unset - we don't
     // want to overwrite the user's input
     if ($(id).val() == '') {
-        var s = "N " + lat + "  O " + lng;
+        var s = 'N ' + lat + '  O ' + lng;
         $(id).val(s);
     }
 };

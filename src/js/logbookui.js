@@ -65,16 +65,16 @@ tf.ui.logBook.openLogBook = function(options) {
             'Radera</button>' +
             '</div>';
 
-        var point = e.point || "";
-        var wind = "";
+        var point = e.point || '';
+        var wind = '';
         if (e.wind) {
             wind = e.wind.dir + ' ' + e.wind.speed;
         }
-        var boats = "";
+        var boats = '';
         if (e.boats != undefined) {
             boats = e.boats.join(',');
         }
-        var comment = e.comment || "";
+        var comment = e.comment || '';
 
         rows += '<tr>' +
             '<td><a tabindex="0" class="log-book-edit"' +

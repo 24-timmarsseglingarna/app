@@ -204,5 +204,4 @@ tf.state.logout = function() {
 };
 
 tf.state.sendLogBook = function(logBook) {
-    
 };
