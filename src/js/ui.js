@@ -148,7 +148,6 @@ tf.ui.pageStack = [];
  */
 
 tf.ui.showLegs = true;
-tf.ui.showPlan = true;
 tf.ui.planMode = false;
 tf.ui.dragState = null;
 tf.ui.initialCenterChanged = false;
@@ -401,7 +400,7 @@ tf.ui.handleMapClick = function(event) {
                             return;
                         }
                         var eta = [];
-                        if (tf.ui.showPlan && tf.state.curPlan.get()) {
+                        if (tf.state.curPlan.get()) {
                             eta = tf.state.curPlan.get().getETA(number);
                         }
                         // show the popup from the center of the point
@@ -684,7 +683,7 @@ tf.ui.mkLegStyleFunc = function(color) {
                 } else {
                     legStyle = loggedLeg2Style;
                 }
-            } else if (planned && (tf.ui.showPlan || tf.ui.planMode)) {
+            } else if (planned) {
                 if (planned == 1) {
                     legStyle = plannedLeg1Style;
                 } else {
@@ -748,8 +747,7 @@ tf.ui.mkLegStyleFunc = function(color) {
                     tf.ui.styleCache[label] = labelStyle;
                 }
                 return [legStyle, labelStyle];
-            } else if (tf.ui.showLegs || logged ||
-                       (planned && tf.ui.showPlan)) {
+            } else if (tf.ui.showLegs || logged || planned) {
                 return [legStyle];
             } else {
                 return [];
@@ -802,23 +800,9 @@ tf.ui.showLegsActivate = function(active) {
     tf.ui.offshoreLegsLayer.changed();
 };
 
-tf.ui.showPlanActivate = function(active) {
-    if (active) {
-        tf.ui.showPlan = true;
-    } else {
-        tf.ui.showPlan = false;
-        // When we hide the plan, we leave planning mode
-        tf.ui.planModeActivate(false);
-    }
-    tf.ui.inshoreLegsLayer.changed();
-    tf.ui.offshoreLegsLayer.changed();
-    tf.ui.updateStatusBar();
-};
-
 $(document).ready(function() {
     // initiate the checkboxes according to default state
     $('#tf-nav-show-legs').prop('checked', tf.ui.showLegs);
-    $('#tf-nav-show-plan').prop('checked', tf.ui.showPlan);
 
     $('#tf-status-interrupt').on('click', function(event) {
         tf.ui.alert('<p>Du har ett pågående avbrott</p>');
@@ -835,9 +819,6 @@ $(document).ready(function() {
 
     $('#tf-nav-show-legs').change(function(event) {
         tf.ui.showLegsActivate(event.target.checked);
-    });
-    $('#tf-nav-show-plan').change(function(event) {
-        tf.ui.showPlanActivate(event.target.checked);
     });
 
     $('.tf-nav-distances').change(function(event) {
@@ -1096,7 +1077,7 @@ tf.ui.updateStatusBar = function() {
     $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
     $('#tf-status-distance').text(dist.toFixed(1) + ' M');
     var curPlan = tf.state.curPlan.get();
-    if ((tf.ui.showPlan || tf.ui.planMode) && curPlan) {
+    if (tf.ui.planMode && curPlan) {
         var planDist = curPlan.getPlannedDistance();
         var planSpeed = curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;
