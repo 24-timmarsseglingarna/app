@@ -5,6 +5,27 @@
  */
 goog.provide('tf');
 
+// Define 'observable' variables.
+tf.defineVariable = function(obj, name, val) {
+    obj[name] = {
+        'get': function() {
+            return obj[name]._val;
+        },
+        'set': function(val) {
+            obj[name]._val = val;
+            fns = obj[name]._onChangeFns;
+            for (var i = 0; i < fns.length; i++) {
+                fns[i](val);
+            }
+        },
+        'onChange': function(fn) {
+            obj[name]._onChangeFns.push(fn);
+        },
+        '_val': val,
+        '_onChangeFns': []
+    };
+};
+
 tf.legName = function(pointA, pointB) {
     return [pointA, pointB].sort().join('-');
 };

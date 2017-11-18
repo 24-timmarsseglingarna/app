@@ -16,13 +16,17 @@ goog.require('tf.storage');
  * Note that this is not an object b/c this a global property.
  */
 
+
+//tf.state.defineVariable('curRace', null);
+//tf.state.defineVariable('curLogBook', null);
+tf.defineVariable(tf.state, 'curPlan', null);
+
 /**
  * Initialize ephemeral state variables.
  */
 
 tf.state.curRace = null;
 tf.state.curLogBook = null;
-tf.state.curPlan = null;
 
 // this is initialized at startup by analyzing the log book, if there is one
 tf.state.boatState = {
@@ -194,7 +198,7 @@ tf.state.logout = function() {
     tf.state.isLoggedIn = false;
     tf.state.curRace = null;
     tf.state.curLogBook = null;
-    tf.state.curPlan = null;
+    tf.state.curPlan.set(null);
 
     tf.ui.logBookChanged();
 };

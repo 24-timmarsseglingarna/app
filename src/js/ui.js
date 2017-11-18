@@ -338,17 +338,17 @@ tf.ui.mkPlannedPointPopupHTML = function(number, name) {
 
 tf.ui.delPlannedPoint = function(number) {
     tf.ui.plannedPointPopup.hide();
-    tf.state.curPlan.delPoint(number);
+    tf.state.curPlan.get().delPoint(number);
 };
 
 tf.ui.delTailPlan = function(number) {
     tf.ui.plannedPointPopup.hide();
-    tf.state.curPlan.delTail(number);
+    tf.state.curPlan.get().delTail(number);
 };
 
 tf.ui.delPlan = function() {
     tf.ui.plannedPointPopup.hide();
-    tf.state.curPlan.delAllPoints();
+    tf.state.curPlan.get().delAllPoints();
 };
 
 tf.ui.handleMapClick = function(event) {
@@ -376,9 +376,9 @@ tf.ui.handleMapClick = function(event) {
                             // for the other event (single/dbl).
                             return;
                         }
-                        if (tf.state.curPlan.isPointPlanned(number)) {
+                        if (tf.state.curPlan.get().isPointPlanned(number)) {
                             if (event.type === 'singleclick') {
-                                tf.state.curPlan.addPoint(number);
+                                tf.state.curPlan.get().addPoint(number);
                             } else if (event.type === 'dblclick') {
                                 var coord = geom.getCoordinates();
                                 tf.ui.plannedPointPopup.show(
@@ -388,7 +388,7 @@ tf.ui.handleMapClick = function(event) {
                             }
                         } else {
                             if (event.type === 'singleclick') {
-                                tf.state.curPlan.addPoint(number);
+                                tf.state.curPlan.get().addPoint(number);
                             }
                         }
                     } else {
@@ -401,8 +401,8 @@ tf.ui.handleMapClick = function(event) {
                             return;
                         }
                         var eta = [];
-                        if (tf.ui.showPlan && tf.state.curPlan) {
-                            eta = tf.state.curPlan.getETA(number);
+                        if (tf.ui.showPlan && tf.state.curPlan.get()) {
+                            eta = tf.state.curPlan.get().getETA(number);
                         }
                         // show the popup from the center of the point
                         var coord = geom.getCoordinates();
@@ -427,7 +427,7 @@ tf.ui.handleMapPointerDown = function(event) {
             // Only popup when Points are clicked
             if (geom.getType() == 'Point') {
                 var number = feature.get('number');
-                if (tf.state.curPlan.isPointPlanned(number)) {
+                if (tf.state.curPlan.get().isPointPlanned(number)) {
                     tf.ui.dragState = number;
                     return true;
                 }
@@ -446,7 +446,7 @@ tf.ui.handleMapPointerUp = function(event) {
                 if (geom.getType() == 'Point') {
                     var number = feature.get('number');
                     if (number != tf.ui.dragState) {
-                        tf.state.curPlan.rePlan(tf.ui.dragState, number);
+                        tf.state.curPlan.get().rePlan(tf.ui.dragState, number);
                     }
                 }
             }
@@ -667,8 +667,9 @@ tf.ui.mkLegStyleFunc = function(color) {
                 logged = tf.state.curLogBook.getLegSailed(src, dst);
             }
             var planned = 0;
-            if (tf.state.curPlan) {
-                planned = tf.state.curPlan.isLegPlanned(src, dst);
+            var curPlan = tf.state.curPlan.get();
+            if (curPlan) {
+                planned = curPlan.isLegPlanned(src, dst);
             }
             if (logged) {
                 if (logged == 1) {
@@ -691,8 +692,8 @@ tf.ui.mkLegStyleFunc = function(color) {
                 }
             } else {
                 // neither logged nor planned
-                if (tf.ui.planMode && tf.state.curPlan) {
-                    var p = tf.state.curPlan.getLastPoint();
+                if (tf.ui.planMode && curPlan) {
+                    var p = curPlan.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
@@ -804,10 +805,8 @@ tf.ui.showLegsActivate = function(active) {
 tf.ui.showPlanActivate = function(active) {
     if (active) {
         tf.ui.showPlan = true;
-        $('#tf-nav-show-plan').prop('checked', true);
     } else {
         tf.ui.showPlan = false;
-        $('#tf-nav-show-plan').prop('checked', false);
         // When we hide the plan, we leave planning mode
         tf.ui.planModeActivate(false);
     }
@@ -817,6 +816,10 @@ tf.ui.showPlanActivate = function(active) {
 };
 
 $(document).ready(function() {
+    // initiate the checkboxes according to default state
+    $('#tf-nav-show-legs').prop('checked', tf.ui.showLegs);
+    $('#tf-nav-show-plan').prop('checked', tf.ui.showPlan);
+
     $('#tf-status-interrupt').on('click', function(event) {
         tf.ui.alert('<p>Du har ett pågående avbrott</p>');
         return false;
@@ -1092,9 +1095,10 @@ tf.ui.updateStatusBar = function() {
     }
     $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
     $('#tf-status-distance').text(dist.toFixed(1) + ' M');
-    if ((tf.ui.showPlan || tf.ui.planMode) && tf.state.curPlan) {
-        var planDist = tf.state.curPlan.getPlannedDistance();
-        var planSpeed = tf.state.curPlan.getPlannedSpeed();
+    var curPlan = tf.state.curPlan.get();
+    if ((tf.ui.showPlan || tf.ui.planMode) && curPlan) {
+        var planDist = curPlan.getPlannedDistance();
+        var planSpeed = curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;
         if (finished) {
             $('#tf-status-planned-speed').text('-.- kn');
@@ -1242,6 +1246,14 @@ tf.ui.onDeviceReady = function() {
 
     tf.ui.view.once('change:center', function(event) {
         tf.ui.initialCenterChanged = true;
+    });
+
+    tf.state.curPlan.onChange(function(val) {
+        if (!val) {
+            $('#tf-nav-plan-name').html("");
+        } else {
+            $('#tf-nav-plan-name').html(val.name);
+        }
     });
 
     tf.state.init();
