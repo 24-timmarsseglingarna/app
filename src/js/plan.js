@@ -49,7 +49,7 @@ tf.Plan.prototype.onPlanUpdate = function(fn) {
 tf.Plan.prototype.attachLogBook = function(logbook) {
     this.logbook = logbook;
     if (logbook != undefined) {
-        this._resetPlan();
+        this._resetPlan(false);
         var self = this;
         logbook.onLogUpdate(function() {
             self._logBookChanged();
@@ -159,7 +159,7 @@ tf.Plan.prototype.delTail = function(point) {
 };
 
 tf.Plan.prototype.delAllPoints = function() {
-    this._resetPlan();
+    this._resetPlan(false);
     this._updateState(true);
 };
 
@@ -248,7 +248,7 @@ tf.Plan.prototype.isLegPlanned = function(pointA, pointB) {
     return this.nlegs[tf.legName(pointA, pointB)];
 };
 
-tf.Plan.prototype._resetPlan = function() {
+tf.Plan.prototype._resetPlan = function(nomatch) {
     var entry;
     this.nlegs = {};
     this.firstPlanned = -1;
@@ -262,6 +262,11 @@ tf.Plan.prototype._resetPlan = function() {
             this.entries.push(entry);
         }
     }
+    if (nomatch) {
+        for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
+            this.onPlanUpdateFns[i](this, 'nomatch');
+        }
+    }
 };
 
 tf.Plan.prototype._logBookChanged = function() {
@@ -271,7 +276,7 @@ tf.Plan.prototype._logBookChanged = function() {
     // if the logbook has more entries than the plan, we'll just
     // reset the plan to match the logbook.
     if (loggedPoints.length > this.entries.length) {
-        this._resetPlan();
+        this._resetPlan(false);
         return;
     }
     // check if all logged points are also part of the plan;
@@ -285,7 +290,7 @@ tf.Plan.prototype._logBookChanged = function() {
             // the plan doesn't match the log book, reset the plan.
             // OR possibly slice in the best path from the end of
             // logged entries to the plan start.
-            this._resetPlan();
+            this._resetPlan(true);
             return;
         }
     }
@@ -346,7 +351,7 @@ tf.Plan.prototype._updateState = function(informSubscribers) {
 
     if (informSubscribers != false) {
         for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
-            this.onPlanUpdateFns[i].call(this);
+            this.onPlanUpdateFns[i](this, 'update');
         }
     }
 };

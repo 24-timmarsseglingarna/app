@@ -27,10 +27,6 @@ tf.ui.planMenu.openPage = function() {
     document.activeElement.blur();
 };
 
-//FIXME: HERE: om man har en plan aktiv, men loggar en sträcka utanför planen,
-//deaktivera planen och kanske tom radera den.
-
-
 /**
  * Set up handlers for buttons and form input.
  */
@@ -47,6 +43,16 @@ $(document).ready(function() {
             tf.state.curPlan.set(plan);
             if (!plan.logbook) {
                 plan.attachLogBook(tf.state.curLogBook);
+                // add a function that checks if the plan no longer matches
+                // the logbook, and the plan is current, then we no longer
+                // use the plan as current.
+                plan.onPlanUpdate(function(plan, how) {
+                    if (how == 'nomatch') {
+                        if (tf.state.curPlan.get().name == plan.name) {
+                            tf.state.curPlan.set(null);
+                        }
+                    }
+                });
                 plan.onPlanUpdate(tf.ui.logBookChanged);
             }
         }

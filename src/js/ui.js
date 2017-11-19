@@ -1077,7 +1077,7 @@ tf.ui.updateStatusBar = function() {
     $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
     $('#tf-status-distance').text(dist.toFixed(1) + ' M');
     var curPlan = tf.state.curPlan.get();
-    if (tf.ui.planMode && curPlan) {
+    if (curPlan) {
         var planDist = curPlan.getPlannedDistance();
         var planSpeed = curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;
