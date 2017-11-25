@@ -1,0 +1,43 @@
+<!--
+    Boats page
+    Controlled by boatsui.js.
+-->
+<dialog id="boats-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Deltagande båtar</h3>
+      </div>
+      <div class="modal-body">
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active">
+            <a href="#tf-start" role="tab"
+               data-toggle="tab">Startlista</a>
+          </li>
+          <li role="presentation">
+            <a href="#tf-leaderboard" role="tab"
+               data-toggle="tab">Leaderboard</a>
+          </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div role="tabpanel" class="tab-pane active" id="tf-start">
+            <p>startlistan</p>
+          </div>
+
+          <div role="tabpanel" class="tab-pane" id="tf-leaderboard">
+            <p>leaderboard</p>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <input type="button" class="btn btn-primary dialog-close"
+               value="Avbryt"/>
+      </div>
+    </div>
+  </div>
+</dialog>

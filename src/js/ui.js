@@ -837,6 +837,15 @@ $(document).ready(function() {
         tf.ui.offshoreLegsLayer.changed();
     });
 
+    $('#tf-nav-boats').on('click', function(event) {
+        if (!tf.state.curLogBook) {
+            tf.ui._alert_no_log('göra en loggboksanteckning');
+            return false;
+        }
+        tf.ui.boats.openPage();
+        return false;
+    });
+
     $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {
             tf.ui._alert_no_log('göra en loggboksanteckning');
