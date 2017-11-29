@@ -6,30 +6,137 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">Deltagande båtar</h3>
+        <h3 class="modal-title">
+          Deltagande båtar <span id="boats-page-name"/>
+        </h3>
       </div>
       <div class="modal-body">
 
         <!-- Nav tabs -->
-        <ul class="nav nav-tabs" role="tablist">
+        <ul class="nav nav-pills" role="tablist">
           <li role="presentation" class="active">
-            <a href="#tf-start" role="tab"
+            <a href="#start" role="tab"
                data-toggle="tab">Startlista</a>
           </li>
           <li role="presentation">
-            <a href="#tf-leaderboard" role="tab"
+            <a href="#lb" role="tab"
                data-toggle="tab">Leaderboard</a>
           </li>
         </ul>
 
         <!-- Tab panes -->
         <div class="tab-content">
-          <div role="tabpanel" class="tab-pane active" id="tf-start">
-            <p>startlistan</p>
+          <div role="tabpanel" class="tab-pane active" id="start">
+            <div class="row">
+              <div>
+                <b>24-timmars</b>
+                <p>Starttid: 12.00</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-condensed" id="tf-startlist">
+                <caption>Startpunkt 580 Allegrogrund</caption>
+                <colgroup>
+                  <col class="col-xs-1"></col>
+                  <col class="col-xs-4"></col>
+                  <col class="col-xs-4"></col>
+                  <col class="col-xs-2"></col>
+                  <col class="col-xs-1"></col>
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th>Nr</th>
+                    <th>Båtnamm</th>
+                    <th>Båttyp</th>
+                    <th>Segelnr</th>
+                    <th>SXK-tal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>21</td>
+                    <td>Alina</td>
+                    <td>Linjett 37</td>
+                    <td>63</td>
+                    <td>1,232</td>
+                  </tr>
+                  <tr>
+                    <td>25</td>
+                    <td>Vindil</td>
+                    <td>Scampi</td>
+                    <td>5213</td>
+                    <td>1,057</td>
+                  </tr>
+                  <tr>
+                    <td>28</td>
+                    <td>Baravara</td>
+                    <td>Sun Odessey 42.1</td>
+                    <td>10565</td>
+                    <td>1,22</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="row">
+              <div>
+                <b>24-timmars Skutsegling till/från 552 Grönö</b>
+                <p>Starttid: 11.30</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-condensed" id="tf-startlist">
+                <caption>Startpunkt 552 Grönö</caption>
+                <colgroup>
+                  <col class="col-xs-1"></col>
+                  <col class="col-xs-4"></col>
+                  <col class="col-xs-4"></col>
+                  <col class="col-xs-2"></col>
+                  <col class="col-xs-1"></col>
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Nr</th>
+                    <th>Båtnamm</th>
+                    <th>Båttyp</th>
+                    <th>Segelnr</th>
+                    <th>SXK-tal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>2</td>
+                    <td>Sofia Linnea</td>
+                    <td>Vedjakt</td>
+                    <td></td>
+                    <td>1,52</td>
+                  </tr>
+                  <tr>
+                    <td>17</td>
+                    <td>S/Y Ellen</td>
+                    <td>Skuta Ellen</td>
+                    <td>SIDM</td>
+                    <td>1,22</td>
+                  </tr>
+                  <tr>
+                    <td>34</td>
+                    <td>Anna-Sofia</td>
+                    <td>Hajkutter</td>
+                    <td></td>
+                    <td>1,12</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
           </div>
 
-          <div role="tabpanel" class="tab-pane" id="tf-leaderboard">
-            <p>leaderboard</p>
+          <div role="tabpanel" class="tab-pane" id="lb">
+            <div class="table-responsive">
+              <table class="table table-condensed" id="tf-leaderboard">
+              </table>
+            </div>
           </div>
         </div>
 

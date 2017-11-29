@@ -111,27 +111,27 @@ tf.serverData.getTeamsData = function(regattaId) {
 
 tf.serverData.mkRaceData = function(s) {
     var r = {
-        id:             s.id,
-        organizer_name: s.organizer_name,
-        regatta_name:   s.regatta_name,
-        regatta_id:     s.regatta_id,
-        start_from:     moment(s.start_from),
-        start_to:       moment(s.start_to),
-        period:         s.period,
-        description:    s.description
+        id:             s.id,                  // int
+        organizer_name: s.organizer_name,      // string
+        regatta_name:   s.regatta_name,        // string
+        regatta_id:     s.regatta_id,          // int
+        start_from:     moment(s.start_from),  // date and time
+        start_to:       moment(s.start_to),    // date and time
+        period:         s.period,              // int (12,24,48,...)
+        description:    s.description          // string
     };
     return r;
 };
 
 tf.serverData.mkTeamData = function(s) {
     var r = {
-        id:               s.id,
-        start_number:     s.start_number,
-        start_point:      s.start_point,
-        race_id:          s.race_id,
-        boat_name:        s.boat_name,
-        boat_type_name:   s.boat_type_name,
-        boat_sail_number: s.boat_sail_number
+        id:               s.id,                // int
+        start_number:     s.start_number,      // int
+        start_point:      s.start_point,       // int
+        race_id:          s.race_id,           // int
+        boat_name:        s.boat_name,         // string
+        boat_type_name:   s.boat_type_name,    // string
+        boat_sail_number: s.boat_sail_number   // string
     };
     return r;
 };

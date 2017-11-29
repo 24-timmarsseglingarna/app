@@ -811,7 +811,7 @@ $(document).ready(function() {
 
     $('#tf-nav-plan-mode').on('click', function(event) {
         if (!tf.state.curRace) {
-            tf.ui._alert_no_log('planera en rutt');
+            tf.ui._alert_no_race('planera en rutt');
         }
         tf.ui.planMenu.openPage();
         return false;
@@ -838,17 +838,17 @@ $(document).ready(function() {
     });
 
     $('#tf-nav-boats').on('click', function(event) {
-        if (!tf.state.curLogBook) {
-            tf.ui._alert_no_log('göra en loggboksanteckning');
+        if (!tf.state.curRace) {
+            tf.ui._alert_no_race('se deltagande båtar');
             return false;
         }
-        tf.ui.boats.openPage();
+        tf.ui.boats.openPage({race: tf.state.curRace});
         return false;
     });
 
     $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {
-            tf.ui._alert_no_log('göra en loggboksanteckning');
+            tf.ui._alert_no_race('göra en loggboksanteckning');
             return false;
         }
         tf.ui.addLogEntry.openPage();
@@ -857,7 +857,7 @@ $(document).ready(function() {
 
     $('#tf-nav-logbook').on('click', function(event) {
         if (!tf.state.curLogBook) {
-            tf.ui._alert_no_log('öppna loggboken');
+            tf.ui._alert_no_race('öppna loggboken');
         } else {
             tf.ui.logBook.openLogBook({
                 logBook: tf.state.curLogBook
@@ -915,7 +915,7 @@ $(document).ready(function() {
     });
 });
 
-tf.ui._alert_no_log = function(w) {
+tf.ui._alert_no_race = function(w) {
     var s = '<p>Du behöver ';
     if (!tf.state.isLoggedIn) {
         s += 'logga in och ';
