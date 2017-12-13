@@ -65,7 +65,16 @@ tf.Plan.prototype.addPoint = function(point) {
         this.entries.push(entry);
     } else {
         var prev = this.entries[this.entries.length - 1].point;
-        var path = this.pod.getShortestPath(prev, point, 6);
+        var path;
+        var d = this.pod.getDistance(prev, point);
+        if (d != -1) {
+            // there is a direct leg between the points, use it.
+            // getShortestPath might actually return a short path involving
+            // more points, since some legs are 0-distances.
+            path = {dist:d, points:[prev, point]};
+        } else {
+            path = this.pod.getShortestPath(prev, point, 6);
+        }
         if (!path) {
             // can't find path, ignore
             return;
