@@ -131,7 +131,8 @@ tf.serverData.mkTeamData = function(s) {
         race_id:          s.race_id,           // int
         boat_name:        s.boat_name,         // string
         boat_type_name:   s.boat_type_name,    // string
-        boat_sail_number: s.boat_sail_number   // string
+        boat_sail_number: s.boat_sail_number,  // string
+        sxk_handicap:     s.sxk || 1           // float
     };
     return r;
 };

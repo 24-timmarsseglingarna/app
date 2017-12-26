@@ -154,6 +154,7 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         tf.state.curLogBook = new tf.LogBook(teamData.boat_name,
                                              teamData.start_number,
                                              teamData.start_point,
+                                             teamData.sxk_handicap,
                                              tf.state.curRace, log);
 
         tf.state.boatState.engine = tf.state.curLogBook.getEngine();

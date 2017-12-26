@@ -8,9 +8,10 @@ goog.require('tf.Pod');
 /**
  * @constructor
  */
-tf.LogBook = function(boatName, startNo, startPoint, race, log) {
+tf.LogBook = function(boatName, startNo, startPoint, sxk_handicap, race, log) {
     this.onLogUpdateFns = [];
     this.boatName = boatName,
+    this.sxk_handicap = sxk_handicap;
     this.startNo = startNo;
     this.startPoint = startPoint;
     this.log = log || [];
@@ -287,6 +288,12 @@ tf.LogBook.prototype.getSailedDistance = function() {
     // sailed distance is total dist + (speed * distOffset)
     var speed = this.getAverageSpeed();
     return this.totalDist + (speed * this.distOffset / 60);
+};
+
+tf.LogBook.prototype.getSXKDistance = function() {
+    // SXK distance is sailed distance / sxk-handicap
+    var dist = this.getSailedDistance();
+    return dist / this.sxk_handicap;
 };
 
 tf.LogBook.prototype.getAverageSpeed = function() {

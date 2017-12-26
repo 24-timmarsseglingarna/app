@@ -112,11 +112,13 @@ tf.ui.logBook.openLogBook = function(options) {
         '</tr>';
 
     var dist = logBook.getSailedDistance();
+    var sxkdist = logBook.getSXKDistance();
     var speed = logBook.getAverageSpeed();
 
     $('#log-book-boat').text(boatName);
     $('#log-book-startno').text(startNo);
     $('#log-book-distance').text(dist.toFixed(1) + ' M');
+    $('#log-book-sxk-distance').text(sxkdist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(head + '<tbody>' + rows + '</tbody>');
     $('.log-book-edit').popover();
