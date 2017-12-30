@@ -28,6 +28,59 @@ tf.serverData.init = function(url) {
     tf.serverData._teamsETags = m.etags;
 };
 
+tf.serverData.getNewRegattaLog = function(regattaId, lastUpdate, responsefn) {
+    tf.serverAPI.getNewRegattaLog(
+        regattaId, null, lastUpdate,
+        function(data, _etag) {
+            if (data) {
+                var log = data.map(tf.serverData.mkLogSummaryData);
+                responsefn(log);
+            } else {
+                responsefn(null);
+            }
+        });
+};
+
+tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
+    tf.serverAPI.getNewMyLog(
+        teamId, tf.state.clientId, lastUpdate,
+        function(data, _etag) {
+            if (data) {
+                var log = data.map(tf.serverData.mkLogData);
+                responsefn(log);
+            } else {
+                responsefn(null);
+            }
+        });
+};
+
+tf.serverData.postLogEntry = function(data, responsefn) {
+    tf.serverAPI.postLogEntry(
+        tf.serverData.mkServerLogData(data, false),
+        function(res) {
+            if (res && res.id) {
+                responsefn(res.id, res.gen)
+            } else {
+                responsefn(null, null)
+            }
+        });
+};
+
+tf.serverData.patchLogEntry = function(logId, data, responsefn) {
+    tf.serverAPI.patchLogEntry(
+        logId,
+        tf.serverData.mkServerLogData(data, true),
+        function(res) {
+            if (res == 'conflict')
+                //FIXME HERE
+                responsefn(res.id, res.gen)
+            } else {
+                responsefn(null, null)
+            }
+        });
+};
+
+
 tf.serverData.update = function(userId) {
     tf.serverAPI.getActiveTeams(userId, tf.serverData._myTeamsETag,
                                 function(srvTeams, myTeamsETag) {
@@ -133,6 +186,7 @@ tf.serverData.update = function(userId) {
                                         etags: racesETags});
                                 }});
                     }
+                    //FIXME: do this continuation style!
                     if (myRaces.length == 1) {
                         // the user is registered for a single race,
                         // make it active
@@ -234,19 +288,22 @@ tf.serverData.mkLogData = function(s) {
         id:               s.id,                // int
         type:             s.log_type,          // string
         time:             moment(s.time),      // date and time
-        point:            s.point,             // int
         gen:              s.gen,               // int
         user_id:          s.user_id,           // int
         client:           s.client,            // string
         deleted:          s.deleted,           // boolean
     };
-    parse_json_log_data(r, s.data);
+    if (s.point) {
+        r.point = s.point;                     // int
+    }
+    tf.serverData.parseJSONLogData(r, s.data);
     return r;
-}
+};
 
 tf.serverData.mkLogSummaryData = function(s) {
     var r = {
         id:               s.id,                // int
+        team_id:          s.team_id,           // int
         time:             moment(s.time),      // date and time
         point:            s.point,             // int
         deleted:          s.deleted,           // boolean
@@ -254,3 +311,79 @@ tf.serverData.mkLogSummaryData = function(s) {
     };
     return r;
 }
+
+tf.serverData.mkServerLogData = function(r, withGen) {
+    // never include the log id in the payload
+    // 'user_id' and 'updated_at' are filled in by the server
+    var s = {
+        log_type:         r.type,
+        time:             r.time.toISOString(),
+        client:           tf.state.clientId,
+        deleted:          r.deleted,
+    };
+
+    if (withGen) {
+        s.gen = r.gen;
+    }
+
+    var data = {};
+    if (r.comment) {
+        data.comment = r.comment;
+    }
+
+    switch (r.type) {
+    case 'round':
+        s.point = r.point;
+        data.wind = r.wind;
+        if (r.sails) {
+            data.sails = sails;
+        }
+        data.boats = r.boats;
+        break;
+    case 'endOfRace':
+        data.endOfRace = r.endOfRace;
+        data.position = r.position;
+        break;
+    case 'seeOtherBoats':
+        data.boats = r.boats;
+        break;
+    case 'protest':
+        data.position = r.position;
+        data.protest = r.protest;
+        break;
+    case 'interrupt':
+        // FIXME: patch log_type to interrupt_start vs interrupt_end?
+        // Useful if the server is going to be able to calculate proper
+        // SXK distance.  rescue-time / rescue-dist is also needed.
+        data.position = r.position;
+        data.interrupt = r.interrupt;
+        break;
+    case 'changeSails':
+        data.wind = r.wind;
+        data.sails = r.sails;
+        break;
+    case 'engine':
+        data.engine = r.engine;
+        break;
+    case 'lanterns':
+        data.position = r.position;
+        data.lanterns = r.lanterns;
+        break;
+    case 'other':
+        break;
+    }
+    s.data = JSON.stringify(data);
+    return s;
+};
+
+tf.serverData.parseJSONLogData  = function(r, dataStr) {
+    try {
+        data = JSON.parse(dataStr);
+        // simply copy everything from the data field to the log entry
+        for (k in data) {
+            r[k] = data[k];
+        }
+    } catch (err) {
+    }
+
+};

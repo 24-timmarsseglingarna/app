@@ -20,6 +20,7 @@ goog.require('tf.storage');
 //tf.defineVariable('curRace', null);
 //tf.defineVariable('curLogBook', null);
 tf.defineVariable(tf.state, 'curPlan', null);
+tf.defineVariable(tf.state, 'regattas', {});
 
 /**
  * Initialize ephemeral state variables.
@@ -28,6 +29,8 @@ tf.defineVariable(tf.state, 'curPlan', null);
 tf.state.curRace = null;
 tf.state.curRegatta = null;
 tf.state.curLogBook = null;
+
+tf.state.clientId = null;
 
 // this is initialized at startup by analyzing the log book, if there is one
 tf.state.boatState = {
@@ -47,6 +50,7 @@ tf.state.isCordova = 'cordova' in window;
 tf.state.init = function() {
     // initialize local storage handler
     tf.storage.init();
+    tf.state.clientId = tf.storage.getSetting('clientId');
 
     // initialize server data; doesn't read from the server, but will
     // read cached data from local storage.
@@ -150,7 +154,8 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         // FIXME: the pod should be more dynamic; it can change on the server
         var tmpPod = new tf.Pod(basePodSpec);
         var racesData = tf.serverData.getRacesData(raceData.regatta_id);
-        tf.state.curRegatta = new tf.Regatta(racesData, tmpPod);
+        tf.state.curRegatta = new tf.Regatta(raceData.regatta_id,
+                                             racesData, tmpPod);
         tf.state.curRace = new tf.Race(tf.state.curRegatta, raceData);
         // get the stored log from the app storage
         var raceLog = tf.storage.getRaceLog(raceId) || {};

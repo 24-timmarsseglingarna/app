@@ -113,8 +113,8 @@ tf.serverAPI.getRaces = function(teamIds, prevetags, responsefn) {
         if (typeof responses[1] == 'string') {
             var teamId = responses[2].tfOpaque;
             var etag = responses[2].getResponseHeader('ETag');
-            if (responses[1] == 'notmodified') {
-                races[teamId] = responses[1];
+            if (responses[2].status == 304) {
+                races[teamId] = 'notmodified';
             } else {
                 races[teamId] = responses[0];
             }
@@ -125,8 +125,8 @@ tf.serverAPI.getRaces = function(teamIds, prevetags, responsefn) {
                 // each data is a list of zero or one races
                 var teamId = responses[i][2].tfOpaque;
                 var etag = responses[i][2].getResponseHeader('ETag');
-                if (responses[i][1] == 'notmodified') {
-                    races[teamId] = responses[i][1];
+                if (responses[i][2].status == 304) {
+                    races[teamId] = 'notmodified';
                 } else {
                     races[teamId] = responses[i][0];
                 }
@@ -164,8 +164,8 @@ tf.serverAPI.getTeamsPerRegatta = function(regattaIds, prevetags, responsefn) {
         if (typeof responses[1] == 'string') {
             var regattaId = responses[2].tfOpaque;
             var etag = responses[2].getResponseHeader('ETag');
-            if (responses[1] == 'notmodified') {
-                teams[regattaId] = responses[1];
+            if (responses[2].status == 304) {
+                teams[regattaId] = 'notmodified';
             } else {
                 teams[regattaId] = responses[0];
             }
@@ -176,8 +176,8 @@ tf.serverAPI.getTeamsPerRegatta = function(regattaIds, prevetags, responsefn) {
                 // each data is a list of zero or more teams
                 var regattaId = responses[i][2].tfOpaque;
                 var etag = responses[i][2].getResponseHeader('ETag');
-                if (responses[i][1] == 'notmodified') {
-                    teams[regattaId] = responses[i][1];
+                if (responses[i][2].status == 304) {
+                    teams[regattaId] = 'notmodified';
                 } else {
                     teams[regattaId] = responses[i][0];
                 }
@@ -216,8 +216,8 @@ tf.serverAPI.getRacesPerRegatta =
         if (typeof responses[1] == 'string') {
             var regattaId = responses[2].tfOpaque;
             var etag = responses[2].getResponseHeader('ETag');
-            if (responses[1] == 'notmodified') {
-                races[regattaId] = responses[1];
+            if (responses[2].status == 304) {
+                races[regattaId] = 'notmodified';
             } else {
                 races[regattaId] = responses[0];
             }
@@ -228,8 +228,8 @@ tf.serverAPI.getRacesPerRegatta =
                 // each data is a list of zero or more races
                 var regattaId = responses[i][2].tfOpaque;
                 var etag = responses[i][2].getResponseHeader('ETag');
-                if (responses[i][1] == 'notmodified') {
-                    races[regattaId] = responses[i][1];
+                if (responses[i][2].status == 304) {
+                    races[regattaId] = 'notmodified';
                 } else {
                     races[regattaId] = responses[i][0];
                 }
@@ -251,17 +251,33 @@ tf.serverAPI.getRacesPerRegatta =
                                    function() { responsefn(null, null); });
 };
 
-/**
- * Return the log for a given team in a call to `responsefn`.
- */
-tf.serverAPI.getLog = function(teamId, etag, responsefn) {
-    tf.serverAPI.getJSON('/api/v1/teams' + teamId + '/log_entries',
-                         etag, responsefn);
+tf.serverAPI.getNewMyLog = function(teamId, client, updatedAfter, responsefn) {
+    var url = '/api/v1/logs?from_team=' + teamId +
+        '&not_client=' + client;
+    if (updatedAfter) {
+        url += '&updated_after=' + updatedAfter;
+    }
+    tf.serverAPI.getJSON(url, null, responsefn);
 };
 
-tf.serverAPI.putLogEntry = function(teamId, logid, logEntry, responsefn) {
-    tf.serverAPI.putJSON('/api/v1/teams/' + teamId + '/log_entries/' + logid,
-                         responsefn);
+tf.serverAPI.getNewRegattaLog = function(regattaId, teamId,
+                                         updatedAfter, responsefn) {
+    var url = '/api/v1/logs?from_regatta=' + regattaId + '&has_type=round';
+    if (teamId) {
+        url += '&not_team=' + teamId;
+    }
+    if (updatedAfter) {
+        url += '&updated_after=' + updatedAfter;
+    }
+    tf.serverAPI.getJSON(url, null, responsefn);
+};
+
+tf.serverAPI.postLogEntry = function(data, responsefn) {
+    tf.serverAPI.postJSON('/api/v1/log', data, responsefn);
+};
+
+tf.serverAPI.patchLogEntry = function(logid, data, responsefn) {
+    tf.serverAPI.patchJSON('/api/v1/log/' + logid, data, responsefn);
 };
 
 tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
@@ -278,8 +294,8 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
         },
         success: function(data, status, jqXHR) {
             var etag = jqXHR.getResponseHeader('ETag');
-            if (status == 'notmodified') {
-                responsefn(status, etag);
+            if (jqXHR.status == 304) {
+                responsefn('notmodified', etag);
             } else {
                 responsefn(data, etag);
             }
@@ -309,10 +325,18 @@ tf.serverAPI.getAJAX = function(urlpath, etag, opaque) {
     });
 };
 
-tf.serverAPI.putJSON = function(urlpath, data, responsefn) {
+tf.serverAPI.postJSON = function(urlpath, data, responsefn) {
+    tf.serverAPI._setJSON('POST', urlpath, data, responsefn);
+};
+
+tf.serverAPI.patchJSON = function(urlpath, data, responsefn) {
+    tf.serverAPI._setJSON('PATCH', urlpath, data, responsefn);
+};
+
+tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
     $.ajax({
         url: tf.serverAPI.URL + urlpath,
-        method: 'PUT',
+        method: method,
         contentType: 'application/json',
         dataType: 'json',
         data: JSON.stringify(data),
@@ -322,11 +346,16 @@ tf.serverAPI.putJSON = function(urlpath, data, responsefn) {
             return true;
         },
         success: function(data, status, jqXHR) {
-            responsefn(true);
+            if (jqXHR.status == 409) {
+                responsefn('conflict');
+
+            } else {
+                responsefn(data);
+            }
         },
         error: function(jqXHR, status, errorThrown) {
-            console.log('put error for ' + urlpath + ': ' + jqXHR.status);
-            responsefn(false);
+            console.log(method + ' error for ' + urlpath + ': ' + jqXHR.status);
+            responsefn(null);
         }
     });
 };

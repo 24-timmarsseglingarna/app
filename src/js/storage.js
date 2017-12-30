@@ -38,6 +38,11 @@ tf.storage.init = function() {
         'version': tf.storage._curVersion, // integer()
 
         /*
+         * Identification data
+         */
+        'clientId': null, // string()
+
+        /*
          * Authentication data
          */
         'email': null, // string()
@@ -57,6 +62,11 @@ tf.storage.init = function() {
     };
     var setDefaultSettings = function() {
         tf.storage._settings = defaultSettings;
+        if (tf.state.isCordova) {
+            tf.storage._settings.clientId = device.uuid;
+        } else {
+            tf.storage._settings.clientId = tf.state.uuid();
+        }
         tf.storage.setSettings({});
     };
     if (!tf.storage._settings) {
@@ -249,7 +259,7 @@ tf.storage.setCachedTeams = function(teams) {
     localStorage.setItem('cachedTeams', JSON.stringify(teams));
 };
 
-tf.storage._mkRace = function (r) {
+tf.storage._mkRace = function(r) {
     r.start_from = moment(r.start_from);
     r.start_to = moment(r.start_to);
     return r;
