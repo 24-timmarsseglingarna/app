@@ -20,7 +20,7 @@ tf.ui.activateRace.openPage = function() {
 };
 
 tf.ui.activateRace._populateRaces = function() {
-    var racesData = tf.serverData.getRacesData();
+    var racesData = tf.serverData.getMyRacesData();
     var curActiveRaceId = 0;
     if (tf.state.curRace) {
         curActiveRaceId = tf.state.curRace.getId();

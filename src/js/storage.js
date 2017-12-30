@@ -17,6 +17,7 @@ tf.storage.init = function() {
     tf.storage._keys = [
         'settings',      // configuration parameters and state data
         'raceIds',       // for each id, there is state data 'racelog-<id>'
+        'cachedMyRaces', // cached data from server
         'cachedRaces',   // cached data from server
         'cachedMyTeams', // cached data from server
         'cachedTeams'    // cached data from server
@@ -114,23 +115,35 @@ tf.storage.init = function() {
     /*
      * Initialize cached data from local storage.
      */
+    tf.storage._cachedMyRaces = null;
+    try {
+        tf.storage._cachedMyRaces =
+            JSON.parse(localStorage.getItem('cachedMyRaces'));
+        tf.storage._cachedMyRaces.data =
+            tf.storage._cachedMyRaces.data.map(tf.storage._mkRace);
+    } catch (err) {
+    }
+    tf.storage._cachedRaces = null;
     try {
         tf.storage._cachedRaces =
-            JSON.parse(localStorage.getItem('cachedRaces')) || [];
+            JSON.parse(localStorage.getItem('cachedRaces'));
+        for (r in tf.storage._cachedRaces.data) {
+            tf.storage._cachedRaces.data[r] =
+                tf.storage._cachedRaces.data[r].map(tf.storage._mkRace);
+        }
     } catch (err) {
-        tf.storage._cachedRaces = [];
     }
+    tf.storage._cachedMyTeams = null;
     try {
         tf.storage._cachedMyTeams =
-            JSON.parse(localStorage.getItem('cachedMyTeams')) || [];
+            JSON.parse(localStorage.getItem('cachedMyTeams'));
     } catch (err) {
-        tf.storage._cachedMyTeams = [];
     }
+    tf.storage._cachedTeams = null;
     try {
         tf.storage._cachedTeams =
-            JSON.parse(localStorage.getItem('cachedTeams')) || {};
+            JSON.parse(localStorage.getItem('cachedTeams'));
     } catch (err) {
-        tf.storage._cachedTeams = {};
     }
 
     /*
@@ -204,6 +217,14 @@ tf.storage.delRaceLog = function(raceId) {
     delete tf.storage._raceLogs[raceId];
 };
 
+tf.storage.getCachedMyRaces = function() {
+    return tf.storage._cachedMyRaces;
+};
+tf.storage.setCachedMyRaces = function(races) {
+    tf.storage._cachedMyRaces = races;
+    localStorage.setItem('cachedMyRaces', JSON.stringify(races));
+};
+
 tf.storage.getCachedRaces = function() {
     return tf.storage._cachedRaces;
 };
@@ -226,4 +247,10 @@ tf.storage.getCachedTeams = function() {
 tf.storage.setCachedTeams = function(teams) {
     tf.storage._cachedTeams = teams;
     localStorage.setItem('cachedTeams', JSON.stringify(teams));
+};
+
+tf.storage._mkRace = function (r) {
+    r.start_from = moment(r.start_from);
+    r.start_to = moment(r.start_to);
+    return r;
 };

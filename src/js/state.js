@@ -17,8 +17,8 @@ goog.require('tf.storage');
  */
 
 
-//tf.state.defineVariable('curRace', null);
-//tf.state.defineVariable('curLogBook', null);
+//tf.defineVariable('curRace', null);
+//tf.defineVariable('curLogBook', null);
 tf.defineVariable(tf.state, 'curPlan', null);
 
 /**
@@ -26,6 +26,7 @@ tf.defineVariable(tf.state, 'curPlan', null);
  */
 
 tf.state.curRace = null;
+tf.state.curRegatta = null;
 tf.state.curLogBook = null;
 
 // this is initialized at startup by analyzing the log book, if there is one
@@ -112,8 +113,10 @@ tf.state.setupLogin = function(continuationfn) {
 
 tf.state.onAuthenticatedOnline = function(continuationfn) {
     tf.state.isLoggedIn = true;
-    // update our data from the server
+    // asynchronously update our data from the server
     tf.serverData.update(tf.storage.getSetting('userId'));
+    // we'll first start from cached data; if things have been updated on
+    // the server, we might change active race when we get the reply.
     tf.state._setupContinue(continuationfn);
 };
 
@@ -141,14 +144,15 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
     // the Race object.
     // if raceId is 0, reset the tf.state.cur* variables.
 
-    var raceData = tf.serverData.getRaceData(raceId);
+    var raceData = tf.serverData.getMyRaceData(raceId);
     var teamData = tf.serverData.getMyTeamData(raceId);
     if (raceData && teamData) {
         // FIXME: the pod should be more dynamic; it can change on the server
         var tmpPod = new tf.Pod(basePodSpec);
-        tf.state.curRace = new tf.Race(null, // FIXME: do we need regatta?
-                                       raceData,
-                                       tmpPod);
+        var racesData = tf.serverData.getRacesData(raceData.regatta_id);
+        tf.state.curRegatta = new tf.Regatta(racesData, tmpPod);
+        tf.state.curRace = new tf.Race(tf.state.curRegatta, raceData);
+        // get the stored log from the app storage
         var raceLog = tf.storage.getRaceLog(raceId) || {};
         var log = raceLog.log || [];
         tf.state.curLogBook = new tf.LogBook(teamData.boat_name,

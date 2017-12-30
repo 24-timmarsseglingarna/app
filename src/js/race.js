@@ -12,10 +12,9 @@ goog.require('tf');
 /**
  * @constructor
  */
-tf.Race = function(regatta, raceData, pod) {
+tf.Race = function(regatta, raceData) {
     this.regatta = regatta;
     this.raceData = raceData;
-    this.pod = pod;
     this.plans = {};
 };
 
@@ -28,7 +27,7 @@ tf.Race.prototype.getRegattaId = function() {
 };
 
 tf.Race.prototype.getPod = function() {
-    return this.pod;
+    return this.regatta.getPod();
 };
 
 tf.Race.prototype.getRaceLengthHours = function() {
@@ -37,7 +36,7 @@ tf.Race.prototype.getRaceLengthHours = function() {
 
 tf.Race.prototype.getPlan = function(name) {
     if (!this.plans[name]) {
-        this.plans[name] = new tf.Plan(name, this.pod, undefined);
+        this.plans[name] = new tf.Plan(name, this.regatta.getPod(), undefined);
     }
     return this.plans[name];
 };

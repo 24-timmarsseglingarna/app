@@ -68,98 +68,195 @@ tf.serverAPI.logout = function() {
 };
 
 /**
- * Return an object with one entry per regatta, with the regattaId
- * as key, in a call to `responsefn`.
+ * userId :: integer()
+ * prevetag :: null || opaque()
+ * responsefn :: (teams :: 'notmodified' | [teamData :: json()],
+ *                etags :: opaque)
+ * On error, `teams` = `etags` = null.
+ *
+ * Return the teams in the active races that `userId` is registered for.
+ * A race becomes inactive when the results are final.
  */
-tf.serverAPI.getTeamsPerRegatta = function(regattaIds, responsefn) {
+tf.serverAPI.getActiveTeams = function(userId, prevetag, responsefn) {
+    // 1. Find the person that corresponds to the registered user.
+    // 2. Find the active teams for this person.
+    var cfn = function(data, _etag) {
+        if (data[0].id) {
+            peopleId = data[0].id;
+            tf.serverAPI.getJSON('/api/v1/teams?has_person=' + peopleId +
+                                 '&is_active=true',
+                                 prevetag,
+                                 responsefn);
+        } else {
+            responsefn(null, null);
+        }
+    };
+    tf.serverAPI.getJSON('/api/v1/people?has_user=' + userId, null, cfn);
+};
+
+/**
+ * teamIds :: [teamId :: integer()]
+ * prevetags :: null || opaque()
+ * responsefn :: (races :: hash(teamId -> 'notmodified' | [raceData :: json()]),
+ *                etags :: opaque)
+ * On error, `races` = `etags` = null.
+ */
+tf.serverAPI.getRaces = function(teamIds, prevetags, responsefn) {
+    // 3. For each active team, find the races it participates in.
+    var cfn = function() {
+        var responses = [].slice.call(arguments);
+        var races = {};
+        var etags = {};
+        // FIXME: temp hack - it seems arguments is not an Array of
+        // 3-Arrays if there is just one reply - in that case it is just
+        // a 3-Array directly.
+        if (typeof responses[1] == 'string') {
+            var teamId = responses[2].tfOpaque;
+            var etag = responses[2].getResponseHeader('ETag');
+            if (responses[1] == 'notmodified') {
+                races[teamId] = responses[1];
+            } else {
+                races[teamId] = responses[0];
+            }
+            etags[teamId] = etag;
+        } else {
+            for (var i = 0; i < responses.length; i++) {
+                // each response is a list of 3 items [data, status, jqXHR]
+                // each data is a list of zero or one races
+                var teamId = responses[i][2].tfOpaque;
+                var etag = responses[i][2].getResponseHeader('ETag');
+                if (responses[i][1] == 'notmodified') {
+                    races[teamId] = responses[i][1];
+                } else {
+                    races[teamId] = responses[i][0];
+                }
+                etags[teamId] = etag;
+            }
+        }
+        responsefn(races, etags);
+    };
+    var requests = [];
+    for (var i = 0; i < teamIds.length; i++) {
+        teamId = teamIds[i];
+        var etag = prevetags[teamId];
+        requests.push(tf.serverAPI.getAJAX('/api/v1/races?has_team=' + teamId,
+                                           etag,
+                                           teamId));
+    }
+    // wait for all requests to finish
+    $.when.apply($, requests).then(cfn,
+                                   function() { responsefn(null, null); });
+};
+
+/**
+ * regattaIds :: [regattaId :: integer()]
+ * prevetags :: null || opaque()
+ * responsefn :: (teams :: hash(regattaId -> 'notmodified'
+*                                            | [teamData :: json()],
+ *                etags :: opaque())
+ * On error, teams = etags = null.
+ */
+tf.serverAPI.getTeamsPerRegatta = function(regattaIds, prevetags, responsefn) {
     var cfn = function() {
         var responses = [].slice.call(arguments);
         var teams = {};
+        var etags = {};
         if (typeof responses[1] == 'string') {
             var regattaId = responses[2].tfOpaque;
-            teams[regattaId] = responses[0];
+            var etag = responses[2].getResponseHeader('ETag');
+            if (responses[1] == 'notmodified') {
+                teams[regattaId] = responses[1];
+            } else {
+                teams[regattaId] = responses[0];
+            }
+            etags[regattaId] = etag;
         } else {
             for (var i = 0; i < responses.length; i++) {
                 // each response is a list of 3 items [data, status, jqXHR]
                 // each data is a list of zero or more teams
                 var regattaId = responses[i][2].tfOpaque;
-                teams[regattaId] = responses[i][0];
+                var etag = responses[i][2].getResponseHeader('ETag');
+                if (responses[i][1] == 'notmodified') {
+                    teams[regattaId] = responses[i][1];
+                } else {
+                    teams[regattaId] = responses[i][0];
+                }
+                etags[regattaId] = etag;
             }
         }
-        responsefn(teams);
+        responsefn(teams, etags);
     };
     var requests = [];
     for (var i = 0; i < regattaIds.length; i++) {
+        var etag = prevetags[regattaIds[i]];
         requests.push(tf.serverAPI.getAJAX('/api/v1/teams?from_regatta=' +
                                            regattaIds[i],
+                                           etag,
                                            regattaIds[i]));
     }
     // wait for all requests to finish
     $.when.apply($, requests).then(cfn,
-                                   function() { responsefn(null); });
+                                   function() { responsefn(null, null); });
 };
 
 /**
- * Return the teams in the active races that `userId` is registered for,
- * in a call to `responsefn`.
- * A race becomes inactive when the results are final.
+ * regattaIds :: [regattaId :: integer()]
+ * prevetags :: null || opaque()
+ * responsefn :: (races :: hash(regattaId -> 'notmodified'
+*                                            | [raceData :: json()],
+ *                etags :: opaque())
+ * On error, races = etags = null.
  */
-tf.serverAPI.getActiveTeams = function(userId, responsefn) {
-    // 1. Find the person that corresponds to the registered user.
-    // 2. Find the active teams for this person.
-    var cfn = function(data) {
-        if (data[0].id) {
-            peopleId = data[0].id;
-            tf.serverAPI.getJSON('/api/v1/teams?has_person=' + peopleId +
-                                 '&is_active=true',
-                                 responsefn);
-        } else {
-            responsefn(null);
-        }
-    };
-    tf.serverAPI.getJSON('/api/v1/people?has_user=' + userId, cfn);
-};
-
-tf.serverAPI.getRaces = function(teams, responsefn) {
-    // 3. For each active team, find the races it participates in.
+tf.serverAPI.getRacesPerRegatta =
+    function(regattaIds, prevetags, responsefn) {
     var cfn = function() {
         var responses = [].slice.call(arguments);
-        var races = [];
-        // FIXME: temp hack - it seems arguments is not an Array of
-        // 3-Arrays if there is just one reply - in that case it is just
-        // a 3-Array directly.
+        var races = {};
+        var etags = {};
         if (typeof responses[1] == 'string') {
-            races = races.concat(responses[0]);
+            var regattaId = responses[2].tfOpaque;
+            var etag = responses[2].getResponseHeader('ETag');
+            if (responses[1] == 'notmodified') {
+                races[regattaId] = responses[1];
+            } else {
+                races[regattaId] = responses[0];
+            }
+            etags[regattaId] = etag;
         } else {
             for (var i = 0; i < responses.length; i++) {
                 // each response is a list of 3 items [data, status, jqXHR]
-                // each data is a list of zero or one races
-                races = races.concat(responses[i][0]);
+                // each data is a list of zero or more races
+                var regattaId = responses[i][2].tfOpaque;
+                var etag = responses[i][2].getResponseHeader('ETag');
+                if (responses[i][1] == 'notmodified') {
+                    races[regattaId] = responses[i][1];
+                } else {
+                    races[regattaId] = responses[i][0];
+                }
+                etags[regattaId] = etag;
             }
         }
-        responsefn(races);
+        responsefn(races, etags);
     };
     var requests = [];
-    for (var i = 0; i < teams.length; i++) {
-        teamId = teams[i].id;
-        requests.push(tf.serverAPI.getAJAX('/api/v1/races?has_team=' +
-                                           teamId));
+    for (var i = 0; i < regattaIds.length; i++) {
+        var etag = prevetags[regattaIds[i]];
+        requests.push(tf.serverAPI.getAJAX('/api/v1/races?from_regatta=' +
+                                           regattaIds[i],
+                                           etag,
+                                           regattaIds[i]));
     }
     // wait for all requests to finish
     $.when.apply($, requests).then(cfn,
-                                   function() { responsefn(null); });
+                                   function() { responsefn(null, null); });
 };
 
 /**
  * Return the log for a given team in a call to `responsefn`.
  */
-tf.serverAPI.getLog = function(teamId, responsefn) {
-    tf.serverAPI.getJSON('/api/v1/teams' + teamId + '/log_entries', responsefn);
-};
-
-tf.serverAPI.deleteLogEntry = function(teamId, logid, responsefn) {
-    tf.serverAPI.delObj('/api/v1/teams/' + teamId + '/log_entries/' + logid,
-                        responsefn);
+tf.serverAPI.getLog = function(teamId, etag, responsefn) {
+    tf.serverAPI.getJSON('/api/v1/teams' + teamId + '/log_entries',
+                         etag, responsefn);
 };
 
 tf.serverAPI.putLogEntry = function(teamId, logid, logEntry, responsefn) {
@@ -167,32 +264,43 @@ tf.serverAPI.putLogEntry = function(teamId, logid, logEntry, responsefn) {
                          responsefn);
 };
 
-tf.serverAPI.getJSON = function(urlpath, responsefn) {
+tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
     $.ajax({
         url: tf.serverAPI.URL + urlpath,
         dataType: 'json',
         beforeSend: function(jqXHR, settings) {
             jqXHR.setRequestHeader('X-User-Email', tf.serverAPI.state.email);
             jqXHR.setRequestHeader('X-User-Token', tf.serverAPI.state.token);
+            if (etag) {
+                jqXHR.setRequestHeader('If-None-Match', etag);
+            }
             return true;
         },
         success: function(data, status, jqXHR) {
-            responsefn(data);
+            var etag = jqXHR.getResponseHeader('ETag');
+            if (status == 'notmodified') {
+                responsefn(status, etag);
+            } else {
+                responsefn(data, etag);
+            }
         },
         error: function(jqXHR, status, errorThrown) {
             console.log('req error for ' + urlpath + ': ' + jqXHR.status);
-            responsefn(null);
+            responsefn(null, null);
         }
     });
 };
 
-tf.serverAPI.getAJAX = function(urlpath, opaque) {
+tf.serverAPI.getAJAX = function(urlpath, etag, opaque) {
     return $.ajax({
         url: tf.serverAPI.URL + urlpath,
         dataType: 'json',
         beforeSend: function(jqXHR, settings) {
             jqXHR.setRequestHeader('X-User-Email', tf.serverAPI.state.email);
             jqXHR.setRequestHeader('X-User-Token', tf.serverAPI.state.token);
+            if (etag) {
+                jqXHR.setRequestHeader('If-None-Match', etag);
+            }
             if (opaque) {
                 jqXHR.tfOpaque = opaque;
             }
