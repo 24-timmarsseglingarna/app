@@ -20,7 +20,6 @@ goog.require('tf.storage');
 //tf.defineVariable('curRace', null);
 //tf.defineVariable('curLogBook', null);
 tf.defineVariable(tf.state, 'curPlan', null);
-tf.defineVariable(tf.state, 'regattas', {});
 
 /**
  * Initialize ephemeral state variables.
@@ -148,7 +147,7 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
     // the Race object.
     // if raceId is 0, reset the tf.state.cur* variables.
 
-    var raceData = tf.serverData.getMyRaceData(raceId);
+    var raceData = tf.serverData.getRaceData(raceId);
     var teamData = tf.serverData.getMyTeamData(raceId);
     if (raceData && teamData) {
         // FIXME: the pod should be more dynamic; it can change on the server

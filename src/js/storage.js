@@ -17,7 +17,6 @@ tf.storage.init = function() {
     tf.storage._keys = [
         'settings',      // configuration parameters and state data
         'raceIds',       // for each id, there is state data 'racelog-<id>'
-        'cachedMyRaces', // cached data from server
         'cachedRaces',   // cached data from server
         'cachedMyTeams', // cached data from server
         'cachedTeams'    // cached data from server
@@ -65,7 +64,7 @@ tf.storage.init = function() {
         if (tf.state.isCordova) {
             tf.storage._settings.clientId = device.uuid;
         } else {
-            tf.storage._settings.clientId = tf.state.uuid();
+            tf.storage._settings.clientId = tf.uuid();
         }
         tf.storage.setSettings({});
     };
@@ -125,14 +124,6 @@ tf.storage.init = function() {
     /*
      * Initialize cached data from local storage.
      */
-    tf.storage._cachedMyRaces = null;
-    try {
-        tf.storage._cachedMyRaces =
-            JSON.parse(localStorage.getItem('cachedMyRaces'));
-        tf.storage._cachedMyRaces.data =
-            tf.storage._cachedMyRaces.data.map(tf.storage._mkRace);
-    } catch (err) {
-    }
     tf.storage._cachedRaces = null;
     try {
         tf.storage._cachedRaces =
@@ -225,14 +216,6 @@ tf.storage.delRaceLog = function(raceId) {
         localStorage.setItem('raceIds', JSON.stringify(tf.storage._raceIds));
     }
     delete tf.storage._raceLogs[raceId];
-};
-
-tf.storage.getCachedMyRaces = function() {
-    return tf.storage._cachedMyRaces;
-};
-tf.storage.setCachedMyRaces = function(races) {
-    tf.storage._cachedMyRaces = races;
-    localStorage.setItem('cachedMyRaces', JSON.stringify(races));
 };
 
 tf.storage.getCachedRaces = function() {
