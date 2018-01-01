@@ -54,9 +54,9 @@ tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
         });
 };
 
-tf.serverData.postLogEntry = function(data, responsefn) {
+tf.serverData.postLogEntry = function(teamId, data, responsefn) {
     tf.serverAPI.postLogEntry(
-        tf.serverData.mkServerLogData(data, false),
+        tf.serverData.mkServerLogData(data, teamId),
         function(res) {
             if (res && res.id) {
                 responsefn(res.id, res.gen);
@@ -69,13 +69,15 @@ tf.serverData.postLogEntry = function(data, responsefn) {
 tf.serverData.patchLogEntry = function(logId, data, responsefn) {
     tf.serverAPI.patchLogEntry(
         logId,
-        tf.serverData.mkServerLogData(data, true),
+        tf.serverData.mkServerLogData(data),
         function(res) {
             if (res == 'conflict') {
-                //FIXME HERE
-                responsefn(res.id, res.gen);
+                responsefn('conflict');
+            } else if (res && res.gen) {
+                responsefn(res.gen);
             } else {
-                responsefn(null, null);
+                // error
+                responsefn(null);
             }
         })
 };
@@ -306,17 +308,26 @@ tf.serverData.mkLogSummaryData = function(s) {
     return r;
 }
 
-tf.serverData.mkServerLogData = function(r, withGen) {
+tf.serverData.mkServerLogData = function(r, teamId) {
     // never include the log id in the payload
     // 'user_id' and 'updated_at' are filled in by the server
     var s = {
-        log_type:         r.type,
-        time:             r.time.toISOString(),
-        client:           tf.state.clientId,
-        deleted:          r.deleted,
+        client: tf.state.clientId,
     };
+    if (teamId) {
+        s.team_id = teamId;
+    }
 
-    if (withGen) {
+    if (r.type) {
+        s.log_type = r.type;
+    }
+    if (r.time) {
+        s.time = r.time.toISOString();
+    }
+    if (r.deleted) {
+        s.deleted = r.deleted;
+    }
+    if (r.gen) {
         s.gen = r.gen;
     }
 

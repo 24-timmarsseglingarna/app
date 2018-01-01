@@ -209,11 +209,11 @@ tf.serverAPI.getNewRegattaLog = function(regattaId, teamId,
 };
 
 tf.serverAPI.postLogEntry = function(data, responsefn) {
-    tf.serverAPI.postJSON('/api/v1/log', data, responsefn);
+    tf.serverAPI.postJSON('/api/v1/logs', data, responsefn);
 };
 
 tf.serverAPI.patchLogEntry = function(logid, data, responsefn) {
-    tf.serverAPI.patchJSON('/api/v1/log/' + logid, data, responsefn);
+    tf.serverAPI.patchJSON('/api/v1/logs/' + logid, data, responsefn);
 };
 
 tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
@@ -282,16 +282,16 @@ tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
             return true;
         },
         success: function(data, status, jqXHR) {
-            if (jqXHR.status == 409) {
-                responsefn('conflict');
-
-            } else {
-                responsefn(data);
-            }
+            responsefn(data);
         },
         error: function(jqXHR, status, errorThrown) {
-            console.log(method + ' error for ' + urlpath + ': ' + jqXHR.status);
-            responsefn(null);
+            if (jqXHR.status == 409) {
+                responsefn('conflict');
+            } else {
+                console.log(method + ' error for ' + urlpath + ': ' +
+                            jqXHR.status);
+                responsefn(null);
+            }
         }
     });
 };
