@@ -10,7 +10,7 @@ tf.ui.logBook.openLogBook = function(options) {
     var logBook = options.logBook;
     var boatName = logBook.boatName;
     var startNo = logBook.startNo;
-    var log = logBook.log;
+    var log = logBook.getLog();
     var pod = logBook.race.getPod();
     var distance;
     var prev;
@@ -37,6 +37,7 @@ tf.ui.logBook.openLogBook = function(options) {
 
     for (var i = 0; i < log.length; i++) {
         var e = log[i];
+        if (e.deleted) continue;
         distance = '';
         distTD = '<td>';
         if (e.point && prev) {
@@ -51,12 +52,12 @@ tf.ui.logBook.openLogBook = function(options) {
         } else if (e.point) {
             prev = e;
         }
-        intTD = '<td>';
+        var intTD = '<td>';
         if (e._interruptStatus) {
             intTD = '<td class="log-book-invalid-interrupt text-danger">';
         }
         var edit_button_html = "<div class='row log-book-edit-buttons'" +
-            " data-index='" + i + "'>" +
+            " data-logid='" + e.id + "'>" +
             "<button class='btn btn-default' id='log-book-btn-edit'>" +
             'Ändra</button>' +
             "<button class='btn btn-default' id='log-book-btn-add'>" +
@@ -76,7 +77,7 @@ tf.ui.logBook.openLogBook = function(options) {
         }
         var comment = e.comment || '';
 
-        rows += '<tr>' +
+        rows += '<tr data-logid="' + e.id + '">' +
             '<td><a tabindex="0" class="log-book-edit"' +
             ' role="button"' +
             ' data-toggle="popover"' +
@@ -166,8 +167,8 @@ tf.ui.logBook.deleteAllClick = function(col) {
 tf.ui.logBook.logBookInvalidDistClick = function(col) {
     var logBookPage = $('#log-book-page')[0];
     var text = '';
-    logBook = logBookPage.logBook;
-    e = logBook.log[col.parentElement.rowIndex - 1];
+    var logBook = logBookPage.logBook;
+    var e = logBook.getLogEntry(col.parentElement.dataset.logid);
     switch (e._legStatus) {
     case 'invalid-round':
         text = 'Punkt ' + e.point +
@@ -189,8 +190,8 @@ tf.ui.logBook.logBookInvalidDistClick = function(col) {
 
 tf.ui.logBook.logBookInvalidInterruptClick = function(col) {
     var logBookPage = $('#log-book-page')[0];
-    logBook = logBookPage.logBook;
-    e = logBook.log[col.parentElement.rowIndex - 1];
+    var logBook = logBookPage.logBook;
+    var e = logBook.getLogEntry(col.parentElement.dataset.logid);
     var text = '';
     switch (e._interruptStatus) {
     case 'no-done':
@@ -276,19 +277,18 @@ $(document).ready(function() {
         return false;
     });
     $(document).on('click', '#log-book-btn-edit', function(event) {
-        var idx = $(event.currentTarget.parentElement).attr('data-index');
+        var id = $(event.currentTarget.parentElement).data('logid');
         $('.log-book-edit').popover('hide');
-        tf.ui.logBook.openLogEntry({index: idx});
+        tf.ui.logBook.openLogEntry({id: id});
     });
     $(document).on('click', '#log-book-btn-add', function(event) {
-        var idx = Number($(event.currentTarget.parentElement)
-                         .attr('data-index'));
+        var id = $(event.currentTarget.parentElement).data('logid');
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
-        var cur = logBook.log[idx];
+        var cur = logBook.getLogEntry(id);
+        var next = logBook.getNextLogEntry(id);
         var addSeconds;
-        if (idx + 1 < logBook.log.length) {
-            var next = logBook.log[idx + 1];
+        if (next) {
             addSeconds = next.time.diff(cur.time) / 2000;
         } else {
             addSeconds = 3600;
@@ -305,9 +305,9 @@ $(document).ready(function() {
     });
     $(document).on('click', '#log-book-btn-del', function(event) {
         // delete the log entry
-        var idx = $(event.currentTarget.parentElement).attr('data-index');
+        var id = $(event.currentTarget.parentElement).data('logid');
         var logBookPage = $('#log-book-page')[0];
-        logBookPage.logBook.deleteLogEntry(idx);
+        logBookPage.logBook.deleteLogEntry(id);
         // re-open the log book
         $('.log-book-edit').popover('hide');
         tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});

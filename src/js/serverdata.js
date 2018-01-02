@@ -285,7 +285,9 @@ tf.serverData.mkLogData = function(s) {
         type:             s.log_type,          // string
         time:             moment(s.time),      // date and time
         gen:              s.gen,               // int
-        user_id:          s.user_id,           // int
+        // FIXME: should be user_name; use it to show to user if an entry
+        // has been modified on server by someone else
+        user:             s.user_id,           // int
         client:           s.client,            // string
         deleted:          s.deleted,           // boolean
     };
@@ -308,13 +310,17 @@ tf.serverData.mkLogSummaryData = function(s) {
     return r;
 }
 
+/**
+ * Convert internal log data to data sent to the server.
+ */
 tf.serverData.mkServerLogData = function(r, teamId) {
     // never include the log id in the payload
     // 'user_id' and 'updated_at' are filled in by the server
     var s = {
+        // always add our client identifier to entries modified by us
         client: tf.state.clientId,
     };
-    if (teamId) {
+    if (teamId) { // not set on patch
         s.team_id = teamId;
     }
 

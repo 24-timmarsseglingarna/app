@@ -122,7 +122,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     var type;
     var title;
     var isStart = false;
-    var log = options.logBook.log;
+    var log = options.logBook.getLog();
 
     if (options.type) {
         type = options.type;
@@ -400,7 +400,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     var logEntryPage = $('#log-entry-page')[0];
     tf.ui.logEntry.onclose = options.onclose;
     logEntryPage.logBook = options.logBook;
-    logEntryPage.logEntryIndex = options.index;
+    logEntryPage.logEntryId = options.id;
     logEntryPage.logEntryType = type;
     if (isStart) {
         logEntryPage.logEntryType = 'start';
@@ -673,7 +673,7 @@ tf.ui.logEntry.logEntrySave = function() {
     }
 
     // save the current logbook in the page
-    logEntryPage.logBook.saveToLog(logEntry, logEntryPage.logEntryIndex);
+    logEntryPage.logBook.saveToLog(logEntry, logEntryPage.logEntryId);
     return true;
 };
 

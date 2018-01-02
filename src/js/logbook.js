@@ -15,9 +15,6 @@ tf.LogBook = function(boatName, startNo, startPoint, sxk_handicap, race, log) {
     this.startNo = startNo;
     this.startPoint = startPoint;
     this.log = log || [];
-    for (var i = 0; i < this.log.length; i++) {
-        this.log[i].time = moment(this.log[i].time);
-    }
     this.race = race;
     /* total logged distance. */
     this.totalDist = 0;
@@ -36,8 +33,6 @@ tf.LogBook = function(boatName, startNo, startPoint, sxk_handicap, race, log) {
     /* keep track of points logged (in order) */
     this.points = [];
     this.isSentToServer = false;
-    // FIXME: need to store deleted on disk
-    this.deleted = [];
 
     this._updateLog();
 };
@@ -46,28 +41,61 @@ tf.LogBook.prototype.getLog = function() {
     return this.log;
 };
 
+tf.LogBook.prototype.getLogEntry = function(id) {
+    for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].id == id) {
+            return this.log[i];
+        }
+    }
+    return null;
+};
+
+tf.LogBook.prototype.getNextLogEntry = function(id) {
+    for (var i = 0; (i + 1) < this.log.length; i++) {
+        if (this.log[i].id == id) {
+            return this.log[i+1];
+        }
+    }
+    return null;
+};
+
 tf.LogBook.prototype.getRace = function() {
     return this.race;
 };
 
-tf.LogBook.prototype.saveToLog = function(logEntry, index) {
-    if (index != undefined) {
-        // update of an existing entry, keep id and mark it as dirty
-        logEntry.id = this.log[index].id;
-        logEntry.state = tf.state.LOG_DIRTY;
+tf.LogBook.prototype.saveToLog = function(logEntry, id) {
+    if (id != undefined) {
+        // update of an existing entry, find it
+        var index = undefined;
+        for (var i = 0; i < this.log.length; i++) {
+            if (this.log[i].id == id) {
+                index = i;
+            }
+        }
+        logEntry.id = id;
+        if (this.log[index].gen) {
+            // copy server-provided data to the new entry
+            logEntry.gen = this.log[index].gen;
+            logEntry.user = this.log[index].user;
+            logEntry.client = this.log[index].client;
+        }
         // delete the old entry; the new entry might have different time
         this.log.splice(index, 1);
     } else {
         logEntry.id = tf.uuid();
-        logEntry.state = tf.state.LOG_DIRTY;
     }
+    logEntry.dirty = true;
+    logEntry.deleted = false;
+
     var low = 0;
     var high = this.log.length;
-
     while (low < high) {
         var mid = (low + high) >>> 1;
-        if (this.log[mid].time <= logEntry.time) low = mid + 1;
-        else high = mid;
+        if (this.log[mid].time.isBefore(logEntry.time)) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
     }
     this.log.splice(low, 0, logEntry);
     //console.log(JSON.stringify(this.log));
@@ -104,7 +132,8 @@ tf.LogBook.prototype._updateLog = function() {
     // start points in the PoD.  If/when the PoD has correct info about
     // start points, we can validate it here.
     for (var i = 0; i < this.log.length && !startPoint; i++) {
-        e = this.log[i];
+        var e = this.log[i];
+        if (e.deleted) continue;
         if (e.point) {
             var p = pod.getPoint(e.point);
             if (p) {
@@ -120,7 +149,8 @@ tf.LogBook.prototype._updateLog = function() {
 
     // ignore any log items before the start point
     for (var i = (startIdx + 1); startPoint && i < this.log.length; i++) {
-        e = this.log[i];
+        var e = this.log[i];
+        if (e.deleted) continue;
         e._legStatus = null;
         e._invalidLeg = null;
         e._interruptStatus = null;
@@ -170,6 +200,7 @@ tf.LogBook.prototype._updateLog = function() {
             var found = false;
             for (var j = i + 1; !found && j < this.log.length; j++) {
                 var f = this.log[j];
+                if (f.deleted) continue;
                 if (f.interrupt && f.interrupt.type == 'done') {
                     var interrupttime = f.time.diff(e.time, 'minutes');
                     if (e.interrupt.type == 'rescue-dist') {
@@ -250,7 +281,8 @@ tf.LogBook.prototype.getLegSailed = function(pointA, pointB) {
 tf.LogBook.prototype.getStartTime = function() {
     // time of the first logged point
     for (var i = 0; i < this.log.length; i++) {
-        e = this.log[i];
+        var e = this.log[i];
+        if (e.deleted) continue;
         if (e.point) {
             return e.time;
         }
@@ -260,6 +292,7 @@ tf.LogBook.prototype.getStartTime = function() {
 
 tf.LogBook.prototype.hasFinished = function() {
     for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].deleted) continue;
         if (this.log[i].finish) {
             return true;
         }
@@ -319,7 +352,8 @@ tf.LogBook.prototype.getDistOffset = function() {
 tf.LogBook.prototype.getEngine = function() {
     var res = false;
     for (var i = 0; i < this.log.length; i++) {
-        e = this.log[i];
+        var e = this.log[i];
+        if (e.deleted) continue;
         if (e.engine == 'on') {
             res = true;
         } else if (e.engine == 'off') {
@@ -332,7 +366,8 @@ tf.LogBook.prototype.getEngine = function() {
 tf.LogBook.prototype.getLanterns = function() {
     var res = false;
     for (var i = 0; i < this.log.length; i++) {
-        e = this.log[i];
+        var e = this.log[i];
+        if (e.deleted) continue;
         if (e.lanterns == 'on') {
             res = true;
         } else if (e.lanterns == 'off') {
@@ -345,7 +380,8 @@ tf.LogBook.prototype.getLanterns = function() {
 tf.LogBook.prototype.getInterrupt = function() {
     var res = false;
     for (var i = 0; i < this.log.length; i++) {
-        e = this.log[i];
+        var e = this.log[i];
+        if (e.deleted) continue;
         if (e.interrupt == undefined) {
             continue;
         } else if (e.interrupt.type != 'done') {
@@ -358,16 +394,36 @@ tf.LogBook.prototype.getInterrupt = function() {
 };
 
 
-tf.LogBook.prototype.deleteLogEntry = function(index) {
-    this.deleted.push(this.log[index].id);
-    this.log.splice(index, 1);
+tf.LogBook.prototype.deleteLogEntry = function(id) {
+    var index = undefined;
+    for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].id == id) {
+            index = i;
+        }
+    }
+    if (index == undefined) {
+        return;
+    }
+    if (this.log[index].gen) {
+        // this entry exists on the server, mark it as deleted
+        this.log[index].deleted = true;
+        this.log[index].dirty = true;
+    } else {
+        // local entry, just delete it
+        this.log.splice(index, 1);
+    }
     this._updateLog();
 };
 
 tf.LogBook.prototype.deleteAllLogEntries = function() {
+    var newLog = [];
     for (var i = 0; i < this.log.length; i++) {
-        this.deleted.push(this.log[i].id);
+        if (this.log[i].id) { // exists on server, keep it
+            this.log[i].deleted = true;
+            this.log[i].dirty = true;
+            newLog.push(log[i]);
+        } // else local entry, just delete it
     }
-    this.log = [];
+    this.log = newLog;
     this._updateLog();
 }

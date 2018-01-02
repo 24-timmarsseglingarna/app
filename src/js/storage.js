@@ -62,7 +62,8 @@ tf.storage.init = function() {
     var setDefaultSettings = function() {
         tf.storage._settings = defaultSettings;
         if (tf.state.isCordova) {
-            tf.storage._settings.clientId = device.uuid;
+            tf.storage._settings.clientId =
+                device.platform + '-' + device.model + '-' + device.uuid;
         } else {
             tf.storage._settings.clientId = tf.uuid();
         }
@@ -114,6 +115,7 @@ tf.storage.init = function() {
         var key = 'racelog-' + raceId;
         try {
             var raceLog = JSON.parse(localStorage.getItem(key));
+            raceLog.log = raceLog.log.map(tf.storage._mkLog);
             tf.storage._raceLogs[raceId] = raceLog;
         } catch (err) {
             // bad data, remove from storage
@@ -246,4 +248,9 @@ tf.storage._mkRace = function(r) {
     r.start_from = moment(r.start_from);
     r.start_to = moment(r.start_to);
     return r;
+};
+
+tf.storage._mkLog = function(e) {
+    e.time = moment(e.time);
+    return e;
 };
