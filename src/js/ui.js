@@ -812,6 +812,7 @@ $(document).ready(function() {
     $('#tf-nav-plan-mode').on('click', function(event) {
         if (!tf.state.curRace) {
             tf.ui._alert_no_race('planera en rutt');
+            return false;
         }
         tf.ui.planMenu.openPage();
         return false;

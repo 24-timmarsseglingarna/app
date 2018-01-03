@@ -181,7 +181,7 @@ tf.ui.logBook.logBookInvalidDistClick = function(col) {
             'Sträckan räknas därför inte (se 7.5, 13.1.2 i RR-2006)';
         break;
     case 'no-leg':
-        text = 'Mellan ' + e.point + ' och ' + e._invalidLeg +
+        text = 'Mellan ' + e._invalidLeg + ' och ' + e.point +
             ' finns ingen giltig sträcka.';
         break;
     }

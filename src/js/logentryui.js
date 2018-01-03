@@ -90,7 +90,7 @@ tf.ui.logEntry.fmtOther = function(e) {
     if (e.lanterns == 'on') {
         s.push('lanternor på');
     } else if (e.lanterns == 'off') {
-        s.push('lanternor på');
+        s.push('lanternor av');
     }
     if (e.engine == 'on') {
         s.push('motor på');
@@ -346,7 +346,6 @@ tf.ui.logEntry.openLogEntry = function(options) {
         if (type == 'changeSails') {
             var found = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
-                console.log('i: ' + i + ' sails: ' + log[i].sails);
                 if (log[i].sails) {
                     tf.ui.logEntry._initSails(log[i].sails);
                     found = true;
