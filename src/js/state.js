@@ -155,7 +155,8 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         var racesData = tf.serverData.getRacesData(raceData.regatta_id);
         tf.state.curRegatta = new tf.Regatta(raceData.regatta_id,
                                              racesData, tmpPod);
-        tf.state.curRace = new tf.Race(tf.state.curRegatta, raceData);
+        tf.state.curRace = new tf.Race(teamData.id, tf.state.curRegatta,
+                                       raceData);
         // get the stored log from the app storage
         var raceLog = tf.storage.getRaceLog(raceId) || {};
         var log = raceLog.log || [];

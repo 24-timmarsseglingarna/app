@@ -6,6 +6,14 @@ goog.require('tf');
 goog.require('tf.Pod');
 
 /**
+ * Log Entry states:
+ *    'dirty'    - modified locally
+ *    'sync'     - in sync with server
+ *    'syncing'  - being sent to server, waiting for reply
+ *    'conflict' - modified on both server and locally
+ */
+
+/**
  * @constructor
  */
 tf.LogBook = function(boatName, startNo, startPoint, sxk_handicap, race, log) {
@@ -80,13 +88,19 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
             logEntry.client = this.log[index].client;
         }
         // delete the old entry; the new entry might have different time
-        this.log.splice(index, 1);
+        this._delLogEntryByIndex(index);
     } else {
         logEntry.id = tf.uuid();
     }
-    logEntry.dirty = true;
+    logEntry.state = 'dirty';
     logEntry.deleted = false;
 
+    this._addLogEntry(logEntry);
+    //console.log(JSON.stringify(this.log));
+    this._updateLog();
+};
+
+tf.LogBook.prototype._addLogEntry = function(logEntry) {
     var low = 0;
     var high = this.log.length;
     while (low < high) {
@@ -98,8 +112,10 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
         }
     }
     this.log.splice(low, 0, logEntry);
-    //console.log(JSON.stringify(this.log));
-    this._updateLog();
+};
+
+tf.LogBook.prototype._delLogEntryByIndex = function(index) {
+    this.log.splice(index, 1);
 };
 
 /**
@@ -407,7 +423,7 @@ tf.LogBook.prototype.deleteLogEntry = function(id) {
     if (this.log[index].gen) {
         // this entry exists on the server, mark it as deleted
         this.log[index].deleted = true;
-        this.log[index].dirty = true;
+        this.log[index].state = 'dirty';
     } else {
         // local entry, just delete it
         this.log.splice(index, 1);
@@ -420,10 +436,129 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].id) { // exists on server, keep it
             this.log[i].deleted = true;
-            this.log[i].dirty = true;
+            this.log[i].state = 'dirty';
             newLog.push(log[i]);
         } // else local entry, just delete it
     }
     this.log = newLog;
     this._updateLog();
-}
+};
+
+tf.LogBook.prototype.updateFromServer = function(log) {
+    for (var i = 0; i < log.length; i++) {
+        var n = log[i];
+        var o = null;
+        for (var j = 0; j < this.log.length; j++) {
+            if (this.log[j].id == n.id) {
+                o = this.log[j];
+                break;
+            }
+        }
+        if (o) {
+            // this entry has been updated on server
+            switch (o.state) {
+            case 'sync':
+                // not locally modified, just add it
+                this._delLogEntryByIndex(j);
+                this._addLogEntry(n);
+                break;
+            case 'conflict':
+            case 'dirty':
+                // locally modified and modified on server!
+                // we take the server's copy; it's as good a guess as
+                // the other, and it leads to simpler logic.
+                if (!(o.deleted && n.deleted)) {
+                    // unless both have deleted the entry we need to notify
+                    // the user about this.
+                    // FIXME: how to notify the user?
+                    console.log('both modified log entry w/ id ' + n.id);
+                }
+                this._delLogEntryByIndex(j);
+                this._addLogEntry(n);
+                break;
+            case 'syncing':
+                console.log('assertion failure - we should not call ' +
+                            'updateFromServer when we have outstanding ' +
+                            'log updates to server');
+                break;
+            }
+        } else {
+            // brand new entry, just add it
+            this._addLogEntry(n);
+        }
+    }
+    this._updateLog();
+};
+
+tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
+    var logBook = this;
+    for (var i = 0; i < this.log.length; i++) {
+        var e = this.log[i];
+        if (e.state == 'dirty' && !e.gen) {
+            // new log entry
+            e.state = 'syncing';
+            tf.serverData.postLogEntry(
+                this.race.getTeamId(), e,
+                function(id, gen) {
+                    if (id == null) {
+                        // error; wait and try later
+                        e.state = 'dirty';
+                        if (updated) {
+                            this._updateLog();
+                        }
+                        continueFn();
+                        return;
+                    } else {
+                        // update ok; store id and generation id
+                        e.id = id;
+                        e.gen = gen;
+                        e.state = 'sync';
+                    }
+                    // continue
+                    logBook.sendToServer(continueFn, true)
+                });
+            return;
+        } else if (e.state == 'dirty') {
+            // modification of existing log entry
+            var data;
+            if (e.deleted) {
+                data = {
+                    deleted: true,
+                    gen: e.gen
+                };
+            } else {
+                data = e;
+            };
+            e.state = 'syncing';
+            tf.serverData.patchLogEntry(
+                e.id, data,
+                function(res) {
+                    if (res == null) {
+                        // error; wait and try later
+                        e.state = 'dirty';
+                        if (updated) {
+                            this._updateLog();
+                        }
+                        continueFn();
+                        return;
+                    } else if (res == 'conflict') {
+                        // someone modified this entry before us; ignore
+                        // and handle this in 'updateFromServer' later.
+                        e.state = 'conflict';
+                    } else {
+                        // update ok; store new generation id
+                        e.gen = res;
+                        e.state = 'sync';
+                    }
+                    // continue
+                    logBook.sendToServer(continueFn, true)
+                });
+            return;
+        }
+    }
+    // no more log entries to send
+    if (updated) {
+        this._updateLog();
+    }
+    continueFn();
+};
