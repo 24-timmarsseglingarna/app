@@ -127,6 +127,7 @@ deps:
 	$(MAKE) deps/dialog-polyfill
 	$(MAKE) deps/bootstrap
 	$(MAKE) deps/bootstrap-datetimepicker
+	$(MAKE) deps/popper
 	$(MAKE) deps/moment
 	$(MAKE) tiles
 
@@ -174,13 +175,17 @@ deps/dialog-polyfill:
 	mv dialog-polyfill-$(DIALOG_POLYFILL_VSN)/dialog-polyfill.css .; \
 	rm -rf dialog-polyfill-$(DIALOG_POLYFILL_VSN)
 
-BOOTSTRAP_VSN=3.3.7
+BOOTSTRAP_VSN=4.0.0-beta.3
 deps/bootstrap:
 	cd deps; \
 	wget https://github.com/twbs/bootstrap/releases/download/v$(BOOTSTRAP_VSN)/bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
-	unzip -q bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
+	mkdir bootstrap-$(BOOTSTRAP_VSN)-dist; \
+	cd bootstrap-$(BOOTSTRAP_VSN)-dist; \
+	unzip -q ../bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
+	cd ..; \
 	rm -f bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.min.css .; \
+	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.css .; \
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.min.css.map .; \
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js .; \
 	rm -rf bootstrap-$(BOOTSTRAP_VSN)-dist
@@ -194,6 +199,15 @@ deps/bootstrap-datetimepicker:
 	mv bootstrap-datetimepicker-$(BOOTSTRAP_DATETIMEPICKER_VSN)/build/js/bootstrap-datetimepicker.min.js .; \
 	mv bootstrap-datetimepicker-$(BOOTSTRAP_DATETIMEPICKER_VSN)/build/css/bootstrap-datetimepicker.min.css .; \
 	rm -rf bootstrap-datetimepicker-$(BOOTSTRAP_DATETIMEPICKER_VSN)
+
+POPPER_VSN=1.12.9
+deps/popper:
+	cd deps; \
+	wget https://github.com/FezVrasta/popper.js/archive/v$(POPPER_VSN).tar.gz; \
+	tar zxf v$(POPPER_VSN).tar.gz; \
+	rm v$(POPPER_VSN).tar.gz; \
+	mv popper.js-$(POPPER_VSN)/dist/umd/popper.min.js .; \
+	rm -rf popper.js-$(POPPER_VSN)
 
 MOMENT_VSN=2.18.1
 deps/moment:

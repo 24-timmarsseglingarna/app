@@ -20,67 +20,60 @@
         <span class="icon-ellipsis-v"></span>
       </div>
     </div>
-    <ul class="dropdown-menu">
-      <li>
-        <div id="tf-nav-show-activate-race">Aktivera segling</div>
-      </li>
-      <li>
-        <div id="tf-nav-show-settings">Inställningar</div>
-      </li>
+    <div class="dropdown-menu">
+      <button class="dropdown-item" type="button"
+              id="tf-nav-show-activate-race">Aktivera segling</button>
+      <button class="dropdown-item" type="button"
+              id="tf-nav-show-settings">Inställningar</button>
 
-      <li role="separator" class="divider"></li>
+      <div class="dropdown-divider"></div>
 
-      <li>
-        <a href="#">
-          <label for="tf-nav-show-legs"
-                 class="checkbox-inline">
-            <input type="checkbox"
-                   checked="checked"
-                   id="tf-nav-show-legs"/>Visa sträckor</label>
-        </a>
-      </li>
-      <li role="separator" class="divider"></li>
-      <li>
-        <a href="#">
-          <label for="tf-nav-auto-distances"
-                 class="radio-inline">
-            <input type="radio" name="distances" value="auto"
-                   checked="checked"
-                   class="tf-nav-distances"
-                   id="tf-nav-auto-distances"/>Automatiska distanser</label>
-        </a>
-      </li>
-      <li>
-        <a href="#">
-          <label for="tf-nav-show-distances"
-                 class="radio-inline">
-            <input type="radio" name="distances" value="show"
-                   class="tf-nav-distances"
-                   id="tf-nav-show-distances"/>Visa alltid distanser</label>
-        </a>
-      </li>
-      <li>
-        <a href="#">
-          <label for="tf-nav-hide-distances"
-                 class="radio-inline">
-            <input type="radio" name="distances" value="hide"
-                   class="tf-nav-distances"
-                   id="tf-nav-hide-distances"/>Visa aldrig distanser</label>
-        </a>
-      </li>
+      <div class="dropdown-item form-check">
+        <!-- NOTE: class="form-check-input" adds the checkbox in the
+             left margin -->
+        <input class="form-check-input"
+               type="checkbox"
+               checked="checked"
+               id="tf-nav-show-legs"/>
+        <label class="form-check-label"
+               for="tf-nav-show-legs">Visa sträckor</label>
+      </div>
 
-      <li role="separator" class="divider"></li>
+      <div class="dropdown-divider"></div>
 
-      <li>
-        <div id="tf-nav-show-help">Hjälp</div>
-      </li>
+      <div class="dropdown-item form-check">
+        <input type="radio" name="distances" value="auto"
+               checked="checked"
+               class="form-check-input tf-nav-distances"
+               id="tf-nav-auto-distances"/>
+        <label for="tf-nav-auto-distances"
+               class="form-check-label">Automatiska distanser</label>
+      </div>
+      <div class="dropdown-item form-check">
+        <input type="radio" name="distances" value="show"
+               class="form-check-input tf-nav-distances"
+               id="tf-nav-show-distances"/>
+        <label for="tf-nav-show-distances"
+               class="form-check-label">Visa alltid distanser</label>
+      </div>
+      <div class="dropdown-item form-check">
+        <input type="radio" name="distances" value="hide"
+               class="form-check-input tf-nav-distances"
+               id="tf-nav-hide-distances"/>
+        <label for="tf-nav-hide-distances"
+               class="form-check-label">Visa aldrig distanser</label>
+      </div>
 
-      <li role="separator" class="divider"></li>
+      <div class="dropdown-divider"></div>
 
-      <li>
-        <div id="tf-nav-show-info">Info</div>
-      </li>
-    </ul>
+      <button class="dropdown-item" type="button"
+              id="tf-nav-show-help">Hjälp</button>
+
+      <div class="dropdown-divider"></div>
+
+      <button class="dropdown-item" type="button"
+              id="tf-nav-show-info">Info</button>
+    </div>
   </div>
 
   <div id="tf-nav-boats" class="tf-nav-cell">

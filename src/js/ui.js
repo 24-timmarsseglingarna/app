@@ -307,7 +307,9 @@ tf.ui.mkPointPopupHTML = function(number, name, descr, eta) {
         s += '<p>Planerad rundningstid: ' + eta[i] + '</p>';
     }
     if (tf.state.curLogBook) {
-        s += '<p><a class="log-point-button"' +
+        // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
+        // and w/o href in a bad way
+        s += '<p><a class="log-point-button" tabindex="0"' +
             ' onclick="tf.ui.logPoint(\'' + number + '\')">' +
             'Logga denna punkt</a></p>';
     }
@@ -323,13 +325,13 @@ tf.ui.logPoint = function(number) {
 
 tf.ui.mkPlannedPointPopupHTML = function(number, name) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
-        '<p><a class="log-point-button"' +
+        '<p><a class="log-point-button" tabindex="0"' +
         ' onclick="tf.ui.delPlannedPoint(\'' + number + '\')">' +
         'Tag bort denna punkt</a></p>' +
-        '<p><a class="log-point-button"' +
+        '<p><a class="log-point-button" tabindex="0"' +
         ' onclick="tf.ui.delTailPlan(\'' + number + '\')">' +
         'Tag bort resten av planen</a></p>' +
-        '<p><a class="log-point-button"' +
+        '<p><a class="log-point-button" tabindex="0"' +
         ' onclick="tf.ui.delPlan()">' +
         'Tag bort hela planen</a></p>';
     return s;

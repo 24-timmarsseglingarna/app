@@ -36,7 +36,8 @@ tf.ui.activateRace._populateRaces = function() {
         s += '<button type="button" autocomplete="off"' +
              ' id="activate-race-button-0"' +
              ' onclick="tf.ui.activateRace.buttonClick(0)"' +
-             ' class="list-group-item';
+            ' class="list-group-item list-group-item-action' +
+            ' align-items-start';
         if (curActiveRaceId == 0) {
             s += ' active';
         }
@@ -50,7 +51,8 @@ tf.ui.activateRace._populateRaces = function() {
             s += '<button type="button" autocomplete="off"' +
                 ' id="activate-race-button-' + r.id + '"' +
                 ' onclick="tf.ui.activateRace.buttonClick(' + r.id + ')"' +
-                ' class="list-group-item';
+                ' class="list-group-item list-group-item-action' +
+                ' align-items-start';
             if (isActive) {
                 s += ' active';
             }

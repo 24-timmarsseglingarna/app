@@ -14,32 +14,32 @@
 
           <!-- Date and Time -->
           <div class="form-group log-entry-form" id="log-entry-form-time">
-            <label class="col-xs-12 col-sm-4 control-label">Tidpunkt</label>
-            <div class="col-xs-6 col-sm-3">
+            <label class="col-12 col-md-4 col-form-label">Tidpunkt</label>
+            <div class="col-6 col-md-3">
               <div class="input-group date" id="log-entry-timepicker">
                 <input name="time" type="text" class="form-control"/>
-                <span class="input-group-addon">
+                <span class="input-group-append">
                   <span class="icon-clock"></span>
                 </span>
               </div>
             </div>
-            <div class="col-xs-6 col-sm-3">
+            <div class="col-6 col-md-3">
               <div class="input-group date" id="log-entry-datepicker">
                 <input name="date" type="text" class="form-control"/>
-                <span class="input-group-addon">
+                <span class="input-group-append">
                   <span class="icon-calendar"></span>
                 </span>
               </div>
             </div>
-            <div class="col-sm-offset-2"></div>
+            <div class="col-md-offset-2"></div>
           </div>
 
           <!-- Position -->
           <div class="form-group log-entry-form" id="log-entry-form-position">
-            <label class="col-xs-12 col-sm-4
-                          control-label">Position
+            <label class="col-12 col-md-4
+                          col-form-label">Position
             </label>
-            <div class="col-xs-12 col-sm-6">
+            <div class="col-12 col-md-6">
               <input name="position" type="text" class="form-control"
                      id="log-entry-position"/>
             </div>
@@ -48,16 +48,16 @@
           <!-- Point -->
           <div class="form-group log-entry-form" id="log-entry-form-point">
             <div id="log-entry-point-field">
-              <label class="col-xs-12 col-sm-4 control-label"
+              <label class="col-12 col-md-4 col-form-label"
                      for="log-entry-point">Punkt</label>
-              <div class="col-xs-6 col-sm-3">
+              <div class="col-6 col-md-3">
                 <input name="point" type="text" class="form-control"
                        id="log-entry-point"/>
               </div>
             </div>
             <div id="log-entry-form-finish">
               <label for="log-entry-finish"
-                     class="col-xs-6 col-sm-5 checkbox-inline">
+                     class="col-6 col-md-5 checkbox-inline">
                 <input name="finish" type="checkbox"
                        id="log-entry-finish"/>Målgång
               </label>
@@ -66,9 +66,9 @@
 
           <!-- Wind -->
           <div class="form-group log-entry-form" id="log-entry-form-wind">
-            <label class="col-xs-12 col-sm-4 control-label"
+            <label class="col-12 col-md-4 col-form-label"
                    for="log-entry-wind">Vind</label>
-            <div class="col-xs-6 col-sm-3">
+            <div class="col-6 col-md-3">
               <select class="form-control" id="log-entry-wind-dir">
                 <option value="Vxl">Växlande</option>
                 <option>N</option>
@@ -89,7 +89,7 @@
                 <!-- <option>NNV</option> -->
               </select>
             </div>
-            <div class="col-xs-6 col-sm-3">
+            <div class="col-6 col-md-3">
               <select class="form-control" id="log-entry-wind-speed">
                 <option value="0">0 m/s</option>
                 <option value="1">1 m/s</option>
@@ -114,7 +114,7 @@
                 <option value="20+">20+ m/s</option>
               </select>
             </div>
-            <div class="col-sm-offset-2"></div>
+            <div class="col-md-offset-2"></div>
           </div>
 
           <!--
@@ -130,8 +130,8 @@
 
           <!-- Interrupt -->
           <div class="form-group log-entry-form" id="log-entry-form-interrupt">
-            <label class="col-xs-12 col-sm-4 control-label">Avbrott</label>
-            <div class="col-sm-8">
+            <label class="col-12 col-md-4 col-form-label">Avbrott</label>
+            <div class="col-md-8">
               <div class="radio">
                 <label>
                   <input type="radio"
@@ -211,9 +211,9 @@
 
           <!-- Protest -->
           <div class="form-group log-entry-form" id="log-entry-form-protest">
-            <label class="col-xs-12 col-sm-4 control-label"
+            <label class="col-12 col-md-4 col-form-label"
                    for="log-entry-protest-boat">Båt</label>
-            <div class="col-sm-8">
+            <div class="col-md-8">
               <select class="form-control"
                       id="log-entry-protest-boat">
               </select>
@@ -222,8 +222,8 @@
 
           <!-- Sails -->
           <div class="form-group log-entry-form" id="log-entry-form-sail">
-            <label class="col-xs-12 col-sm-4 control-label">Segel</label>
-            <div class="col-sm-8">
+            <label class="col-12 col-md-4 col-form-label">Segel</label>
+            <div class="col-md-8">
               <label for="log-entry-sail-main"
                      class="checkbox-inline">
                 <input name="main" type="checkbox" class="log-entry-sail"
@@ -235,7 +235,7 @@
                        id="log-entry-sail-reef"/>rev
               </label>
             </div>
-            <div class="col-sm-offset-4 col-sm-8">
+            <div class="col-md-offset-4 col-md-8">
               <label for="log-entry-sail-jib"
                      class="checkbox-inline">
                 <input name="foresail" type="checkbox" class="log-entry-sail"
@@ -247,7 +247,7 @@
                        id="log-entry-sail-genoa"/>genua
               </label>
             </div>
-            <div class="col-sm-offset-4 col-sm-8">
+            <div class="col-md-offset-4 col-md-8">
               <label for="log-entry-sail-code"
                      class="checkbox-inline">
                 <input name="down" type="checkbox" class="log-entry-sail"
@@ -266,17 +266,17 @@
             </div>
           </div>
           <div class="form-group log-entry-form" id="log-entry-form-sail2">
-            <label class="col-sm-4 control-label">Andra segel</label>
-            <div class="col-sm-8">
+            <label class="col-md-4 col-form-label">Andra segel</label>
+            <div class="col-md-8">
               <input name="other" type="text" id="log-entry-sail-other"/>
             </div>
           </div>
 
           <!-- Boats -->
           <div class="form-group log-entry-form" id="log-entry-form-boats">
-            <label class="col-sm-4 control-label"
+            <label class="col-md-4 col-form-label"
                    for="log-entry-boats">Siktade båtar</label>
-            <div class="col-sm-8">
+            <div class="col-md-8">
               <select multiple="multiple" class="form-control"
                       id="log-entry-boats">
               </select>
@@ -285,9 +285,9 @@
 
           <!-- Engine -->
           <div class="form-group log-entry-form" id="log-entry-form-engine">
-            <label class="col-xs-12 col-sm-4 control-label">
+            <label class="col-12 col-md-4 col-form-label">
             Motor för laddning</label>
-            <div class="col-sm-8">
+            <div class="col-md-8">
               <div class="radio">
                 <label>
                   <input type="radio"
@@ -311,9 +311,9 @@
 
           <!-- Lanterns -->
           <div class="form-group log-entry-form" id="log-entry-form-lanterns">
-            <label class="col-xs-12 col-sm-4 control-label">
+            <label class="col-12 col-md-4 col-form-label">
             Lanternor</label>
-            <div class="col-sm-8">
+            <div class="col-md-8">
               <div class="radio">
                 <label>
                   <input type="radio"
@@ -338,8 +338,8 @@
 
           <!-- FIXME -->
           <div class="form-group log-entry-form" id="log-entry-form-other">
-            <label class="col-sm-4 control-label">Övrigt</label>
-            <div class="col-sm-offset-4 col-sm-8">
+            <label class="col-md-4 col-form-label">Övrigt</label>
+            <div class="col-md-offset-4 col-md-8">
               <label for="log-entry-end-of-race"
                      data-toggle="collapse"
                      data-target="#log-entry-end-of-race-pos"
@@ -352,8 +352,8 @@
 
           <!-- Comment -->
           <div class="form-group log-entry-form" id="log-entry-form-comment">
-            <label class="col-sm-4 control-label">Kommentar</label>
-            <div class="col-sm-8">
+            <label class="col-md-4 col-form-label">Kommentar</label>
+            <div class="col-md-8">
               <textarea class="form-control" rows="2"
                         id="log-entry-comment"></textarea>
             </div>
@@ -362,7 +362,7 @@
       </div>
 
       <div class="modal-footer">
-        <input type="button" class="btn btn-default pull-left"
+        <input type="button" class="btn btn-secondary pull-left"
                value="Avbryt" id="log-entry-cancel"/>
         <input type="button" class="btn btn-primary"
                value="Spara" id="log-entry-save"/>
