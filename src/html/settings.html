@@ -9,9 +9,9 @@
         <h3 class="modal-title">Inställningar</h3>
       </div>
       <div class="modal-body">
-        <form class="form-horizontal">
-
-          <div class="form-group" id="settings-login-block">
+        <form>
+          <div class="form-group row"
+               id="settings-login-block">
             <div class="offset-md-2 col-md-10">
               <input type="button" value="Logga in"
                      id="settings-login-btn"
@@ -19,30 +19,30 @@
             </div>
           </div>
 
-          <div class="form-group" id="settings-logout-block">
+          <div class="form-group row"
+               id="settings-logout-block">
             <div class="offset-md-2 col-md-10">
               <input type="button" value="Logga ut"
                      id="settings-logout-btn"
                      class="btn btn-secondary"/>
-              <p class="form-text" id="settings-logout-text"/>
+              <p class="form-text text-muted" id="settings-logout-text"/>
             </div>
           </div>
 
           <hr/>
 
-          <div class="form-group">
-            <label class="col-md-2 col-form-label"
-                   for="settings-update">Seglingsdata</label>
+          <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold"
+                   for="settings-update-btn">Seglingsdata</label>
             <div class="col-md-10">
               <input type="button" value="Uppdatera"
                      id="settings-update-btn"
                      class="btn btn-primary"/>
-              <p class="form-text">
+              <p class="form-text text-muted">
                 Uppdatera PoD, seglingar, startlistor mm.
               </p>
             </div>
           </div>
-
         </form>
       </div>
       <div class="modal-footer">
