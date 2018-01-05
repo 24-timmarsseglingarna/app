@@ -35,6 +35,15 @@ html, body, #map {
     border-width: 1px 1px 1px 1px;
 }
 
+/* needed to align the icon size with the input field in logentry page */
+.icon-clock, .icon-calendar {
+    font-size: 1.5rem;
+}
+
+.col-form-label {
+    font-weight: bold;
+}
+
 .tf-status-icon {
     color: black;
     background-color: #ddd;

@@ -149,7 +149,6 @@ tf.ui.logEntry.openLogEntry = function(options) {
     } else {
         $('#log-entry-point').prop('readonly', false);
     }
-
     // hide everything except time and comment
     $('.log-entry-form').hide();
     $('#log-entry-form-time').show();
@@ -168,6 +167,8 @@ tf.ui.logEntry.openLogEntry = function(options) {
             $('#log-entry-form-finish').hide();
             $('#log-entry-form-boats').show();
             $('#log-entry-form-sail').show();
+        } else {
+            $('#log-entry-form-finish').show();
         }
         break;
     case 'endOfRace':
@@ -778,9 +779,9 @@ $(document).ready(function() {
     $('#log-entry-point').blur(function() {
         var point = $('#log-entry-point').val();
         if (!logEntryPage.logBook.getRace().getPod().getPoint(point)) {
-            $('#log-entry-point-field').addClass('has-error');
+            $('#log-entry-point').addClass('is-invalid');
         } else {
-            $('#log-entry-point-field').removeClass('has-error');
+            $('#log-entry-point').removeClass('is-invalid');
         }
     });
 
