@@ -950,46 +950,6 @@ ol.inherits(tf.ui.ButtonControl, ol.control.Control);
 */
 
 /**
- * Initialize date and time handling
- */
-$(document).ready(function() {
-    var icons = {
-            date: 'icon-calendar',
-            time: 'icon-clock',
-            up: 'icon-angle-up',
-            down: 'icon-angle-down',
-            previous: 'icon-angle-left',
-            next: 'icon-angle-right',
-            close: 'icon-close'
-    };
-    $('#log-entry-timepicker').datetimepicker({
-        format: 'HH:mm',
-        stepping: 1,
-        icons: icons,
-        widgetPositioning: {
-            horizontal: 'left',
-            vertical: 'bottom'
-        },
-        focusOnShow: false,
-        locale: 'sv',
-        toolbarPlacement: 'top',
-        showClose: true
-    });
-    $('#log-entry-datepicker').datetimepicker({
-        format: 'DD MMM',
-        icons: icons,
-        widgetPositioning: {
-            horizontal: 'right',
-            vertical: 'bottom'
-        },
-        focusOnShow: false,
-        locale: 'sv',
-        toolbarPlacement: 'top',
-        showClose: true
-    });
-});
-
-/**
  * Initialize all dialog polyfills
  */
 $(document).ready(function() {

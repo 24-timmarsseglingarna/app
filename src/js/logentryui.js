@@ -327,8 +327,8 @@ tf.ui.logEntry.openLogEntry = function(options) {
         } else {
             time = moment();
         }
-        $('#log-entry-timepicker').data('DateTimePicker').date(time);
-        $('#log-entry-datepicker').data('DateTimePicker').date(time);
+        $('#log-entry-timepicker').datetimepicker('date', time);
+        $('#log-entry-datepicker').datetimepicker('date', time);
         // reset some fields to empty
         $('#log-entry-finish').prop('checked', false);
         $('#log-entry-comment').val('');
@@ -413,7 +413,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     if (options.time) {
         // if a time was given, show the time picker b/c the given time
         // was probably not correct.
-        $('#log-entry-timepicker').data('DateTimePicker').show();
+        $('#log-entry-timepicker').datetimepicker('show');
     }
 };
 
@@ -505,8 +505,8 @@ tf.ui.logEntry._initWind = function(wind) {
 };
 
 tf.ui.logEntry.closeLogEntry = function() {
-    $('#log-entry-timepicker').data('DateTimePicker').hide();
-    $('#log-entry-datepicker').data('DateTimePicker').hide();
+    $('#log-entry-timepicker').datetimepicker('hide');
+    $('#log-entry-datepicker').datetimepicker('hide');
     $('#log-entry-page')[0].close();
     if (tf.ui.logEntry.onclose != undefined) {
         tf.ui.logEntry.onclose();
@@ -586,8 +586,8 @@ tf.ui.logEntry.logEntrySave = function() {
     }
     var point = $('#log-entry-point').val();
     var finish = $('#log-entry-finish').prop('checked');
-    var time = $('#log-entry-timepicker').data('DateTimePicker').date();
-    var date = $('#log-entry-datepicker').data('DateTimePicker').date();
+    var time = $('#log-entry-timepicker').datetimepicker('date');
+    var date = $('#log-entry-datepicker').datetimepicker('date');
     var windDir = $('#log-entry-wind-dir').val();
     var windSpeed = $('#log-entry-wind-speed').val();
     var wind = {
@@ -749,6 +749,44 @@ tf.ui.logEntry._setPosition = function(id, pos) {
  */
 $(document).ready(function() {
     var logEntryPage = $('#log-entry-page')[0];
+    var icons = {
+            date: 'icon-calendar',
+            time: 'icon-clock',
+            up: 'icon-angle-up',
+            down: 'icon-angle-down',
+            previous: 'icon-angle-left',
+            next: 'icon-angle-right',
+            close: 'icon-close'
+    };
+    $('#log-entry-timepicker').datetimepicker({
+        format: 'HH:mm',
+        stepping: 1,
+        icons: icons,
+        widgetPositioning: {
+            horizontal: 'left',
+            vertical: 'bottom'
+        },
+        focusOnShow: false,
+        locale: 'sv',
+        toolbarPlacement: 'top',
+        buttons: {
+            showClose: true
+        }
+    });
+    $('#log-entry-datepicker').datetimepicker({
+        format: 'DD MMM',
+        icons: icons,
+        widgetPositioning: {
+            horizontal: 'right',
+            vertical: 'bottom'
+        },
+        focusOnShow: false,
+        locale: 'sv',
+        toolbarPlacement: 'top',
+        buttons: {
+            showClose: true
+        }
+    });
 
     $('#log-entry-cancel').on('click', function(event) {
         tf.ui.popPage();

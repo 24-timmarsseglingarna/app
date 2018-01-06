@@ -16,17 +16,27 @@
           <div class="form-group row log-entry-form" id="log-entry-form-time">
             <label class="col-12 col-md-4 col-form-label">Tidpunkt</label>
             <div class="col-6 col-md-3">
-              <div class="input-group date" id="log-entry-timepicker">
-                <input name="time" type="text" class="form-control"/>
-                <div class="input-group-append">
+              <div class="input-group date" id="log-entry-timepicker"
+                   data-target-input="nearest">
+                <input type="text" class="form-control
+                                          datetimepicker-input"
+                       data-target="#log-entry-timepicker"/>
+                <div class="input-group-append"
+                     data-target="#log-entry-timepicker"
+                     data-toggle="datetimepicker">
                   <span class="input-group-text icon-clock"></span>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="input-group date" id="log-entry-datepicker">
-                <input name="date" type="text" class="form-control"/>
-                <div class="input-group-append">
+              <div class="input-group date" id="log-entry-datepicker"
+                   data-target-input="nearest">
+                <input type="text" class="form-control
+                                          datetimepicker-input"
+                       data-target="#log-entry-datepicker"/>
+                <div class="input-group-append"
+                     data-target="#log-entry-datepicker"
+                     data-toggle="datetimepicker">
                   <span class="input-group-text icon-calendar"></span>
                 </div>
               </div>

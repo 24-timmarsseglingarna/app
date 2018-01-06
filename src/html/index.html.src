@@ -40,7 +40,7 @@
     <link rel="stylesheet" href="24h.css" type="text/css" />
     <link rel="stylesheet" href="icomoon.css" type="text/css" />
     <link rel="stylesheet"
-          href="deps/bootstrap-datetimepicker.min.css"
+          href="deps/tempusdominus-bootstrap-4.min.css"
           type="text/css"/>
   </head>
   <body>
@@ -77,7 +77,7 @@ m4_include(planmenu.html)
     <!-- bootstrap -->
     <script type="text/javascript" src="deps/popper.min.js"></script>
     <script type="text/javascript" src="deps/bootstrap.min.js"></script>
-    <script type="text/javascript" src="deps/bootstrap-datetimepicker.min.js">
+    <script type="text/javascript" src="deps/tempusdominus-bootstrap-4.min.js">
     </script>
 
     <!-- open layers -->

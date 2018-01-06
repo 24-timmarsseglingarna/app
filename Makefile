@@ -126,7 +126,7 @@ deps:
 	$(MAKE) deps/ol
 	$(MAKE) deps/dialog-polyfill
 	$(MAKE) deps/bootstrap
-	$(MAKE) deps/bootstrap-datetimepicker
+	$(MAKE) deps/tempusdominus
 	$(MAKE) deps/popper
 	$(MAKE) deps/moment
 	$(MAKE) tiles
@@ -190,15 +190,15 @@ deps/bootstrap:
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js .; \
 	rm -rf bootstrap-$(BOOTSTRAP_VSN)-dist
 
-BOOTSTRAP_DATETIMEPICKER_VSN=4.17.47
-deps/bootstrap-datetimepicker:
+TEMPUSDOMINUS_VSN=5.0.0-alpha14
+deps/tempusdominus:
 	cd deps; \
-	wget https://github.com/Eonasdan/bootstrap-datetimepicker/archive/$(BOOTSTRAP_DATETIMEPICKER_VSN).tar.gz; \
-	tar zxf $(BOOTSTRAP_DATETIMEPICKER_VSN).tar.gz; \
-	rm -f $(BOOTSTRAP_DATETIMEPICKER_VSN).tar.gz; \
-	mv bootstrap-datetimepicker-$(BOOTSTRAP_DATETIMEPICKER_VSN)/build/js/bootstrap-datetimepicker.min.js .; \
-	mv bootstrap-datetimepicker-$(BOOTSTRAP_DATETIMEPICKER_VSN)/build/css/bootstrap-datetimepicker.min.css .; \
-	rm -rf bootstrap-datetimepicker-$(BOOTSTRAP_DATETIMEPICKER_VSN)
+	wget https://github.com/tempusdominus/bootstrap-4/archive/$(TEMPUSDOMINUS_VSN).tar.gz; \
+	tar zxf $(TEMPUSDOMINUS_VSN).tar.gz; \
+	rm -f $(TEMPUSDOMINUS_VSN).tar.gz; \
+	mv bootstrap-4-$(TEMPUSDOMINUS_VSN)/build/js/tempusdominus-bootstrap-4.min.js .; \
+	mv bootstrap-4-$(TEMPUSDOMINUS_VSN)/build/css/tempusdominus-bootstrap-4.min.css .; \
+	rm -rf bootstrap-4-$(TEMPUSDOMINUS_VSN)
 
 POPPER_VSN=1.12.9
 deps/popper:
