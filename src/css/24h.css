@@ -312,6 +312,23 @@ dialog {
 }
 
 /*
+ * Use to put an item in real center
+ */
+.tf-center {
+    left: 50%;
+    -webkit-transform: translate(-50%, 0);
+    -o-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
+}
+@media (min-width: 768px) {
+    .tf-md-center {
+        left: 50%;
+        -webkit-transform: translate(-50%, 0);
+        -o-transform: translate(-50%, 0);
+        transform: translate(-50%, 0);
+    }
+}
+/* FIXME: remove?  used in bootstrap 3...
  * Copied from bootstrap.css - we use 'div' in 'li' instead of 'a',
  * in order to avoid that the browser shows "#" on hover.
  */
@@ -329,12 +346,4 @@ dialog {
   color: #262626;
   text-decoration: none;
   background-color: #f5f5f5;
-}
-
-.dropdown-menu-center {
-    right: auto;
-    left: 50%;
-    -webkit-transform: translate(-50%, 0);
-    -o-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
 }

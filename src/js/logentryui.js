@@ -154,7 +154,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     $('#log-entry-form-time').show();
     $('#log-entry-form-comment').show();
 
-    var regattaId = options.logBook.race.getRegattaId();
+    var regattaId = options.logBook.getRace().getRegattaId();
 
     switch (type) {
     case 'round':
@@ -168,6 +168,8 @@ tf.ui.logEntry.openLogEntry = function(options) {
             $('#log-entry-form-boats').show();
             $('#log-entry-form-sail').show();
         } else {
+            // FIXME: show finish only if point is possible finish point
+            // needs more data about finish from server
             $('#log-entry-form-finish').show();
         }
         break;
@@ -321,6 +323,13 @@ tf.ui.logEntry.openLogEntry = function(options) {
     } else {
         var point = options.point || '';
         $('#log-entry-point').val(point);
+        var p = options.logBook.getRace().getPod().getPoint(point);
+        if (p) {
+            $('#log-entry-point-name').val(p.name);
+        } else {
+            $('#log-entry-point-name').val('');
+        }
+
         var time;
         if (options.time) {
             time = options.time;
@@ -633,7 +642,7 @@ tf.ui.logEntry.logEntrySave = function() {
         // validate point
         if (!logEntryPage.logBook.getRace().getPod().getPoint(point)) {
             tf.ui.alert('<p>Punkten "' + point +
-                        '" är inte en giltig punkt</p>');
+                        '" finns inte.</p>');
             return false;
         }
         logEntry.wind = wind;
@@ -816,9 +825,12 @@ $(document).ready(function() {
 
     $('#log-entry-point').blur(function() {
         var point = $('#log-entry-point').val();
-        if (!logEntryPage.logBook.getRace().getPod().getPoint(point)) {
+        var p = logEntryPage.logBook.getRace().getPod().getPoint(point);
+        if (!p) {
+            $('#log-entry-point-name').val('');
             $('#log-entry-point').addClass('is-invalid');
         } else {
+            $('#log-entry-point-name').val(p.name);
             $('#log-entry-point').removeClass('is-invalid');
         }
     });

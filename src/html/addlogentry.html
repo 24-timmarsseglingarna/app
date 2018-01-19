@@ -9,61 +9,73 @@
         <h3 class="modal-title">Logga händelse</h3>
       </div>
       <div class="modal-body">
-        <form class="form-horizontal">
-          <div class="form-group">
-            <div class="list-group">
-              <div class="offset-md-2 col-md-8">
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        data-type="seeOtherBoats">
-                  Siktar andra båtar
-                </button>
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        data-type="changeSails">
-                  Segelskifte
-                </button>
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        data-type="protest">
-                  Observation av möjligt regelbrott
-                </button>
-              </div>
-              <div class="offset-md-2 col-md-8">
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        id="tf-log-lanterns"
-                        data-type="lanterns">
-                  <!-- set by code -->
-                </button>
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        id="tf-log-engine"
-                        data-type="engine">
-                  <!-- set by code -->
-                </button>
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        data-type="endOfRace">
-                  Seglar på övertid
-                </button>
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        id="tf-log-interrupt"
-                        data-type="interrupt">
-                  <!-- set by code -->
-                </button>
-              </div>
-              <div class="offset-md-2 col-md-8">
-                <button type="button" autocomplete="off"
-                        class="list-group-item tf-log-item"
-                        data-type="other">
-                  Annat
-                </button>
-              </div>
-            </div>
+        <div class="list-group">
+          <div class="offset-md-2 col-md-8">
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    data-type="round">
+              Rundning
+            </button>
           </div>
-        </form>
+          <div class="offset-md-2 col-md-8">
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    data-type="seeOtherBoats">
+              Siktar andra båtar
+            </button>
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    data-type="changeSails">
+              Segelskifte
+            </button>
+          </div>
+          <div class="offset-md-2 col-md-8">
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    id="tf-log-lanterns"
+                    data-type="lanterns">
+              <!-- set by code -->
+            </button>
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    id="tf-log-engine"
+                    data-type="engine">
+              <!-- set by code -->
+            </button>
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    data-type="endOfRace">
+              Seglar på övertid
+            </button>
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    id="tf-log-interrupt"
+                    data-type="interrupt">
+              <!-- set by code -->
+            </button>
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    data-type="protest">
+              Observation av möjligt regelbrott
+            </button>
+          </div>
+          <div class="offset-md-2 col-md-8">
+            <button type="button" autocomplete="off"
+                    class="list-group-item list-group-item-action
+                           tf-log-item"
+                    data-type="other">
+              Annat
+            </button>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <input type="button" class="btn btn-primary dialog-close"

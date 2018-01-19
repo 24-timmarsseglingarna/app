@@ -545,6 +545,12 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         // someone modified this entry before us; ignore
                         // and handle this in 'updateFromServer' later.
                         e.state = 'conflict';
+                    } else if (e.state == 'dirty') {
+                        // update ok, but modified again locally;
+                        // we continue, and will then send the new
+                        // entry again.  update the generation id though,
+                        // so that the server accepts the new entry.
+                        e.gen = res;
                     } else {
                         // update ok; store new generation id
                         e.gen = res;
