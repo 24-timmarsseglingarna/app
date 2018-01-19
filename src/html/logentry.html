@@ -13,8 +13,10 @@
         <form>
 
           <!-- Date and Time -->
-          <div class="form-group row log-entry-form" id="log-entry-form-time">
-            <label class="col-12 col-md-4 col-form-label">Tidpunkt</label>
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-time">
+            <label class="col-12 col-md-4 col-form-label
+                          text-md-right">Tidpunkt</label>
             <div class="col-6 col-md-3">
               <div class="input-group date" id="log-entry-timepicker"
                    data-target-input="nearest">
@@ -47,7 +49,7 @@
           <!-- Position -->
           <div class="form-group row log-entry-form"
                id="log-entry-form-position">
-            <label class="col-12 col-md-4 col-form-label"
+            <label class="col-12 col-md-4 col-form-label text-md-right"
                    for="log-entry-position">Position</label>
             <div class="col-12 col-md-6">
               <input name="position" type="text" class="form-control"
@@ -59,25 +61,34 @@
           <!-- Point -->
           <div class="form-group row log-entry-form align-items-center"
                id="log-entry-form-point">
-            <label class="col-12 col-md-4 col-form-label"
+            <label class="col-12 col-md-4 col-form-label text-md-right"
                    for="log-entry-point">Punkt</label>
             <div class="col-6 col-md-3">
               <input name="point" type="text" class="form-control"
                      id="log-entry-point"/>
               <div class="invalid-feedback">Ogiltig punkt.</div>
             </div>
-
-            <div class="col-6 col-md-5 form-check" id="log-entry-form-finish">
-              <input type="checkbox" class="form-check-input"
+            <div class="col-6 col-md-5 form-check">
+              <input type="text" readonly="true"
+                     class="form-control-plaintext"
+                     id="log-entry-point-name"
+                     value="Allegrogrund"/>
+            </div>
+          </div>
+          <div class="form-group row log-entry-form align-items-center"
+               id="log-entry-form-finish">
+            <label class="col-4 col-md-4 col-form-label text-md-right"
+                   for="log-entry-finish">Målgång</label>
+            <div class="col-6 col-md-3">
+              <input type="checkbox"
                      id="log-entry-finish"/>
-              <label for="log-entry-finish"
-                     class="form-check-label">Målgång</label>
             </div>
           </div>
 
           <!-- Wind -->
-          <div class="form-group row log-entry-form" id="log-entry-form-wind">
-            <label class="col-12 col-md-4 col-form-label"
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-wind">
+            <label class="col-12 col-md-4 col-form-label text-md-right"
                    for="log-entry-wind">Vind</label>
             <div class="col-6 col-md-3">
               <select class="form-control" id="log-entry-wind-dir">
@@ -142,7 +153,8 @@
           <!-- Interrupt -->
           <div class="form-group row log-entry-form"
                id="log-entry-form-interrupt">
-            <label class="col-12 col-md-4 col-form-label">Avbrott</label>
+            <label class="col-12 col-md-4 col-form-label
+                          text-md-right">Avbrott</label>
             <div class="col-md-8">
               <div class="radio">
                 <label>
@@ -222,8 +234,9 @@
           </div>
 
           <!-- Protest -->
-          <div class="form-group row log-entry-form" id="log-entry-form-protest">
-            <label class="col-12 col-md-4 col-form-label"
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-protest">
+            <label class="col-12 col-md-4 col-form-label text-md-right"
                    for="log-entry-protest-boat">Båt</label>
             <div class="col-md-8">
               <select class="form-control"
@@ -233,19 +246,19 @@
           </div>
 
           <!-- Sails -->
-          <div class="form-group row log-entry-form" id="log-entry-form-sail">
-            <label class="col-12 col-md-4 col-form-label">Segel</label>
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-sail">
+            <label class="col-12 col-md-4 col-form-label
+                          text-md-right">Segel</label>
             <div class="col-md-8">
+              <input name="main" type="checkbox" class="log-entry-sail"
+                     id="log-entry-sail-main"/>
               <label for="log-entry-sail-main"
-                     class="checkbox-inline">
-                <input name="main" type="checkbox" class="log-entry-sail"
-                       id="log-entry-sail-main"/>stor
-              </label>
+                     class="checkbox-inline">stor</label>
+              <input name="reef" type="checkbox" class="log-entry-sail"
+                     id="log-entry-sail-reef"/>
               <label for="log-entry-sail-reef"
-                     class="checkbox-inline">
-                <input name="reef" type="checkbox" class="log-entry-sail"
-                       id="log-entry-sail-reef"/>rev
-              </label>
+                     class="checkbox-inline">rev</label>
             </div>
             <div class="offset-md-4 col-md-8">
               <label for="log-entry-sail-jib"
@@ -277,16 +290,19 @@
               </label>
             </div>
           </div>
-          <div class="form-group row log-entry-form" id="log-entry-form-sail2">
-            <label class="col-md-4 col-form-label">Andra segel</label>
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-sail2">
+            <label class="col-md-4 col-form-label
+                          text-md-right">Andra segel</label>
             <div class="col-md-8">
               <input name="other" type="text" id="log-entry-sail-other"/>
             </div>
           </div>
 
           <!-- Boats -->
-          <div class="form-group row log-entry-form" id="log-entry-form-boats">
-            <label class="col-md-4 col-form-label"
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-boats">
+            <label class="col-md-4 col-form-label text-md-right"
                    for="log-entry-boats">Siktade båtar</label>
             <div class="col-md-8">
               <select multiple="multiple" class="form-control"
@@ -296,8 +312,9 @@
           </div>
 
           <!-- Engine -->
-          <div class="form-group row log-entry-form" id="log-entry-form-engine">
-            <label class="col-12 col-md-4 col-form-label">
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-engine">
+            <label class="col-12 col-md-4 col-form-label text-md-right">
             Motor för laddning</label>
             <div class="col-md-8">
               <div class="radio">
@@ -324,7 +341,7 @@
           <!-- Lanterns -->
           <div class="form-group row log-entry-form"
                id="log-entry-form-lanterns">
-            <label class="col-12 col-md-4 col-form-label">
+            <label class="col-12 col-md-4 col-form-label text-md-right">
             Lanternor</label>
             <div class="col-md-8">
               <div class="radio">
@@ -350,8 +367,9 @@
 
 
           <!-- FIXME -->
-          <div class="form-group row log-entry-form" id="log-entry-form-other">
-            <label class="col-md-4 col-form-label">Övrigt</label>
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-other">
+            <label class="col-md-4 col-form-label text-md-right">Övrigt</label>
             <div class="offset-md-4 col-md-8">
               <label for="log-entry-end-of-race"
                      data-toggle="collapse"
@@ -364,8 +382,10 @@
           </div>
 
           <!-- Comment -->
-          <div class="form-group row log-entry-form" id="log-entry-form-comment">
-            <label class="col-md-4 col-form-label">Kommentar</label>
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-comment">
+            <label class="col-md-4 col-form-label
+                          text-md-right">Kommentar</label>
             <div class="col-md-8">
               <textarea class="form-control" rows="2"
                         id="log-entry-comment"></textarea>
