@@ -175,7 +175,7 @@ deps/dialog-polyfill:
 	mv dialog-polyfill-$(DIALOG_POLYFILL_VSN)/dialog-polyfill.css .; \
 	rm -rf dialog-polyfill-$(DIALOG_POLYFILL_VSN)
 
-BOOTSTRAP_VSN=4.0.0-beta.3
+BOOTSTRAP_VSN=4.0.0
 deps/bootstrap:
 	cd deps; \
 	wget https://github.com/twbs/bootstrap/releases/download/v$(BOOTSTRAP_VSN)/bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
