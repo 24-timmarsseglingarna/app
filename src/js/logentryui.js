@@ -414,10 +414,9 @@ tf.ui.logEntry.openLogEntry = function(options) {
     if (isStart) {
         logEntryPage.logEntryType = 'start';
     }
-    tf.ui.pushPage(function() {
-        tf.ui.logEntry.closeLogEntry();
-    });
-    logEntryPage.showModal();
+    tf.ui.pushPage(
+        function() { $('#log-entry-page').modal({backdrop: 'static'}); },
+        tf.ui.logEntry.closeLogEntry);
     document.activeElement.blur();
     if (options.time) {
         // if a time was given, show the time picker b/c the given time
@@ -516,7 +515,7 @@ tf.ui.logEntry._initWind = function(wind) {
 tf.ui.logEntry.closeLogEntry = function() {
     $('#log-entry-timepicker').datetimepicker('hide');
     $('#log-entry-datepicker').datetimepicker('hide');
-    $('#log-entry-page')[0].close();
+    $('#log-entry-page').modal('hide');
     if (tf.ui.logEntry.onclose != undefined) {
         tf.ui.logEntry.onclose();
         tf.ui.logEntry.onclose = undefined;

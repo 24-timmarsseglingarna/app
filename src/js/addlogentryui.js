@@ -27,10 +27,9 @@ tf.ui.addLogEntry.openPage = function(options) {
 
     var page = $('#add-log-entry-page')[0];
     page.tfOptions = options || {};
-    tf.ui.pushPage(function() {
-        page.close();
-    });
-    page.showModal();
+    tf.ui.pushPage(
+        function() { $('#add-log-entry-page').modal({backdrop: 'static'}); },
+        function() { $('#add-log-entry-page').modal('hide'); });
     document.activeElement.blur();
 };
 

@@ -16,11 +16,9 @@ tf.ui.settings.openPage = function() {
         $('#settings-logout-block').hide();
     }
 
-    var page = $('#settings-page')[0];
-    page.showModal();
-    tf.ui.pushPage(function() {
-        page.close();
-    });
+    tf.ui.pushPage(
+        function() { $('#settings-page').modal({backdrop: 'static'}); },
+        function() { $('#settings-page').modal('hide'); });
     document.activeElement.blur();
 };
 

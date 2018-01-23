@@ -12,10 +12,9 @@ tf.ui.loginPage.openPage = function() {
     $('#login-password').val(tf.storage.getSetting('password'));
     $('#login-save-password').prop('checked',
                                    tf.storage.getSetting('savePassword'));
-    tf.ui.pushPage(function() {
-        $('#login-page')[0].close();
-    });
-    $('#login-page')[0].showModal();
+
+    tf.ui.pushPage(function() { $('#login-page').modal({backdrop: 'static'}); },
+                   function() { $('#login-page').modal('hide'); });
     document.activeElement.blur();
 };
 

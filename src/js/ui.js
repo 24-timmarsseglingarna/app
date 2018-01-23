@@ -153,8 +153,8 @@ tf.ui.dragState = null;
 tf.ui.initialCenterChanged = false;
 
 /*
- * When we open a new page/dialog, the code calls
- * pushPage(sentinel).  The sentinel function should close the window.
+ * When we open a new page/modal, the code calls
+ * pushPage(openfn, closefn).  The close function should close the window.
  * It MUST NOT call popPage().
  *
  * It order to go back to the previous page, the code must call
@@ -163,26 +163,39 @@ tf.ui.initialCenterChanged = false;
  * In this case, the sentinel function is called to actually close the
  * open page.
  */
-tf.ui.pushPage = function(sentinel) {
-    tf.ui.pageStack.push(sentinel);
+tf.ui.pushPage = function(openfn, closefn) {
+    // close current page, if there is one
+    if (tf.ui.pageStack.length > 0) {
+        cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
+        cur.closefn();
+    }
+    tf.ui.pageStack.push({openfn: openfn,
+                          closefn: closefn});
     history.pushState(tf.ui.pageStack.length, document.title, location.href);
+    openfn();
 };
+
+/*
+  FIXME: BUG: click logbook, click first entry's pen then Ändra,
+              then back, works, but if you click back again, it doesn't work.
+*/
 
 /*
  * Note that this is an asynchronous function (on chrome), which means
  * that if you need to do more work after the page has closed (e.g.,
- * open a new page), it must be done in the continueFn.
+ * open a new page), it must be done in the continuefn.
  */
-tf.ui.popPage = function(continueFn) {
-    if (continueFn) {
-        // ensure that we run both the original sentinel, and the
-        // continueFn when the history.back's popstate event actually
+tf.ui.popPage = function(continuefn) {
+    if (continuefn) {
+        // ensure that we run both the original closefn, and the
+        // continuefn when the history.back's popstate event actually
         // triggers.
-        sentinel = tf.ui.pageStack.pop();
-        tf.ui.pageStack.push(function() {
-            sentinel();
-            continueFn();
-        });
+        prev = tf.ui.pageStack.pop();
+        tf.ui.pageStack.push({openfn: prev.openfn,
+                              closefn: function() {
+                                  prev.closefn();
+                                  continuefn();
+                              }});
     }
     history.back();
 };
@@ -197,8 +210,13 @@ window.addEventListener('popstate', function(event) {
         } else {
             var steps = tf.ui.pageStack.length - event.state;
             for (var i = 0; i < steps; i++) {
-                var sentinel = tf.ui.pageStack.pop();
-                sentinel();
+                var prev = tf.ui.pageStack.pop();
+                prev.closefn();
+            }
+            // re-open last page
+            if (tf.ui.pageStack.length > 0) {
+                cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
+                cur.openfn();
             }
         }
     }
@@ -891,11 +909,9 @@ $(document).ready(function() {
     $('#tf-nav-show-help').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        var page = $('#help-page')[0];
-        page.showModal();
-        tf.ui.pushPage(function() {
-            page.close();
-        });
+        tf.ui.pushPage(
+            function() { $('#help-page').modal({backdrop: 'static'}); },
+            function() { $('#help-page').modal('hide'); });
         document.activeElement.blur();
         return false;
     });
@@ -903,11 +919,9 @@ $(document).ready(function() {
     $('#tf-nav-show-info').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        var page = $('#info-page')[0];
-        page.showModal();
-        tf.ui.pushPage(function() {
-            page.close();
-        });
+        tf.ui.pushPage(
+            function() { $('#info-page').modal({backdrop: 'static'}); },
+            function() { $('#info-page').modal('hide'); });
         document.activeElement.blur();
         return false;
     });
@@ -948,17 +962,6 @@ tf.ui.ButtonControl = function(opt_options) {
 };
 ol.inherits(tf.ui.ButtonControl, ol.control.Control);
 */
-
-/**
- * Initialize all dialog polyfills
- */
-$(document).ready(function() {
-    var dialogPages = $('dialog');
-    for (var i = 0; i < dialogPages.length; i++) {
-        dialogPolyfill.registerDialog(dialogPages[i]);
-    }
-});
-
 
 /*
 tf.ui.patchTileUrls = function() {

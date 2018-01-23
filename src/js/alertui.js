@@ -10,10 +10,8 @@ goog.require('tf.ui');
 
 tf.ui.alert = function(html) {
     $('#alert-body').html(html);
-    tf.ui.pushPage(function() {
-        $('#alert-page')[0].close();
-    });
-    $('#alert-page')[0].showModal();
+    tf.ui.pushPage(function() { $('#alert-page').modal({backdrop: 'static'}); },
+                   function() { $('#alert-page').modal('hide'); });
 };
 
 $(document).ready(function() {

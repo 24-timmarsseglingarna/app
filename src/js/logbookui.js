@@ -7,6 +7,14 @@ goog.require('tf.ui.alert');
 goog.require('tf.ui.logEntry');
 
 tf.ui.logBook.openLogBook = function(options) {
+    tf.ui.logBook.refreshLogBook(options);
+    tf.ui.pushPage(
+        function() { $('#log-book-page').modal({backdrop: 'static'}); },
+        function() { $('#log-book-page').modal('hide'); });
+    document.activeElement.blur();
+}
+
+tf.ui.logBook.refreshLogBook = function(options) {
     var logBook = options.logBook;
     var boatName = logBook.boatName;
     var startNo = logBook.startNo;
@@ -33,7 +41,7 @@ tf.ui.logBook.openLogBook = function(options) {
     // no header and no arrow in the popup
     var popover_template = "<div class='popover log-book-edit-popover'" +
         " role='tooltip'>" +
-        "<div class='popover-content'></div></div>";
+        "<div class='popover-body'></div></div>";
 
     for (var i = 0; i < log.length; i++) {
         var e = log[i];
@@ -58,9 +66,9 @@ tf.ui.logBook.openLogBook = function(options) {
         }
         var edit_button_html = "<div class='row log-book-edit-buttons'" +
             " data-logid='" + e.id + "'>" +
-            "<button class='btn btn-default' id='log-book-btn-edit'>" +
+            "<button class='btn btn-secondary' id='log-book-btn-edit'>" +
             'Ändra</button>' +
-            "<button class='btn btn-default' id='log-book-btn-add'>" +
+            "<button class='btn btn-secondary' id='log-book-btn-add'>" +
             'Infoga</button>' +
             "<button class='btn btn-warning' id='log-book-btn-del'>" +
             'Radera</button>' +
@@ -132,21 +140,13 @@ tf.ui.logBook.openLogBook = function(options) {
     var logBookPage = $('#log-book-page')[0];
     // save the current logBook in the page
     logBookPage.logBook = logBook;
-    if (!logBookPage.open) {
-        logBookPage.showModal();
-        tf.ui.pushPage(function() {
-            tf.ui.logBook.closeLogBook();
-        });
-    }
-    document.activeElement.blur();
 };
 
 tf.ui.logBook.addEntryClick = function(col) {
     var logBookPage = $('#log-book-page')[0];
     tf.ui.addLogEntry.openPage({
         onclose: function() {
-            // refresh the log book
-            tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+            tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
         }
     });
 };
@@ -160,7 +160,9 @@ tf.ui.logBook.deleteAllClick = function(col) {
                       var logBookPage = $('#log-book-page')[0];
                       var logBook = logBookPage.logBook;
                       logBook.deleteAllLogEntries();
-                      tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+                      tf.ui.logBook.refresgLogBook({
+                          logBook: logBookPage.logBook
+                      });
                   });
 };
 
@@ -206,21 +208,16 @@ tf.ui.logBook.openLogEntry = function(options) {
     var logBookPage = $('#log-book-page')[0];
     options.logBook = logBookPage.logBook;
     options.onclose = function() {
-        // refresh the log book
-        tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+        tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
     };
     tf.ui.logEntry.openLogEntry(options);
 };
-
-tf.ui.logBook.closeLogBook = function() {
-    $('#log-book-page')[0].close();
-};
-
 
 /**
  * Set up handlers for buttons and form input.
  */
 $(document).ready(function() {
+    $('[data-toggle="popover"]').popover();
     $('#log-book-cancel').on('click', function() {
         tf.ui.popPage();
         return false;
@@ -271,7 +268,7 @@ $(document).ready(function() {
                           var logBookPage = $('#log-book-page')[0];
                           var logBook = logBookPage.logBook;
                           logBook.deleteAllLogEntries();
-                          tf.ui.logBook.openLogBook({
+                          tf.ui.logBook.refreshLogBook({
                               logBook: logBookPage.logBook});
                       });
         return false;
@@ -298,8 +295,7 @@ $(document).ready(function() {
         tf.ui.addLogEntry.openPage({
             time: new_,
             onclose: function() {
-                // refresh the log book
-                tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+                tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
             }
         });
     });
@@ -310,7 +306,7 @@ $(document).ready(function() {
         logBookPage.logBook.deleteLogEntry(id);
         // re-open the log book
         $('.log-book-edit').popover('hide');
-        tf.ui.logBook.openLogBook({logBook: logBookPage.logBook});
+        tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
     });
 });
 

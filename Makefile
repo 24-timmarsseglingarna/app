@@ -161,19 +161,9 @@ deps/ol:
 	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
 	unzip -q v$(OL_VSN)-dist.zip; \
 	rm -f v$(OL_VSN)-dist.zip; \
-	mv v$(OL_VSN)-dist/ol-debug.js ol.js; \
+	mv v$(OL_VSN)-dist/ol.js ol.js; \
 	mv v$(OL_VSN)-dist/ol.css .; \
 	rm -rf v$(OL_VSN)-dist
-
-DIALOG_POLYFILL_VSN=0.4.9
-deps/dialog-polyfill:
-	cd deps; \
-	wget https://github.com/GoogleChrome/dialog-polyfill/archive/$(DIALOG_POLYFILL_VSN).tar.gz; \
-	tar zxf $(DIALOG_POLYFILL_VSN).tar.gz; \
-	rm -f $(DIALOG_POLYFILL_VSN).tar.gz; \
-	mv dialog-polyfill-$(DIALOG_POLYFILL_VSN)/dialog-polyfill.js .; \
-	mv dialog-polyfill-$(DIALOG_POLYFILL_VSN)/dialog-polyfill.css .; \
-	rm -rf dialog-polyfill-$(DIALOG_POLYFILL_VSN)
 
 BOOTSTRAP_VSN=4.0.0
 deps/bootstrap:

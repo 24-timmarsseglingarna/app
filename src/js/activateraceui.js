@@ -10,12 +10,9 @@ tf.ui.activateRace.openPage = function() {
 
     // fill the list of races in which the user participates
     tf.ui.activateRace._populateRaces();
-
-    var page = $('#activate-race-page')[0];
-    page.showModal();
-    tf.ui.pushPage(function() {
-        page.close();
-    });
+    tf.ui.pushPage(
+        function() { $('#activate-race-page').modal({backdrop: 'static'}); },
+        function() { $('#activate-race-page').modal('hide'); });
     document.activeElement.blur();
 };
 

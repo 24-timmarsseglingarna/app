@@ -19,11 +19,9 @@ tf.ui.planMenu.openPage = function() {
     }
     $(activeId).addClass('active');
 
-    var page = $('#plan-menu-page')[0];
-    page.showModal();
-    tf.ui.pushPage(function() {
-        page.close();
-    });
+    tf.ui.pushPage(
+        function() { $('#plan-menu-page').modal({backdrop: 'static'}); },
+        function() { $('#plan-menu-page').modal('hide'); });
     document.activeElement.blur();
 };
 

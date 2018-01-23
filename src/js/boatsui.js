@@ -34,10 +34,8 @@ tf.ui.boats.openPage = function(options) {
 
     var page = $('#boats-page')[0];
     page.tfOptions = options || {};
-    tf.ui.pushPage(function() {
-        page.close();
-    });
-    page.showModal();
+    tf.ui.pushPage(function() { $('#boats-page').modal({backdrop: 'static'}); },
+                   function() { $('#boats-page').modal('hide'); });
     document.activeElement.blur();
 };
 

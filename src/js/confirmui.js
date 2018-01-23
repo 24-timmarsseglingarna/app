@@ -16,10 +16,9 @@ tf.ui.confirm = function(html, cancelLabel, continueLabel, continueFn) {
         tf.ui.popPage(continueFn);
         return false;
     });
-    tf.ui.pushPage(function() {
-        $('#confirm-page')[0].close();
-    });
-    $('#confirm-page')[0].showModal();
+    tf.ui.pushPage(
+        function() { $('#confirm-page').modal({backdrop: 'static'}); },
+        function() { $('#confirm-page').modal('hide'); });
 };
 
 $(document).ready(function() {
