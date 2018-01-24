@@ -23,19 +23,6 @@ tf.ui.logBook.refreshLogBook = function(options) {
     var distance;
     var prev;
     var distTD;
-    var head = '<thead><tr>' +
-        '<th></th>' +
-        '<th>Tid</th>' +
-        '<th>Punkt</th>' +
-        '<th>Distans</th>' +
-        '<th>Vind</th>' +
-        '<th>Avbrott</th>' +
-        '<th>Protest</th>' +
-        '<th>Segel</th>' +
-        '<th>Siktade båtar</th>' +
-        '<th>Övrigt</th>' +
-        '<th>Kommentar</th>' +
-        '</tr></thead>';
     var rows = '';
 
     // no header and no arrow in the popup
@@ -129,7 +116,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
     $('#log-book-distance').text(dist.toFixed(1) + ' M');
     $('#log-book-sxk-distance').text(sxkdist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
-    $('#log-book-entries').html(head + '<tbody>' + rows + '</tbody>');
+    $('#log-book-entries').html(rows);
     $('.log-book-edit').popover();
     $('.log-book-invalid-dist').on('click', function(event) {
         tf.ui.logBook.logBookInvalidDistClick(event.currentTarget);
