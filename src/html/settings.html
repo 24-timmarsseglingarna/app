@@ -12,7 +12,7 @@
         <form>
           <div class="form-group row"
                id="settings-login-block">
-            <div class="offset-md-2 col-md-10">
+            <div class="offset-md-4 col-md-8">
               <input type="button" value="Logga in"
                      id="settings-login-btn"
                      class="btn btn-primary"/>
@@ -21,7 +21,7 @@
 
           <div class="form-group row"
                id="settings-logout-block">
-            <div class="offset-md-2 col-md-10">
+            <div class="offset-md-4 col-md-8">
               <input type="button" value="Logga ut"
                      id="settings-logout-btn"
                      class="btn btn-secondary"/>
@@ -32,9 +32,10 @@
           <hr/>
 
           <div class="form-group row">
-            <label class="col-md-2 col-form-label font-weight-bold"
+            <label class="col-md-4 col-form-label
+                          text-md-right font-weight-bold"
                    for="settings-update-btn">Seglingsdata</label>
-            <div class="col-md-10">
+            <div class="col-md-8">
               <input type="button" value="Uppdatera"
                      id="settings-update-btn"
                      class="btn btn-primary"/>
@@ -43,11 +44,41 @@
               </p>
             </div>
           </div>
+
+          <hr/>
+
+          <div class="form-group row">
+            <div class="offset-md-2 col-md-10">
+              <button class="btn btn-primary" type="button"
+                      data-toggle="collapse" data-target="#settings-advanced">
+                Avancerade inställningar
+              </button>
+            </div>
+          </div>
+
+          <div class="collapse" id="settings-advanced">
+
+            <div class="form-group row">
+              <label class="col-md-4 col-form-label
+                            text-md-right font-weight-bold"
+                     for="settings-plans">Antal planer</label>
+              <div class="col-4 col-md-2">
+                <input type="number" class="form-control"
+                       id="settings-plans"/>
+                <div class="invalid-feedback">Ange 1-9 planer.</div>
+              </div>
+            </div>
+
+          </div>
+
         </form>
       </div>
-      <div class="modal-footer">
-        <input type="button" class="btn btn-primary dialog-close"
-               value="Stäng"/>
+      <!-- justify-content-between: equal space between the buttons -->
+      <div class="modal-footer justify-content-between">
+        <input type="button" class="btn btn-secondary dialog-close"
+               value="Avbryt"/>
+        <input type="button" class="btn btn-primary"
+               value="Spara" id="settings-save-btn"/>
       </div>
     </div>
   </div>

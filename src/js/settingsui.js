@@ -15,6 +15,7 @@ tf.ui.settings.openPage = function() {
         $('#settings-login-block').show();
         $('#settings-logout-block').hide();
     }
+    $('#settings-plans').val(tf.state.numberOfPlans.get());
 
     tf.ui.pushPage(
         function() { $('#settings-page').modal({backdrop: 'static'}); },
@@ -46,6 +47,28 @@ $(document).ready(function() {
         tf.serverData.update(tf.storage.getSetting('userId'));
         return false;
     });
+
+    $('#settings-save-btn').on('click', function() {
+        if ($('#settings-plans').hasClass('is-invalid')) {
+            return false;
+        }
+        var numberOfPlans = parseInt($('#settings-plans').val());
+        tf.state.numberOfPlans.set(numberOfPlans);
+
+        tf.ui.popPage();
+        return false;
+    });
+
+    $('#settings-plans').blur(function() {
+        var plans = parseInt($('#settings-plans').val());
+        if (plans >= 1 && plans <= 9) {
+            $('#settings-plans').removeClass('is-invalid');
+        } else {
+            $('#settings-plans').addClass('is-invalid');
+        }
+    });
+
+
 
 });
 

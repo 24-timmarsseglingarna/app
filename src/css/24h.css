@@ -2,6 +2,10 @@ html, body, #map {
     height: 100%;
 }
 
+.tf-default-hidden {
+    display: none;
+}
+
 /* place zoom buttons below the status bar */
 .ol-zoom {
     top: 100px;

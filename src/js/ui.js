@@ -446,7 +446,8 @@ tf.ui.handleMapPointerDown = function(event) {
             // Only popup when Points are clicked
             if (geom.getType() == 'Point') {
                 var number = feature.get('number');
-                if (tf.state.curPlan.get().isPointPlanned(number)) {
+                var p = tf.state.curPlan;
+                if (p && p.get().isPointPlanned(number)) {
                     tf.ui.dragState = number;
                     return true;
                 }
@@ -1207,6 +1208,7 @@ tf.ui.onDeviceReady = function() {
     tf.state.curPlan.onChange(function(val) {
         if (!val) {
             $('#tf-nav-plan-name').html('');
+            tf.ui.planModeActivate(false);
         } else {
             $('#tf-nav-plan-name').html(val.name);
         }
@@ -1214,9 +1216,13 @@ tf.ui.onDeviceReady = function() {
 
     tf.state.init();
 
+    tf.ui.updateStatusBar();
+
     tf.state.setupLogin(tf.ui.stateSetupDone);
 
     tf.ui.map.setView(tf.ui.view);
+
+    $('.tf-default-hidden').removeClass('tf-default-hidden');
 
     if (tf.state.isCordova) {
         navigator.splashscreen.hide();

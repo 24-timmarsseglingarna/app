@@ -639,6 +639,10 @@ tf.ui.logEntry.logEntrySave = function() {
     case 'round':
         logEntry.point = point;
         // validate point
+        if (point == '') {
+            tf.ui.alert('<p>Du måste fylla i en punkt.</p>');
+            return false;
+        }
         if (!logEntryPage.logBook.getRace().getPod().getPoint(point)) {
             tf.ui.alert('<p>Punkten "' + point +
                         '" finns inte.</p>');

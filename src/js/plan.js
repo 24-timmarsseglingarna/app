@@ -1,6 +1,7 @@
 /* -*- js -*- */
 
 goog.provide('tf.Plan');
+goog.provide('tf.plan');
 
 goog.require('tf');
 goog.require('tf.Pod');
@@ -363,4 +364,8 @@ tf.Plan.prototype._updateState = function(informSubscribers) {
             this.onPlanUpdateFns[i](this, 'update');
         }
     }
+};
+
+tf.plan.numberToName = function(n) {
+    return String.fromCharCode(64 + n);
 };

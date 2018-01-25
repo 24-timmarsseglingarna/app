@@ -5,6 +5,7 @@ goog.provide('tf.state');
 goog.require('tf');
 goog.require('tf.serverData');
 goog.require('tf.storage');
+goog.require('tf.plan');
 
 /**
  * This module handles the application state and control, such as:
@@ -20,6 +21,7 @@ goog.require('tf.storage');
 //tf.defineVariable('curRace', null);
 //tf.defineVariable('curLogBook', null);
 tf.defineVariable(tf.state, 'curPlan', null);
+tf.defineVariable(tf.state, 'numberOfPlans', null);
 
 /**
  * Initialize ephemeral state variables.
@@ -50,6 +52,14 @@ tf.state.init = function() {
     // initialize local storage handler
     tf.storage.init();
     tf.state.clientId = tf.storage.getSetting('clientId');
+    tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
+    tf.state.numberOfPlans.onChange(function(val) {
+        tf.storage.setSettings({numberOfPlans: val});
+        var p = tf.state.curPlan.get();
+        if (p && p.name > tf.plan.numberToName(val)) {
+            tf.state.curPlan.set(null);
+        }
+    });
 
     // initialize server data; doesn't read from the server, but will
     // read cached data from local storage.

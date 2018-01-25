@@ -53,6 +53,7 @@ tf.storage.init = function() {
          * Configuration parameters
          */
         'savePassword': true, // boolean()
+        'numberOfPlans': 3, // int() 1-9
 
         /*
          * Race data
