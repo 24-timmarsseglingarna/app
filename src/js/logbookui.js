@@ -62,6 +62,14 @@ tf.ui.logBook.refreshLogBook = function(options) {
             '</div>';
 
         var point = e.point || '';
+        var pointName = '';
+        if (e.point) {
+            var p = pod.getPoint(point);
+            if (p) {
+                pointName = p.name;
+            }
+        }
+
         var wind = '';
         if (e.wind) {
             wind = e.wind.dir + ' ' + e.wind.speed;
@@ -90,6 +98,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
             '<td>' + e.time.format('HH:mm DD MMM')
                        .replace(/\s/g, '&nbsp;') + '</td>' +
             '<td>' + point + '</td>' +
+            '<td class="d-none d-sm-table-cell">' + pointName + '</td>' +
             distTD + distance + '</td>' +
             '<td>' + wind + '</td>' +
             intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt) + '</td>' +
