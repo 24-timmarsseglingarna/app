@@ -43,6 +43,7 @@ tf.state.boatState = {
 // this is initialized at startup by analyzing the log book, if there is one
 tf.state.activeInterrupt = false;
 
+tf.state.defaultPod = new tf.Pod(basePodSpec);
 
 tf.state.isLoggedIn = false;
 
@@ -169,7 +170,7 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
     var teamData = tf.serverData.getMyTeamData(raceId);
     if (raceData && teamData) {
         // FIXME: the pod should be more dynamic; it can change on the server
-        var tmpPod = new tf.Pod(basePodSpec);
+        var tmpPod = tf.state.defaultPod;
         var racesData = tf.serverData.getRacesData(raceData.regatta_id);
         tf.state.curRegatta = new tf.Regatta(raceData.regatta_id,
                                              racesData, tmpPod);
@@ -202,6 +203,9 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
     } else {
         tf.state.curRace = null;
         tf.state.curLogBook = null;
+        tf.state.boatState.engine = false;
+        tf.state.boatState.lanterns = false;
+        tf.state.activeInterrupt = false;
         if (continuationfn) {
             continuationfn();
         }

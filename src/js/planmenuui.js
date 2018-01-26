@@ -48,7 +48,7 @@ tf.ui.planMenu._itemClick = function(event) {
     if (name == 'none') {
         $('#tf-plan-plan').addClass('disabled');
         tf.state.curPlan.set(null);
-    } else {
+    } else if (tf.state.curRace) {
         $('#tf-plan-plan').removeClass('disabled');
         plan = tf.state.curRace.getPlan(name);
         tf.state.curPlan.set(plan);
@@ -66,6 +66,11 @@ tf.ui.planMenu._itemClick = function(event) {
             });
             plan.onPlanUpdate(tf.ui.logBookChanged);
         }
+    } else {
+        $('#tf-plan-plan').removeClass('disabled');
+        plan = new tf.Plan(name, tf.state.defaultPod, undefined);
+        tf.state.curPlan.set(plan);
+        plan.onPlanUpdate(tf.ui.logBookChanged);
     }
     $('.tf-plan-item').removeClass('active');
     if (!plan) {

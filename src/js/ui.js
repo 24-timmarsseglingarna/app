@@ -830,15 +830,6 @@ $(document).ready(function() {
         return false;
     });
 
-    $('#tf-nav-plan-mode').on('click', function(event) {
-        if (!tf.state.curRace) {
-            tf.ui._alert_no_race('planera en rutt');
-            return false;
-        }
-        tf.ui.planMenu.openPage();
-        return false;
-    });
-
     $('#tf-nav-show-legs').change(function(event) {
         tf.ui.showLegsActivate(event.target.checked);
     });
@@ -885,6 +876,17 @@ $(document).ready(function() {
                 logBook: tf.state.curLogBook
             });
         }
+        return false;
+    });
+
+    $('#tf-nav-plan-mode').on('click', function(event) {
+        /*
+        if (!tf.state.curRace) {
+            tf.ui._alert_no_race('planera en rutt');
+            return false;
+        }
+        */
+        tf.ui.planMenu.openPage();
         return false;
     });
 
@@ -1009,7 +1011,40 @@ tf.ui.updateStatusBar = function() {
         $('#tf-status-interrupt').hide();
     }
 
-    if (!tf.state.curLogBook) {
+    var dist = 0;
+    if (tf.state.curLogBook) {
+        var start = tf.state.curLogBook.getStartTime();
+        var speed = tf.state.curLogBook.getAverageSpeed();
+        var finished = tf.state.curLogBook.hasFinished();
+        dist = tf.state.curLogBook.getSailedDistance();
+
+        $('#tf-status-boat').text(tf.state.curLogBook.boatName);
+
+        if (start) {
+            if (!tf.ui.headerTimer && !finished) {
+                // called first time from saveToLog
+                // set interval to 5 seconds to get faster update after
+                // sleep; otherwise 60 seconds would work as interval.
+                tf.ui.updateStatusBarTime();
+                tf.ui.headerTimer =
+                    window.setInterval(tf.ui.updateStatusBarTime, 5000);
+            } else if (finished && tf.ui.headerTimer) {
+                window.clearInterval(tf.ui.headerTimer);
+                tf.ui.headerTimer = null;
+            }
+            if (finished) {
+                $('#tf-status-time').text('--:--');
+            }
+        } else {
+            $('#tf-status-time').text('--:--');
+            if (tf.ui.headerTimer) {
+                window.clearInterval(tf.ui.headerTimer);
+                tf.ui.headerTimer = null;
+            }
+        }
+        $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
+        $('#tf-status-distance').text(dist.toFixed(1) + ' M');
+    } else {
         $('#tf-status-distance').text('-.- M');
         $('#tf-status-speed').text('-.- kn');
         $('#tf-status-boat').text('');
@@ -1018,46 +1053,14 @@ tf.ui.updateStatusBar = function() {
             window.clearInterval(tf.ui.headerTimer);
             tf.ui.headerTimer = null;
         }
-        return;
     }
 
-    var start = tf.state.curLogBook.getStartTime();
-    var dist = tf.state.curLogBook.getSailedDistance();
-    var speed = tf.state.curLogBook.getAverageSpeed();
-    var finished = tf.state.curLogBook.hasFinished();
-
-    $('#tf-status-boat').text(tf.state.curLogBook.boatName);
-
-    if (start) {
-        if (!tf.ui.headerTimer && !finished) {
-            // called first time from saveToLog
-            // set interval to 5 seconds to get faster update after
-            // sleep; otherwise 60 seconds would work as interval.
-            tf.ui.updateStatusBarTime();
-            tf.ui.headerTimer =
-                window.setInterval(tf.ui.updateStatusBarTime, 5000);
-        } else if (finished && tf.ui.headerTimer) {
-            window.clearInterval(tf.ui.headerTimer);
-            tf.ui.headerTimer = null;
-        }
-        if (finished) {
-            $('#tf-status-time').text('--:--');
-        }
-    } else {
-        $('#tf-status-time').text('--:--');
-        if (tf.ui.headerTimer) {
-            window.clearInterval(tf.ui.headerTimer);
-            tf.ui.headerTimer = null;
-        }
-    }
-    $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
-    $('#tf-status-distance').text(dist.toFixed(1) + ' M');
     var curPlan = tf.state.curPlan.get();
     if (curPlan) {
         var planDist = curPlan.getPlannedDistance();
         var planSpeed = curPlan.getPlannedSpeed();
         var totalDist = planDist + dist;
-        if (finished) {
+        if (finished || planSpeed == -1) {
             $('#tf-status-planned-speed').text('-.- kn');
         } else {
             $('#tf-status-planned-speed').text(planSpeed.toFixed(1) + ' kn');

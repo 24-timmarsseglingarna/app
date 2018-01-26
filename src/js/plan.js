@@ -233,7 +233,7 @@ tf.Plan.prototype.getPlannedDistance = function() {
 
 tf.Plan.prototype.getPlannedSpeed = function() {
     if (this.logbook == undefined) {
-        return 0;
+        return -1;
     }
     var dist = this.totalDist / 10;
     var start = this.logbook.getStartTime();
