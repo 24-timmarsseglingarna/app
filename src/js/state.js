@@ -22,6 +22,7 @@ goog.require('tf.plan');
 //tf.defineVariable('curLogBook', null);
 tf.defineVariable(tf.state, 'curPlan', null);
 tf.defineVariable(tf.state, 'numberOfPlans', null);
+tf.defineVariable(tf.state, 'fontSize', null);
 
 /**
  * Initialize ephemeral state variables.
@@ -52,13 +53,20 @@ tf.state.init = function() {
     // initialize local storage handler
     tf.storage.init();
     tf.state.clientId = tf.storage.getSetting('clientId');
+
     tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
     tf.state.numberOfPlans.onChange(function(val) {
         tf.storage.setSettings({numberOfPlans: val});
+        // if the current plan is no longer used; remove it.
         var p = tf.state.curPlan.get();
         if (p && p.name > tf.plan.numberToName(val)) {
             tf.state.curPlan.set(null);
         }
+    });
+
+    tf.state.fontSize.set(tf.storage.getSetting('fontSize'));
+    tf.state.fontSize.onChange(function(val) {
+        tf.storage.setSettings({fontSize: val});
     });
 
     // initialize server data; doesn't read from the server, but will

@@ -2,6 +2,19 @@ html, body, #map {
     height: 100%;
 }
 
+.tf-small {
+    font-size: 14px !important;
+}
+.tf-normal {
+    font-size: 16px !important; /* default bootstrap 4 font size */
+}
+.tf-large {
+    font-size: 18px !important;
+}
+.tf-x-large {
+    font-size: 20px !important;
+}
+
 .tf-default-hidden {
     display: none;
 }
@@ -54,13 +67,19 @@ html, body, #map {
     opacity: 0.9;
     border-radius: 10px; /* rounded corners */
     margin: 5px;         /* space between icons */
-    font-size: 26px;
+    font-size: 32px;
     width: 42px;
     height: 38px;
     /* next three lines to get centered icons */
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.tf-status-large {
+    font-size: 38px !important;
+    width: 48px !important;
+    height: 44px !important;
 }
 
 /* add some additional padding on non-phones */
@@ -125,6 +144,10 @@ html, body, #map {
     margin-right: 20px;
     font-size: 26px;
     line-height: 0;
+}
+
+.tf-nav-large {
+    font-size: 30px !important;
 }
 
 .tf-plan-active {

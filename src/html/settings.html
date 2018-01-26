@@ -48,6 +48,22 @@
           <hr/>
 
           <div class="form-group row">
+            <label class="col-md-4 col-form-label
+                          text-md-right font-weight-bold"
+                   for="settings-font-size">Textstorlek</label>
+            <div class="col-md-8">
+              <select class="form-control" id="settings-font-size">
+                <option value="small">Liten</option>
+                <option value="normal">Normal</option>
+                <option value="large">Stor</option>
+                <option value="x-large">Extra stor</option>
+              </select>
+            </div>
+          </div>
+
+          <hr/>
+
+          <div class="form-group row">
             <div class="offset-md-2 col-md-10">
               <button class="btn btn-primary" type="button"
                       data-toggle="collapse" data-target="#settings-advanced">
@@ -63,7 +79,8 @@
                             text-md-right font-weight-bold"
                      for="settings-plans">Antal planer</label>
               <div class="col-4 col-md-2">
-                <input type="number" class="form-control"
+                <input type="number" min="1" max="9" step="1"
+                       class="form-control"
                        id="settings-plans"/>
                 <div class="invalid-feedback">Ange 1-9 planer.</div>
               </div>

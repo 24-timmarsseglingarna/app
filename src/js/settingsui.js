@@ -16,6 +16,7 @@ tf.ui.settings.openPage = function() {
         $('#settings-logout-block').hide();
     }
     $('#settings-plans').val(tf.state.numberOfPlans.get());
+    $('#settings-font-size').val(tf.state.fontSize.get());
 
     tf.ui.pushPage(
         function() { $('#settings-page').modal({backdrop: 'static'}); },
@@ -54,7 +55,7 @@ $(document).ready(function() {
         }
         var numberOfPlans = parseInt($('#settings-plans').val());
         tf.state.numberOfPlans.set(numberOfPlans);
-
+        tf.state.fontSize.set($('#settings-font-size').val());
         tf.ui.popPage();
         return false;
     });
@@ -63,12 +64,11 @@ $(document).ready(function() {
         var plans = parseInt($('#settings-plans').val());
         if (plans >= 1 && plans <= 9) {
             $('#settings-plans').removeClass('is-invalid');
+            tf.state.numberOfPlans.set(plans);
         } else {
             $('#settings-plans').addClass('is-invalid');
         }
     });
-
-
 
 });
 

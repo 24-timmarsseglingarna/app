@@ -920,6 +920,7 @@ $(document).ready(function() {
     $('#tf-nav-show-info').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
+        tf.ui.alert('dpi: ' + window.devicePixelRatio);
         tf.ui.pushPage(
             function() { $('#info-page').modal({backdrop: 'static'}); },
             function() { $('#info-page').modal('hide'); });
@@ -1093,6 +1094,33 @@ tf.ui.logBookChanged = function() {
     tf.ui.offshoreLegsLayer.changed();
 };
 
+tf.ui._setFontSize = function(val) {
+    $('#tf-html').removeClass('tf-small');
+    $('#tf-html').removeClass('tf-normal');
+    $('#tf-html').removeClass('tf-large');
+    $('#tf-html').removeClass('tf-x-large');
+    $('.tf-nav-icon').removeClass('tf-nav-large');
+    $('.tf-status-icon').removeClass('tf-status-large');
+    switch (val) {
+    case 'small':
+        $('#tf-html').addClass('tf-small');
+        break;
+    case 'normal':
+        $('#tf-html').addClass('tf-normal');
+        break;
+    case 'large':
+        $('#tf-html').addClass('tf-large');
+        $('.tf-nav-icon').addClass('tf-nav-large');
+        $('.tf-status-icon').addClass('tf-status-large');
+        break;
+    case 'x-large':
+        $('#tf-html').addClass('tf-x-large');
+        $('.tf-nav-icon').addClass('tf-nav-large');
+        $('.tf-status-icon').addClass('tf-status-large');
+        break;
+    }
+};
+
 /**
  * Add the view and layers to the map
  */
@@ -1215,6 +1243,11 @@ tf.ui.onDeviceReady = function() {
     });
 
     tf.state.init();
+
+    tf.state.fontSize.onChange(function(val) {
+        tf.ui._setFontSize(val);
+    });
+    tf.ui._setFontSize(tf.state.fontSize.get());
 
     tf.ui.updateStatusBar();
 
