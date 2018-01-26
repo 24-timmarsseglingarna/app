@@ -19,6 +19,12 @@ html, body, #map {
     display: none;
 }
 
+@media (min-width: 768px) {
+    #tf-media {
+        content: "md";
+    }
+}
+
 /* place zoom buttons below the status bar */
 .ol-zoom {
     top: 100px;

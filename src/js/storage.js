@@ -54,7 +54,7 @@ tf.storage.init = function() {
          */
         'savePassword': true, // boolean()
         'numberOfPlans': 3, // int() 1-9
-        'fontSize': 'normal', // 'small' | 'normal' | 'large' | 'x-large'
+        'fontSize': null, // null | 'small' | 'normal' | 'large' | 'x-large'
 
         /*
          * Race data

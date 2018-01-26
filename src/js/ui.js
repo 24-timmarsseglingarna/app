@@ -920,7 +920,6 @@ $(document).ready(function() {
     $('#tf-nav-show-info').on('click', function(event) {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        tf.ui.alert('dpi: ' + window.devicePixelRatio);
         tf.ui.pushPage(
             function() { $('#info-page').modal({backdrop: 'static'}); },
             function() { $('#info-page').modal('hide'); });
@@ -1247,7 +1246,17 @@ tf.ui.onDeviceReady = function() {
     tf.state.fontSize.onChange(function(val) {
         tf.ui._setFontSize(val);
     });
-    tf.ui._setFontSize(tf.state.fontSize.get());
+    var fs = tf.state.fontSize.get();
+    if (fs == null) {
+        // initial value; try to detect high dpi large screens,
+        // and set font size large on these
+        if (window.devicePixelRatio > 1.5 &&
+            $('#tf-media').css('content') == '"md"') {
+            tf.state.fontSize.set('large');
+        } else {
+            tf.state.fontSize.set('normal');
+        }
+    }
 
     tf.ui.updateStatusBar();
 
