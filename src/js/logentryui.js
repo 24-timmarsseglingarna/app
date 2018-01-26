@@ -97,7 +97,7 @@ tf.ui.logEntry.fmtOther = function(e) {
     } else if (e.engine == 'off') {
         s.push('motor av');
     }
-    if (e.endofrace != undefined) {
+    if (e.type == 'endOfRace') {
         s.push('segling slut');
     }
     return s.join(',');
@@ -123,17 +123,28 @@ tf.ui.logEntry.openLogEntry = function(options) {
     var title;
     var isStart = false;
     var log = options.logBook.getLog();
+    var index;
+
+    if (options.id) {
+        for (var i = 0; i < log.length; i++) {
+            if (log[i].id == options.id) {
+                index = i;
+                break;
+            }
+        }
+    }
 
     if (options.type) {
         type = options.type;
-    } else if (options.index != undefined) {
-        type = log[options.index].type;
+    } else if (index != undefined) {
+        type = log[index].type;
     }
+
     if (type == 'round') {
         isStart = true;
         var end;
-        if (options.index) {
-            end = options.index;
+        if (index) {
+            end = index;
         } else {
             end = log.length;
         }
@@ -174,7 +185,6 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
         break;
     case 'endOfRace':
-        // FIXME
         title = 'Segelperiodens slut';
         tf.ui.logEntry._initGeoPosition();
         $('#log-entry-form-position').show();
@@ -214,20 +224,19 @@ tf.ui.logEntry.openLogEntry = function(options) {
         $('#log-entry-form-position').show();
         break;
     case 'other':
-        // FIXME
         title = 'Övrigt';
         break;
     }
 
     $('#log-entry-title-type').text(title);
 
-    if (options.index != undefined) {
+    if (index != undefined) {
         /* open an existing log entry */
-        var entry = log[options.index];
+        var entry = log[index];
 
         var dt = moment(entry.time);
-        $('#log-entry-timepicker').data('DateTimePicker').date(dt);
-        $('#log-entry-datepicker').data('DateTimePicker').date(dt);
+        $('#log-entry-timepicker').datetimepicker('date', dt);
+        $('#log-entry-datepicker').datetimepicker('date', dt);
 
         if (entry.point != undefined) {
             $('#log-entry-point').val(entry.point);
@@ -302,13 +311,6 @@ tf.ui.logEntry.openLogEntry = function(options) {
                     boatsElement.options[i].selected = true;
                 }
             }
-        }
-        if (entry.lanterns != undefined) {
-            $('#log-entry-lanterns').prop('checked', entry.lanterns);
-        }
-
-        if (entry.endOfRace != undefined) {
-            $('#log-entry-end-of-race').prop('checked', true);
         }
 
         if (entry.position != undefined) {
