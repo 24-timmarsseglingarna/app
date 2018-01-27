@@ -270,12 +270,20 @@ html, body, #map {
     cursor: pointer;
 }
 
-/* make boostrap's modal scrollable; necessary on phone */
-/* FIXME: check and remove?
+
+/* make boostrap's modal scrollable; necessary on iPhone. */
+/* (seems it doesn't work with ios 11.0.2, but works with 11.2.2) */
+
 .modal {
-    overflow-y: auto;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch;
 }
-*/
+
+/* make boostrap's tables scrollable; necessary on iPhone */
+.table-responsive {
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch;
+}
 
 .confirm-dialog, .alert-dialog {
     margin-top: 50%;
