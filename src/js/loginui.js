@@ -41,6 +41,13 @@ tf.ui.loginPage.loginResponseFn = function(response) {
     }
 };
 
+tf.ui.loginPage._submit = function() {
+    $('#login-submit').val('Loggar in...');
+    tf.serverAPI.login($('#login-email').val(),
+                       $('#login-password').val(),
+                       tf.ui.loginPage.loginResponseFn);
+};
+
 $(document).ready(function() {
     url = tf.serverAPI.URL;
     if (tf.state.isCordova) {
@@ -63,15 +70,26 @@ $(document).ready(function() {
         $('#login-register').attr('href', url);
     }
 
+    $("#login-password").on('keyup', function (e) {
+        // Try to be smart; if enter is pressed in password field,
+        // and we have both email and password, then login.
+        // For some reason, it seems 'submit' is not fired when
+        // 'Go' is clicked in password field on Android.
+        if (e.keyCode == 13) {
+            if ($('#login-email').val() != '' &&
+                $('#login-password').val() != '') {
+                tf.ui.loginPage._submit();
+            }
+        }
+    });
+
     $('#login-error-btn').on('click', function() {
         $('#login-error-btn').hide();
     });
 
     $('#login-submit').on('click', function() {
-        $('#login-submit').val('Loggar in...');
-        tf.serverAPI.login($('#login-email').val(),
-                           $('#login-password').val(),
-                           tf.ui.loginPage.loginResponseFn);
+        tf.ui.loginPage._submit();
         return false;
     });
 });
+

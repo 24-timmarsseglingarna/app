@@ -119,6 +119,10 @@ tf.ui.logEntry.openLogEntry = function(options) {
     if (!options.logBook) {
         return;
     }
+    var logEntryPage = $('#log-entry-page')[0];
+    logEntryPage.logBook = options.logBook;
+    logEntryPage.logEntryId = options.id;
+
     var type;
     var title;
     var isStart = false;
@@ -155,9 +159,12 @@ tf.ui.logEntry.openLogEntry = function(options) {
         }
     }
     // if a point was clicked, make this field read-only
+    $('#log-entry-point').removeClass('is-invalid');
     if (options.point) {
+        $('#log-entry-point').prop('type', 'text');
         $('#log-entry-point').prop('readonly', true);
     } else {
+        $('#log-entry-point').prop('type', 'number');
         $('#log-entry-point').prop('readonly', false);
     }
     // hide everything except time and comment
@@ -224,7 +231,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
         $('#log-entry-form-position').show();
         break;
     case 'other':
-        title = 'Övrigt';
+        title = 'Annat';
         break;
     }
 
@@ -408,10 +415,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
 
     }
 
-    var logEntryPage = $('#log-entry-page')[0];
     tf.ui.logEntry.onclose = options.onclose;
-    logEntryPage.logBook = options.logBook;
-    logEntryPage.logEntryId = options.id;
     logEntryPage.logEntryType = type;
     if (isStart) {
         logEntryPage.logEntryType = 'start';
@@ -429,7 +433,6 @@ tf.ui.logEntry.openLogEntry = function(options) {
 
 tf.ui.logEntry._initGeoPosition = function() {
     /* NOTE: the HTML and this code assumes lat N and long E */
-    var logEntryPage = $('#log-entry-page')[0];
     if ($('#log-entry-position').val() == '' &&
         navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -463,6 +466,8 @@ tf.ui.logEntry._initGeoPosition = function() {
 
 tf.ui.logEntry._getBoatsOptions = function(regattaId) {
     var teams = tf.serverData.getTeamsData(regattaId);
+    var logEntryPage = $('#log-entry-page')[0];
+    var mySn = logEntryPage.logBook.startNo;
     teams.sort(function(a, b) {
         return Number(a.start_number) - Number(b.start_number);
     });
@@ -472,6 +477,10 @@ tf.ui.logEntry._getBoatsOptions = function(regattaId) {
         var bn = teams[i].boat_name;
         var bcn = teams[i].boat_type_name;
         var bsn = teams[i].boat_sail_number;
+        if (sn == mySn) {
+            // don't add ourselves
+            continue;
+        }
         boatsOptions +=
             '<option value="' + sn + '">' +
             sn + ' - ' + bn + ', ' + bcn;

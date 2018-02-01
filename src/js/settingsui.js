@@ -15,6 +15,7 @@ tf.ui.settings.openPage = function() {
         $('#settings-login-block').show();
         $('#settings-logout-block').hide();
     }
+    $('#settings-plans').removeClass('is-invalid');
     $('#settings-plans').val(tf.state.numberOfPlans.get());
     $('#settings-font-size').val(tf.state.fontSize.get());
 

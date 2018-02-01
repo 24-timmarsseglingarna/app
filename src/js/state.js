@@ -149,6 +149,15 @@ tf.state._setupContinue = function(continuationfn) {
     tf.state._setActiveRace2(activeRaceId, continuationfn);
 };
 
+// called from serverdata when the races has been updated from server
+tf.state.racesUpdated = function(races) {
+    // check if the current activeRaceId is still valid
+    var curActiveRaceId = tf.storage.getSetting('activeRaceId');
+    if (tf.serverData.getRaceData(curActiveRaceId) == null) {
+        tf.state._setActiveRace2(null);
+    }
+};
+
 tf.state.setActiveRace = function(raceId, continuationfn) {
     if (raceId == tf.storage.getSetting('activeRaceId')) {
         return;

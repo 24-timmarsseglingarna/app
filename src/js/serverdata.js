@@ -83,7 +83,6 @@ tf.serverData.patchLogEntry = function(logId, data, responsefn) {
         })
 };
 
-
 tf.serverData._getRegattaIds = function(myTeams) {
     var rIds = [];
     for (var i = 0; i < myTeams.length; i++) {
@@ -140,6 +139,7 @@ tf.serverData.update = function(userId) {
                         tf.storage.setCachedRaces({
                             data: races,
                             etags: racesETags});
+                        tf.state.racesUpdated(races);
                     }
                     if (myTeams.length == 1) {
                         // the user is registered for a single race,

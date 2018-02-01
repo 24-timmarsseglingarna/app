@@ -9,9 +9,9 @@
         <h3 class="modal-title">24-timmars inloggning</h3>
       </div>
       <div class="modal-body">
-        <form>
+        <form id="login-form">
 
-          <div class="form-group">
+          <div class="form-group row">
             <div class="offset-md-2 col-md-8">
               <p>
                 Inlogging krävs för att kunna hitta den segling du
@@ -36,16 +36,8 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <div class="offset-md-2 col-md-8">
-              <input type="button" class="btn btn-danger"
-                     value="" id="login-error-btn"/>
-            </div>
-          </div>
-
-
-          <div class="form-group">
-            <label class="col-md-2 col-form-label"
+          <div class="form-group row">
+            <label class="col-md-2 col-form-label text-md-right"
                    for="login-email">Email</label>
             <div class="col-md-8">
               <input id="login-email" type="email"
@@ -58,8 +50,8 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="col-md-2 col-form-label"
+          <div class="form-group row">
+            <label class="col-md-2 col-form-label text-md-right"
                    for="login-password">Lösenord</label>
             <div class="col-md-8">
               <input id="login-password" type="password"
@@ -68,7 +60,14 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group row">
+            <div class="offset-md-2 col-md-8">
+              <input type="button" class="btn btn-danger"
+                     value="" id="login-error-btn"/>
+            </div>
+          </div>
+
+          <div class="form-group row">
             <div class="offset-md-2 col-md-8">
               <div class="checkbox">
                 <label for="login-save-password">
@@ -83,7 +82,7 @@
 
           <hr/>
 
-          <div class="form-group">
+          <div class="form-group row">
             <div class="offset-md-2 col-md-10">
               <p>
                 Har du inte registrerat eller anmält dig, eller har du

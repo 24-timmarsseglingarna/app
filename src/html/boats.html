@@ -12,20 +12,22 @@
       </div>
       <div class="modal-body">
 
-        <!-- Nav tabs -->
-        <ul class="nav nav-pills" role="tablist">
-          <li role="presentation" class="active">
-            <a href="#start" role="tab"
-               data-toggle="tab">Startlista</a>
-          </li>
-          <li role="presentation">
-            <a href="#lb" role="tab"
-               data-toggle="tab">Leaderboard</a>
-          </li>
-        </ul>
+        <div class="card">
+          <div class="card-header">
+            <ul class="nav nav-pills card-header-pills" role="tablist">
+              <li class="nav-item">
+                <a href="#start" class="nav-link active"
+                   data-toggle="tab">Startlista</a>
+              </li>
+              <li class="nav-item">
+                <a href="#lb" class="nav-link"
+                   data-toggle="tab">Leaderboard</a>
+              </li>
+            </ul>
+          </div>
 
-        <!-- Tab panes -->
-        <div class="tab-content">
+
+          <div class="card-body tab-content">
           <div role="tabpanel" class="tab-pane active" id="start">
             <div class="row">
               <div>
@@ -137,6 +139,7 @@
               <table class="table table-sm" id="tf-leaderboard">
               </table>
             </div>
+          </div>
           </div>
         </div>
 
