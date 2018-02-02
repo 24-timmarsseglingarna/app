@@ -3,9 +3,9 @@
 goog.provide('tf.state');
 
 goog.require('tf');
+goog.require('tf.plan');
 goog.require('tf.serverData');
 goog.require('tf.storage');
-goog.require('tf.plan');
 
 /**
  * This module handles the application state and control, such as:

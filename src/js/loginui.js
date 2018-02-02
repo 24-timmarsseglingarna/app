@@ -70,7 +70,7 @@ $(document).ready(function() {
         $('#login-register').attr('href', url);
     }
 
-    $("#login-password").on('keyup', function (e) {
+    $('#login-password').on('keyup', function(e) {
         // Try to be smart; if enter is pressed in password field,
         // and we have both email and password, then login.
         // For some reason, it seems 'submit' is not fired when

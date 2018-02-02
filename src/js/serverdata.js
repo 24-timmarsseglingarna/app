@@ -80,7 +80,7 @@ tf.serverData.patchLogEntry = function(logId, data, responsefn) {
                 // error
                 responsefn(null);
             }
-        })
+        });
 };
 
 tf.serverData._getRegattaIds = function(myTeams) {
@@ -150,7 +150,7 @@ tf.serverData.update = function(userId) {
                 }
             );
         }
-    })
+    });
 };
 
 tf.serverData.updateTeams = function() {
@@ -309,7 +309,7 @@ tf.serverData.mkLogSummaryData = function(s) {
         updated_at:       moment(s.updated_at) // date and time
     };
     return r;
-}
+};
 
 /**
  * Convert internal log data to data sent to the server.
@@ -388,7 +388,7 @@ tf.serverData.mkServerLogData = function(r, teamId) {
     return s;
 };
 
-tf.serverData.parseJSONLogData  = function(r, dataStr) {
+tf.serverData.parseJSONLogData = function(r, dataStr) {
     try {
         data = JSON.parse(dataStr);
         // simply copy everything from the data field to the log entry

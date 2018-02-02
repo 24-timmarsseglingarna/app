@@ -12,7 +12,7 @@ tf.ui.logBook.openLogBook = function(options) {
         function() { $('#log-book-page').modal({backdrop: 'static'}); },
         function() { $('#log-book-page').modal('hide'); });
     document.activeElement.blur();
-}
+};
 
 tf.ui.logBook.refreshLogBook = function(options) {
     var logBook = options.logBook;

@@ -61,7 +61,7 @@ tf.LogBook.prototype.getLogEntry = function(id) {
 tf.LogBook.prototype.getNextLogEntry = function(id) {
     for (var i = 0; (i + 1) < this.log.length; i++) {
         if (this.log[i].id == id) {
-            return this.log[i+1];
+            return this.log[i + 1];
         }
     }
     return null;
@@ -515,7 +515,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         e.state = 'sync';
                     }
                     // continue
-                    logBook.sendToServer(continueFn, true)
+                    logBook.sendToServer(continueFn, true);
                 });
             return;
         } else if (e.state == 'dirty') {
@@ -528,7 +528,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                 };
             } else {
                 data = e;
-            };
+            }
             e.state = 'syncing';
             tf.serverData.patchLogEntry(
                 e.id, data,
@@ -557,7 +557,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         e.state = 'sync';
                     }
                     // continue
-                    logBook.sendToServer(continueFn, true)
+                    logBook.sendToServer(continueFn, true);
                 });
             return;
         }

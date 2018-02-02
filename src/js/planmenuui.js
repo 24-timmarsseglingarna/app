@@ -2,8 +2,8 @@
 
 goog.provide('tf.ui.planMenu');
 
-goog.require('tf.ui');
 goog.require('tf.plan');
+goog.require('tf.ui');
 
 tf.ui.planMenu.openPage = function() {
     // create the plan buttons
