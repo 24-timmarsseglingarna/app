@@ -122,7 +122,7 @@ tf.serverData.update = function(userId) {
                     var races = null;
                     if (r) {
                         races = {};
-                        for (regattaId in r) {
+                        for (var regattaId in r) {
                             if (r[regattaId] == 'notmodified') {
                                 races[regattaId] =
                                     tf.serverData._races[regattaId];
@@ -161,7 +161,7 @@ tf.serverData.updateTeams = function() {
             var teams = null;
             if (r) {
                 teams = {};
-                for (regattaId in r) {
+                for (var regattaId in r) {
                     if (r[regattaId] == 'notmodified') {
                         teams[regattaId] =
                             tf.serverData._teams[regattaId];

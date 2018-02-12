@@ -15,8 +15,25 @@ html, body, #map {
     font-size: 20px !important;
 }
 
+.tf-xx-large {
+    font-size: 22px !important;
+}
+
 .tf-default-hidden {
     display: none;
+}
+
+/* col-* doesn't work in chrome */
+.tf-col-1 {
+  width: 8.333333%;
+}
+
+.tf-col-2 {
+  width: 16.666667%;
+}
+
+.tf-col-4 {
+  width: 33.333333%;
 }
 
 @media (min-width: 768px) {
@@ -30,6 +47,14 @@ html, body, #map {
     top: 100px;
 }
 
+.tf-card-hrule {
+    margin-top: 0.75rem;
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
 
 #tf-status-bar {
     position: absolute;

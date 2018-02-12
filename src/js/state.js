@@ -210,6 +210,7 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
             continuationfn();
         }
     } else {
+        tf.state.curRegatta = null;
         tf.state.curRace = null;
         tf.state.curLogBook = null;
         tf.state.boatState.engine = false;

@@ -199,7 +199,7 @@ deps/popper:
 	mv popper.js-$(POPPER_VSN)/dist/umd/popper.min.js .; \
 	rm -rf popper.js-$(POPPER_VSN)
 
-MOMENT_VSN=2.18.1
+MOMENT_VSN=2.20.1
 deps/moment:
 	cd deps; \
 	wget https://github.com/moment/moment/archive/$(MOMENT_VSN).tar.gz; \

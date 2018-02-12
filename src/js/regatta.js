@@ -24,7 +24,8 @@ tf.Regatta = function(id, racesData, pod) {
             racesData[i].start_from.isBefore(this.first_start)) {
             this.first_start = racesData[i].start_from;
         }
-        var finish = racesData[i].start_to.add(racesData[i].period, 'hours');
+        var finish = moment(racesData[i].start_to);
+        finish.add(racesData[i].period, 'hours');
         if (this.last_finish == null ||
             finish.isAfter(this.last_finish)) {
             this.last_finish = finish;
@@ -87,6 +88,6 @@ tf.Regatta.prototype.isOngoing = function() {
     // treat as ongoing up to 24 hours after last finish, in order to
     // handle late finish, but also to handle late entries
     // FIXME: > first_start and isActive
-    return moment().isBetween(this.first_start,
-                              this.last_finish.add(24, 'hours'));
+    var maxTime = moment(this.last_finish).add(24, 'hours')
+    return moment().isBetween(this.first_start, maxTime);
 };

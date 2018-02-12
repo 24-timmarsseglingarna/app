@@ -10,27 +10,120 @@ tf.ui.boats.openPage = function(options) {
 
     $('#boats-page-name').text(race.raceData.regatta_name);
 
-/*
-    var teams = tf.serverData.getTeamsData(race.getRegattaId());
-    teams.sort(function(a, b) {
-        return Number(a.start_number) - Number(b.start_number);
-    });
-    boatsOptions = '';
-    for (var i = 0; teams && i < teams.length; i++) {
-        var sn = teams[i].start_number;
-        var bn = teams[i].boat_name;
-        var bcn = teams[i].boat_type_name;
-        var bsn = teams[i].boat_sail_number;
-        boatsOptions +=
-            '<option value="' + sn + '">' +
-            sn + ' - ' + bn + ', ' + bcn;
-        if (bsn) {
-            boatsOptions += ', ' + bsn;
+    var races = tf.serverData.getRacesData(race.getRegattaId());
+    races.sort(function(a,b) {
+        if (a.start_from.isBefore(b.start_from)) {
+            return -1;
+        } else if (a.start_from.isSame(b.start_from)) {
+            return 0;
+        } else {
+            return 1;
         }
-        boatsOptions += '</option>';
+    });
+    var teams = tf.serverData.getTeamsData(race.getRegattaId());
+
+    var html = '';
+
+    var fontclass = '';
+    switch (tf.state.fontSize.get()) {
+    case 'small':
+        fontclass = 'tf-normal';
+        break;
+    case 'normal':
+        fontclass = 'tf-large';
+        break;
+    case 'large':
+        fontclass = 'tf-x-large';
+        break;
+    case 'x-large':
+        fontclass = 'tf-xx-large';
+        break;
     }
-    return boatsOptions;
-*/
+    for (var i = 0; i < races.length; i++) {
+        var r = races[i];
+        var padding = '';
+        if (i > 0) {
+            padding = ' pt-4';
+        }
+        html += '<div class="row' + padding + '"><div>' +
+            '<div class="' + fontclass + '"><b>' + r.period + '-timmars';
+        if (r.description) {
+            html += ' ' + r.description;
+        }
+        html += '</b></div>';
+        var startDateFrom = r.start_from.format('YYYY-MM-DD');
+        var startTimeFrom = r.start_from.format('HH:mm');
+        var startDateTo = r.start_to.format('YYYY-MM-DD');
+        var startTimeTo = r.start_to.format('HH:mm');
+        html +=
+            '<p class="font-italic">Starttid: ' +
+            startDateFrom + ' ' + startTimeFrom;
+        if (startDateTo != startDateFrom) {
+            html += ' - ' + startDateTo + ' ' + startTimeTo;
+        } else if (startTimeTo != startTimeFrom) {
+            html += ' - ' + startTimeTo;
+        }
+        html += '</p></div></div>';
+
+        html += '<div class="table-responsive row">' +
+            '<table class="table table-sm">' +
+            '<colgroup>' +
+            '<col class="tf-col-1"></col>' +
+            '<col class="tf-col-4"></col>' +
+            '<col class="tf-col-4"></col>' +
+            '<col class="tf-col-2"></col>' +
+            '<col class="tf-col-1"></col>' +
+            '</colgroup>' +
+
+            '<thead>' +
+            '<tr>' +
+            '<th>Nr</th>' +
+            '<th>Båtnamm</th>' +
+            '<th>Båttyp</th>' +
+            '<th>Segelnr</th>' +
+            '<th>SXK-tal</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+
+        var startPoints = {};
+        for (var j = 0; j < teams.length; j++) {
+            var t = teams[j];
+            if (t.race_id != r.id) {
+                continue;
+            }
+            if (t.start_point in startPoints) {
+                startPoints[t.start_point].push(t);
+            } else {
+                startPoints[t.start_point] = [t];
+            }
+        }
+        var points = Object.keys(startPoints).sort();
+        for (var j = 0; j < points.length; j++) {
+            var p = points[j];
+            var ts = startPoints[p].sort(function(a,b) {
+                return Number(a.start_number) - Number(b.start_number);
+            });
+            var point = race.getPod().getPoint(p);
+            var name = '';
+            if (point) {
+                name = ' - ' + point.name;
+            }
+            html += '<tr><th class="font-italic" scope="row" colspan="5">' +
+                'Startpunkt ' + p + name + '</th></tr>';
+            for (var k = 0; k < ts.length; k++) {
+                var t = ts[k];
+                html += '<tr><td>' + t.start_number + '</td>' +
+                    '<td>' + t.boat_name + '</td>' +
+                    '<td>' + t.boat_type_name + '</td>' +
+                    '<td>' + t.boat_sail_number + '</td>' +
+                    '<td>' + t.sxk_handicap + '</td>';
+            }
+        }
+        html += '</tbody></table></div>';
+    }
+    $('#boats-start').html(html);
+
 
     var page = $('#boats-page')[0];
     page.tfOptions = options || {};

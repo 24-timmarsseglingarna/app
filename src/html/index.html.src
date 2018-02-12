@@ -31,7 +31,6 @@
     <meta name="viewport"
           content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
-    <link rel="stylesheet" href="deps/dialog-polyfill.css" type="text/css"/>
     <link rel="stylesheet" href="deps/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="deps/ol.css" type="text/css" />
     <link rel="stylesheet" href="24h.css" type="text/css" />
