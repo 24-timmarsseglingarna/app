@@ -350,7 +350,6 @@ tf.ui.logEntry.openLogEntry = function(options) {
         // reset some fields to empty
         $('#log-entry-finish').prop('checked', false);
         $('#log-entry-comment').val('');
-        $('#log-entry-end-of-race').prop('checked', false);
 
         if (type == 'changeSails' || type == 'round') {
             var found = false;
@@ -586,15 +585,6 @@ tf.ui.logEntry.getSails = function() {
     return sails;
 };
 
-tf.ui.logEntry.getEndOfRace = function() {
-    var endOfRace = $('#log-entry-end-of-race').prop('checked');
-    if (endOfRace) {
-        return true;
-    } else {
-        return undefined;
-    }
-};
-
 tf.ui.logEntry.logEntrySave = function() {
     var logEntryPage = $('#log-entry-page')[0];
     var type = logEntryPage.logEntryType;
@@ -627,8 +617,6 @@ tf.ui.logEntry.logEntrySave = function() {
     var interrupt = tf.ui.logEntry.getInterrupt();
     var protest = tf.ui.logEntry.getProtest();
     var sails = tf.ui.logEntry.getSails();
-
-    var endOfRace = tf.ui.logEntry.getEndOfRace();
 
     // combine the date with the time
     var t = time.toObject();
@@ -666,7 +654,6 @@ tf.ui.logEntry.logEntrySave = function() {
         logEntry.boats = boats;
         break;
     case 'endOfRace':
-        logEntry.endOfRace = endOfRace;
         logEntry.position = position;
         break;
     case 'seeOtherBoats':
