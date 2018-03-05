@@ -118,6 +118,15 @@ tf.LogBook.prototype._delLogEntryByIndex = function(index) {
     this.log.splice(index, 1);
 };
 
+tf.LogBook.prototype._delLogEntryById = function(id) {
+    for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].id == id) {
+            this._delLogEntryByIndex(i);
+            return;
+        }
+    }
+};
+
 /**
  * Internal book keeping function.  Keeps track of:
  *   total distance
@@ -437,44 +446,59 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
         if (this.log[i].id) { // exists on server, keep it
             this.log[i].deleted = true;
             this.log[i].state = 'dirty';
-            newLog.push(log[i]);
+            newLog.push(this.log[i]);
         } // else local entry, just delete it
     }
     this.log = newLog;
     this._updateLog();
 };
 
-tf.LogBook.prototype.updateFromServer = function(log) {
+tf.LogBook.prototype.updateFromServer = function(continueFn) {
+    var logBook = this;
+    var lastUpdate;
+    tf.serverData.getNewMyLog(this.race.getTeamId(),
+                              lastUpdate,
+                              function(res) {
+                                  if (res) {
+                                      logBook._addLogFromServer(res)
+                                  }
+                                  continueFn();
+                              });
+};
+
+tf.LogBook.prototype._addLogFromServer = function(log) {
+    var del = [];
+    var add = [];
     for (var i = 0; i < log.length; i++) {
-        var n = log[i];
-        var o = null;
+        var new_ = log[i];
+        var old = null;
         for (var j = 0; j < this.log.length; j++) {
-            if (this.log[j].id == n.id) {
-                o = this.log[j];
+            if (this.log[j].id == new_.id) {
+                old = this.log[j];
                 break;
             }
         }
-        if (o) {
+        if (old) {
             // this entry has been updated on server
-            switch (o.state) {
+            switch (old.state) {
             case 'sync':
                 // not locally modified, just add it
-                this._delLogEntryByIndex(j);
-                this._addLogEntry(n);
+                del.push(old.id);
+                add.push(new_);
                 break;
             case 'conflict':
             case 'dirty':
                 // locally modified and modified on server!
                 // we take the server's copy; it's as good a guess as
                 // the other, and it leads to simpler logic.
-                if (!(o.deleted && n.deleted)) {
+                if (!(old.deleted && new_.deleted)) {
                     // unless both have deleted the entry we need to notify
                     // the user about this.
                     // FIXME: how to notify the user?
-                    console.log('both modified log entry w/ id ' + n.id);
+                    console.log('both modified log entry w/ id ' + new_.id);
                 }
-                this._delLogEntryByIndex(j);
-                this._addLogEntry(n);
+                del.push(old.id);
+                add.push(new_);
                 break;
             case 'syncing':
                 console.log('assertion failure - we should not call ' +
@@ -484,8 +508,16 @@ tf.LogBook.prototype.updateFromServer = function(log) {
             }
         } else {
             // brand new entry, just add it
-            this._addLogEntry(n);
+            add.push(new_);
         }
+    }
+    // now delete all that should be deleted
+    for (var i = 0; i < del.length; i++) {
+        this._delLogEntryById(del[i]);
+    }
+    // now add all that should be added
+    for (var i = 0; i < add.length; i++) {
+        this._addLogEntry(add[i]);
     }
     this._updateLog();
 };
@@ -504,7 +536,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         // error; wait and try later
                         e.state = 'dirty';
                         if (updated) {
-                            this._updateLog();
+                            logBook._updateLog();
                         }
                         continueFn();
                         return;
@@ -537,7 +569,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         // error; wait and try later
                         e.state = 'dirty';
                         if (updated) {
-                            this._updateLog();
+                            logBook._updateLog();
                         }
                         continueFn();
                         return;
