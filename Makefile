@@ -155,7 +155,7 @@ deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
 
-OL_VSN=4.4.2
+OL_VSN=4.6.4
 deps/ol:
 	cd deps; \
 	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
