@@ -219,29 +219,9 @@ $(document).ready(function() {
         return false;
     });
 
-    /* FIXME: tmp debug test code */
-    $('#log-book-get').on('click', function() {
-        var logBookPage = $('#log-book-page')[0];
-        var logBook = logBookPage.logBook;
-
-        logBook.updateFromServer(function() {
-            tf.ui.alert("data received from server");
-        });
-        return false;
-
-    });
-    /* END FIXME */
-
     $('#log-book-send').on('click', function() {
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
-
-        /* FIXME: tmp debug test code */
-        logBook.sendToServer(function() {
-            tf.ui.alert("data sent to server");
-        });
-        return false;
-        /* END FIXME */
 
         if (logBook.isSentToServer) {
             tf.ui.alert('<p>Loggboken har redan skickats in.</p');

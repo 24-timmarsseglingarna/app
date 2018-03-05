@@ -834,6 +834,34 @@ $(document).ready(function() {
         tf.ui.showLegsActivate(event.target.checked);
     });
 
+    /* FIXME: tmp debug test code */
+    $('#tf-nav-log-get').on('click', function() {
+        // close the dropdown
+        $('#tf-nav-more').dropdown('toggle');
+        if (!tf.state.curLogBook) {
+            tf.ui._alert_no_race('skicka in loggboken');
+        } else {
+            tf.state.curLogBook.updateFromServer(function() {
+                tf.ui.alert("data received from server");
+            });
+        }
+        return false;
+    });
+    $('#tf-nav-log-send').on('click', function() {
+        // close the dropdown
+        $('#tf-nav-more').dropdown('toggle');
+        if (!tf.state.curLogBook) {
+            tf.ui._alert_no_race('hämta loggboken');
+        } else {
+            tf.state.curLogBook.sendToServer(function() {
+                tf.ui.alert("data sent to server");
+            });
+        }
+        return false;
+    });
+
+    /* END FIXME */
+
     $('.tf-nav-distances').change(function(event) {
         switch (event.target.value) {
         case 'auto':
