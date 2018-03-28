@@ -81,12 +81,14 @@ tf.serverAPI.getActiveTeams = function(userId, prevetag, responsefn) {
     // 1. Find the person that corresponds to the registered user.
     // 2. Find the active teams for this person.
     var cfn = function(data, _etag) {
-        if (data[0].id) {
+        if (data && data.length > 0 && data[0].id) {
             peopleId = data[0].id;
             tf.serverAPI.getJSON('/api/v1/teams?has_person=' + peopleId +
                                  '&is_active=true',
                                  prevetag,
                                  responsefn);
+        } else if (data && data.length == 0) {
+            responsefn([], []);
         } else {
             responsefn(null, null);
         }

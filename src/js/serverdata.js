@@ -28,6 +28,12 @@ tf.serverData.init = function(url) {
 
 };
 
+tf.serverData.clearCache = function() {
+    tf.serverData._myTeams = [];
+    tf.serverData._myTeamsETag = null;
+    tf.serverData._myRegattaIds = [];
+}
+
 tf.serverData.getNewRegattaLog = function(regattaId, lastUpdate, responsefn) {
     tf.serverAPI.getNewRegattaLog(
         regattaId, null, lastUpdate,
@@ -112,7 +118,7 @@ tf.serverData.update = function(userId) {
                                              etag: myTeamsETag});
             }
         }
-        if (myTeams) {
+        if (myTeams != null) {
             var rIds = tf.serverData._getRegattaIds(myTeams);
             tf.serverData._myRegattaIds = rIds;
             tf.serverAPI.getRacesPerRegatta(
@@ -353,7 +359,6 @@ tf.serverData.mkServerLogData = function(r, teamId) {
         data.boats = r.boats;
         break;
     case 'endOfRace':
-        data.endOfRace = r.endOfRace;
         data.position = r.position;
         break;
     case 'seeOtherBoats':

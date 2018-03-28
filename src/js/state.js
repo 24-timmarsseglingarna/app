@@ -222,10 +222,30 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
     }
 };
 
-tf.state.loggedIn = function() {
-    tf.state.onAuthenticatedOnline(function() {
-        tf.ui.logBookChanged();
-    });
+tf.state.login = function(email, password, savepassword, responsefn) {
+    tf.serverAPI.login(
+        email, password,
+        function (response) {
+            if (response) {
+                props = {
+                    email: response.email,
+                    password: response.password,
+                    token: response.token,
+                    userId: response.userId,
+                    savePassword: savepassword
+                };
+                if (!savepassword) {
+                    props.password = null;
+                }
+                tf.storage.setSettings(props);
+                tf.state.onAuthenticatedOnline(function() {
+                    tf.ui.logBookChanged();
+                });
+                responsefn(true);
+            } else {
+                responsefn(false);
+            }
+        });
 };
 
 tf.state.logout = function() {
@@ -234,13 +254,20 @@ tf.state.logout = function() {
         email: null,
         password: null,
         token: null,
-        userId: null
+        userId: null,
+        activeRaceId: null
     };
     tf.storage.setSettings(props);
     tf.state.isLoggedIn = false;
     tf.state.curRace = null;
+    tf.state.curRegatta = null;
     tf.state.curLogBook = null;
     tf.state.curPlan.set(null);
+    tf.state.boatState.engine = false;
+    tf.state.boatState.lanterns = false;
+    tf.state.activeInterrupt = false;
+
+    tf.serverData.clearCache();
 
     tf.ui.logBookChanged();
 };

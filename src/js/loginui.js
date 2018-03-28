@@ -21,19 +21,6 @@ tf.ui.loginPage.openPage = function() {
 tf.ui.loginPage.loginResponseFn = function(response) {
     $('#login-submit').val('Login');
     if (response) {
-        props = {
-            email: response.email,
-            password: response.password,
-            token: response.token,
-            userId: response.userId,
-            savePassword: $('#login-save-password').prop('checked')
-        };
-        if (!props.savePassword) {
-            props.password = null;
-        }
-        //console.log('set: ' + JSON.stringify(props));
-        tf.storage.setSettings(props);
-        tf.state.loggedIn();
         tf.ui.popPage();
     } else {
         $('#login-error-btn').val('Inloggningen misslyckades');
@@ -42,10 +29,12 @@ tf.ui.loginPage.loginResponseFn = function(response) {
 };
 
 tf.ui.loginPage._submit = function() {
+    $('#login-error-btn').hide();
     $('#login-submit').val('Loggar in...');
-    tf.serverAPI.login($('#login-email').val(),
-                       $('#login-password').val(),
-                       tf.ui.loginPage.loginResponseFn);
+    tf.state.login($('#login-email').val(),
+                   $('#login-password').val(),
+                   $('#login-save-password').prop('checked'),
+                   tf.ui.loginPage.loginResponseFn);
 };
 
 $(document).ready(function() {
