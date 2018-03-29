@@ -150,7 +150,7 @@ deps/closure-compiler:
 	tar zxf compiler-$(CLOSURE_COMPILER_VSN).tar.gz closure-compiler-v$(CLOSURE_COMPILER_VSN).jar; \
 	rm compiler-$(CLOSURE_COMPILER_VSN).tar.gz
 
-JQUERY_VSN=3.2.1
+JQUERY_VSN=3.3.1
 deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js

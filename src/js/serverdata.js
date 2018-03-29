@@ -64,7 +64,6 @@ tf.serverData.postLogEntry = function(teamId, data, responsefn) {
     tf.serverAPI.postLogEntry(
         tf.serverData.mkServerLogData(data, teamId),
         function(res) {
-            console.log('POST id ' + res.id);
             if (res && res.id) {
                 responsefn(res.id, res.gen);
             } else {

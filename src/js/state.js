@@ -186,16 +186,11 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         var racesData = tf.serverData.getRacesData(raceData.regatta_id);
         tf.state.curRegatta = new tf.Regatta(raceData.regatta_id,
                                              racesData, tmpPod);
-        tf.state.curRace = new tf.Race(teamData.id, tf.state.curRegatta,
-                                       raceData);
+        tf.state.curRace = new tf.Race(tf.state.curRegatta, raceData);
         // get the stored log from the app storage
         var raceLog = tf.storage.getRaceLog(raceId) || {};
         var log = raceLog.log || [];
-        tf.state.curLogBook = new tf.LogBook(teamData.boat_name,
-                                             teamData.start_number,
-                                             teamData.start_point,
-                                             teamData.sxk_handicap,
-                                             tf.state.curRace, log);
+        tf.state.curLogBook = new tf.LogBook(teamData, tf.state.curRace, log);
 
         tf.state.boatState.engine = tf.state.curLogBook.getEngine();
         tf.state.boatState.lanterns = tf.state.curLogBook.getLanterns();

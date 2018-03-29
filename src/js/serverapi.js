@@ -110,7 +110,7 @@ tf.serverAPI.getRacesPerRegatta =
         var responses = [].slice.call(arguments);
         var races = {};
         var etags = {};
-        // FIXME: temp hack - it seems arguments is not an Array of
+        // NOTE:  It seems arguments is not an Array of
         // 3-Arrays if there is just one reply - in that case it is just
         // a 3-Array directly.
         if (typeof responses[1] == 'string') {
@@ -227,6 +227,9 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
             jqXHR.setRequestHeader('X-User-Token', tf.serverAPI.state.token);
             if (etag) {
                 jqXHR.setRequestHeader('If-None-Match', etag);
+            } else {
+                // make sure we don't use the browser's cache
+                jqXHR.setRequestHeader('If-None-Match', '');
             }
             return true;
         },
@@ -254,6 +257,9 @@ tf.serverAPI.getAJAX = function(urlpath, etag, opaque) {
             jqXHR.setRequestHeader('X-User-Token', tf.serverAPI.state.token);
             if (etag) {
                 jqXHR.setRequestHeader('If-None-Match', etag);
+            } else {
+                // make sure we don't use the browser's cache
+                jqXHR.setRequestHeader('If-None-Match', '');
             }
             if (opaque) {
                 jqXHR.tfOpaque = opaque;

@@ -16,12 +16,9 @@ goog.require('tf.Pod');
 /**
  * @constructor
  */
-tf.LogBook = function(boatName, startNo, startPoint, sxk_handicap, race, log) {
+tf.LogBook = function(teamData, race, log) {
     this.onLogUpdateFns = [];
-    this.boatName = boatName,
-    this.sxk_handicap = sxk_handicap;
-    this.startNo = startNo;
-    this.startPoint = startPoint;
+    this.teamData = teamData,
     this.log = log || [];
     this.race = race;
     /* total logged distance. */
@@ -289,7 +286,7 @@ tf.LogBook.prototype.getLastPoint = function() {
 };
 
 tf.LogBook.prototype.getStartPoint = function() {
-    return this.startPoint;
+    return this.teamData.start_point;
 };
 
 /**
@@ -351,7 +348,7 @@ tf.LogBook.prototype.getSailedDistance = function() {
 tf.LogBook.prototype.getSXKDistance = function() {
     // SXK distance is sailed distance / sxk-handicap
     var dist = this.getSailedDistance();
-    return dist / this.sxk_handicap;
+    return dist / this.teamData.sxk_handicap;
 };
 
 tf.LogBook.prototype.getAverageSpeed = function() {
@@ -456,7 +453,7 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
 tf.LogBook.prototype.updateFromServer = function(continueFn) {
     var logBook = this;
     var lastUpdate;
-    tf.serverData.getNewMyLog(this.race.getTeamId(),
+    tf.serverData.getNewMyLog(this.teamData.id,
                               lastUpdate,
                               function(res) {
                                   if (res) {
@@ -530,7 +527,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
             // new log entry
             e.state = 'syncing';
             tf.serverData.postLogEntry(
-                this.race.getTeamId(), e,
+                this.teamData.id, e,
                 function(id, gen) {
                     if (id == null) {
                         // error; wait and try later

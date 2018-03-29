@@ -92,3 +92,11 @@ tf.Regatta.prototype.isOngoing = function() {
     var maxTime = moment(this.last_finish).add(24, 'hours')
     return moment().isBetween(this.first_start, maxTime);
 };
+
+/*
+ * Returns: [ { 'id': <raceid>,
+ *               'teams': [ { 'id': <teamid>,
+ *                            'logbook': <LogBook> } ] } ]
+ */
+tf.Regatta.prototype.getLeaderBoard = function() {
+};

@@ -466,7 +466,7 @@ tf.ui.logEntry._initGeoPosition = function() {
 tf.ui.logEntry._getBoatsOptions = function(regattaId) {
     var teams = tf.serverData.getTeamsData(regattaId);
     var logEntryPage = $('#log-entry-page')[0];
-    var mySn = logEntryPage.logBook.startNo;
+    var mySn = logEntryPage.logBook.teamData.start_number;
     teams.sort(function(a, b) {
         return Number(a.start_number) - Number(b.start_number);
     });

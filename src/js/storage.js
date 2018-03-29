@@ -101,6 +101,12 @@ tf.storage.init = function() {
                     tf.storage._settings[key] = defaultSettings[key];
                 }
             }
+            // handle the case that we don't have a client id
+            // we shouldn't end up here except during development
+            if (tf.storage._settings['clientId'] == null) {
+                tf.storage._settings.clientId = tf.uuid();
+            }
+            tf.storage.setSettings({});
         }
     }
 

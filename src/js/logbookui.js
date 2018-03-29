@@ -16,8 +16,8 @@ tf.ui.logBook.openLogBook = function(options) {
 
 tf.ui.logBook.refreshLogBook = function(options) {
     var logBook = options.logBook;
-    var boatName = logBook.boatName;
-    var startNo = logBook.startNo;
+    var boatName = logBook.teamData.boat_name;
+    var startNo = logBook.teamData.start_number;
     var log = logBook.getLog();
     var pod = logBook.race.getPod();
     var distance;

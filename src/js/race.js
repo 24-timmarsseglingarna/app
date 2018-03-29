@@ -12,8 +12,7 @@ goog.require('tf');
 /**
  * @constructor
  */
-tf.Race = function(teamId, regatta, raceData) {
-    this.teamId = teamId;
+tf.Race = function(regatta, raceData) {
     this.regatta = regatta;
     this.raceData = raceData;
     this.plans = {};
@@ -21,10 +20,6 @@ tf.Race = function(teamId, regatta, raceData) {
 
 tf.Race.prototype.getId = function() {
     return this.raceData.id;
-};
-
-tf.Race.prototype.getTeamId = function() {
-    return this.teamId;
 };
 
 tf.Race.prototype.getRegattaId = function() {

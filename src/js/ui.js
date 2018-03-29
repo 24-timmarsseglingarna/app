@@ -1058,7 +1058,7 @@ tf.ui.updateStatusBar = function() {
         var finished = tf.state.curLogBook.hasFinished();
         dist = tf.state.curLogBook.getSailedDistance();
 
-        $('#tf-status-boat').text(tf.state.curLogBook.boatName);
+        $('#tf-status-boat').text(tf.state.curLogBook.teamData.boat_name);
 
         if (start) {
             if (!tf.ui.headerTimer && !finished) {
