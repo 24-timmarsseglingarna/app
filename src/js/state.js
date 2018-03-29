@@ -136,10 +136,22 @@ tf.state.setupLogin = function(continuationfn) {
 tf.state.onAuthenticatedOnline = function(continuationfn) {
     tf.state.isLoggedIn = true;
     // asynchronously update our data from the server
-    tf.serverData.update(tf.storage.getSetting('userId'));
+    tf.serverData.update(tf.storage.getSetting('userId'),
+                         function() {
+                             tf.state.serverDataUpdateDone();
+                             continuationfn();
+                         });
     // we'll first start from cached data; if things have been updated on
     // the server, we might change active race when we get the reply.
     tf.state._setupContinue(continuationfn);
+};
+
+tf.state.serverDataUpdateDone = function() {
+    // check if the current activeRaceId is still valid
+    var curActiveRaceId = tf.storage.getSetting('activeRaceId');
+    if (tf.serverData.getRaceData(curActiveRaceId) == null) {
+        tf.state._setActiveRace2(null);
+    }
 };
 
 tf.state._setupContinue = function(continuationfn) {
@@ -147,15 +159,6 @@ tf.state._setupContinue = function(continuationfn) {
     var activeRaceId = tf.storage.getSetting('activeRaceId');
 
     tf.state._setActiveRace2(activeRaceId, continuationfn);
-};
-
-// called from serverdata when the races has been updated from server
-tf.state.racesUpdated = function(races) {
-    // check if the current activeRaceId is still valid
-    var curActiveRaceId = tf.storage.getSetting('activeRaceId');
-    if (tf.serverData.getRaceData(curActiveRaceId) == null) {
-        tf.state._setActiveRace2(null);
-    }
 };
 
 tf.state.setActiveRace = function(raceId, continuationfn) {

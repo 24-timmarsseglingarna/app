@@ -100,7 +100,7 @@ tf.serverData._getRegattaIds = function(myTeams) {
     return rIds;
 };
 
-tf.serverData.update = function(userId) {
+tf.serverData.update = function(userId, continuationfn) {
     tf.serverAPI.getActiveTeams(userId, tf.serverData._myTeamsETag,
     function(srvTeams, myTeamsETag) {
         var myTeams = null;
@@ -145,21 +145,20 @@ tf.serverData.update = function(userId) {
                         tf.storage.setCachedRaces({
                             data: races,
                             etags: racesETags});
-                        tf.state.racesUpdated(races);
                     }
                     if (myTeams.length == 1) {
                         // the user is registered for a single race,
                         // make it active
                         tf.state.setActiveRace(myTeams[0].race_id);
                     }
-                    tf.serverData.updateTeams();
+                    tf.serverData.updateTeams(continuationfn);
                 }
             );
         }
     });
 };
 
-tf.serverData.updateTeams = function() {
+tf.serverData.updateTeams = function(continuationfn) {
     tf.serverAPI.getTeamsPerRegatta(
         tf.serverData._myRegattaIds,
         tf.serverData._teamsETags,
@@ -184,6 +183,9 @@ tf.serverData.updateTeams = function() {
                 tf.storage.setCachedTeams({
                     data: teams,
                     etags: teamsETags});
+            }
+            if (continuationfn) {
+                continuationfn();
             }
         });
 };

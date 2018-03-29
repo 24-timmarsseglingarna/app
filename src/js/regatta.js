@@ -56,7 +56,7 @@ tf.Regatta.prototype.setActive = function(active) {
     }
 };
 
-tf.Regatta.prototype.updateLog = function() {
+tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
     var regatta = this;
     var lastUpdate = null;
     if (this.last_log_update) {
@@ -77,6 +77,7 @@ tf.Regatta.prototype.updateLog = function() {
                     regatta.last_log_update = log[i].updated_at;
                 }
             }
+            continueFn();
         });
 };
 
