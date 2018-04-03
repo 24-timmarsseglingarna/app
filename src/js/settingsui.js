@@ -47,11 +47,6 @@ $(document).ready(function() {
         return false;
     });
 
-    $('#settings-update-btn').on('click', function() {
-        tf.serverData.update(tf.storage.getSetting('userId'));
-        return false;
-    });
-
     $('#settings-show-debug-btn').on('click', function() {
         html = '<ul class="list-group">';
         for (var key in tf.state.debugInfo) {

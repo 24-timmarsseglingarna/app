@@ -35,7 +35,7 @@ tf.serverAPI.login = function(email, password, responsefn) {
         cache: false,
         success: function(data, status, jqXHR) {
             var token = data.authentication_token;
-            var userId = data.id;
+            var personId = data.person_id;
             if (token) {
                 tf.serverAPI.state.email = email;
                 tf.serverAPI.state.token = token;
@@ -43,7 +43,7 @@ tf.serverAPI.login = function(email, password, responsefn) {
                     email: email,
                     password: password,
                     token: token,
-                    userId: userId
+                    personId: personId
                 });
             } else {
                 console.log('login: no token from server');
@@ -68,32 +68,18 @@ tf.serverAPI.logout = function() {
 };
 
 /**
- * userId :: integer()
+ * personId :: integer()
  * prevetag :: null || opaque()
  * responsefn :: (teams :: 'notmodified' | [teamData :: json()],
  *                etags :: opaque)
  * On error, `teams` = `etags` = null.
  *
- * Return the teams in the active races that `userId` is registered for.
+ * Return the teams in the active races that `personId` is registered for.
  * A race becomes inactive when the results are final.
  */
-tf.serverAPI.getActiveTeams = function(userId, prevetag, responsefn) {
-    // 1. Find the person that corresponds to the registered user.
-    // 2. Find the active teams for this person.
-    var cfn = function(data, _etag) {
-        if (data && data.length > 0 && data[0].id) {
-            peopleId = data[0].id;
-            tf.serverAPI.getJSON('/api/v1/teams?has_person=' + peopleId +
-                                 '&is_active=true',
-                                 prevetag,
-                                 responsefn);
-        } else if (data && data.length == 0) {
-            responsefn([], []);
-        } else {
-            responsefn(null, null);
-        }
-    };
-    tf.serverAPI.getJSON('/api/v1/people?has_user=' + userId, null, cfn);
+tf.serverAPI.getActiveTeams = function(personId, prevetag, responsefn) {
+    tf.serverAPI.getJSON('/api/v1/teams?has_person=' + personId +
+                         '&is_active=true', prevetag, responsefn);
 };
 
 /**

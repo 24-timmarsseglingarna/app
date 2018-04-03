@@ -100,8 +100,8 @@ tf.serverData._getRegattaIds = function(myTeams) {
     return rIds;
 };
 
-tf.serverData.update = function(userId, continueFn) {
-    tf.serverAPI.getActiveTeams(userId, tf.serverData._myTeamsETag,
+tf.serverData.update = function(personId, continueFn) {
+    tf.serverAPI.getActiveTeams(personId, tf.serverData._myTeamsETag,
     function(srvTeams, myTeamsETag) {
         var myTeams = null;
         if (srvTeams == null) {

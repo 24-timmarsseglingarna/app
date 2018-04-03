@@ -47,7 +47,7 @@ tf.storage.init = function() {
         'email': null, // string()
         'password': null, // string()
         'token': null, // string()
-        'userId': null, // integer()
+        'personId': null, // integer()
 
         /*
          * Configuration parameters

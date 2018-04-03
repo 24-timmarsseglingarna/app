@@ -95,7 +95,6 @@ tf.state.setTimer = function() {
     tf.state.clearTimer();
     var interval = tf.state.pollInterval.get();
     if (interval > 0) {
-        console.log('setting interval:' + interval * 1000);
         tf.state._timer = window.setTimeout(tf.state._timeout,
                                             interval * 1000);
     }
@@ -150,7 +149,7 @@ tf.state._timeout = function() {
         }
     };
 
-    tf.serverData.update(tf.storage.getSetting('userId'), cfn0);
+    tf.serverData.update(tf.storage.getSetting('personId'), cfn0);
 };
 
 tf.state.setupLogin = function(continueFn) {
@@ -177,7 +176,7 @@ tf.state.setupLogin = function(continueFn) {
                         //console.log('login ok');
                         props = {
                             token: response.token,
-                            userId: response.userId
+                            personId: response.personId
                         };
                         tf.storage.setSettings(props);
                         tf.state.onAuthenticatedOnline(continueFn);
@@ -302,7 +301,7 @@ tf.state.login = function(email, password, savepassword, responsefn) {
                     email: response.email,
                     password: response.password,
                     token: response.token,
-                    userId: response.userId,
+                    personId: response.personId,
                     savePassword: savepassword
                 };
                 if (!savepassword) {
@@ -325,7 +324,7 @@ tf.state.logout = function() {
         email: null,
         password: null,
         token: null,
-        userId: null,
+        personId: null,
         activeRaceId: null
     };
     tf.storage.setSettings(props);
