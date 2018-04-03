@@ -23,6 +23,7 @@ goog.require('tf.storage');
 tf.defineVariable(tf.state, 'curPlan', null);
 tf.defineVariable(tf.state, 'numberOfPlans', null);
 tf.defineVariable(tf.state, 'fontSize', null);
+tf.defineVariable(tf.state, 'pollInterval', null);
 
 /**
  * Initialize ephemeral state variables.
@@ -49,6 +50,10 @@ tf.state.isLoggedIn = false;
 
 tf.state.isCordova = 'cordova' in window;
 
+// internal timer
+tf.state._timer = null;
+
+tf.state.debugInfo = {};
 
 tf.state.init = function() {
     // initialize local storage handler
@@ -70,22 +75,94 @@ tf.state.init = function() {
         tf.storage.setSettings({fontSize: val});
     });
 
+    tf.state.pollInterval.set(tf.storage.getSetting('pollInterval'));
+    tf.state.pollInterval.onChange(function(val) {
+        tf.storage.setSettings({pollInterval: val});
+        tf.state.setTimer();
+    });
+
     // initialize server data; doesn't read from the server, but will
     // read cached data from local storage.
     tf.serverData.init();
 };
 
-tf.state.setupLogin = function(continuationfn) {
+tf.state.hasNetwork = function() {
+    return (!tf.state.isCordova ||
+            navigator.connection.type != Connection.NONE);
+};
+
+tf.state.setTimer = function() {
+    tf.state.clearTimer();
+    var interval = tf.state.pollInterval.get();
+    if (interval > 0) {
+        console.log('setting interval:' + interval * 1000);
+        tf.state._timer = window.setTimeout(tf.state._timeout,
+                                            interval * 1000);
+    }
+};
+
+tf.state.clearTimer = function() {
+    if (tf.state._timer) {
+        window.clearInterval(tf.state._timer);
+        tf.state._timer = null;
+    }
+};
+
+tf.state._timeout = function() {
+    tf.state._timer = null;
+
+    tf.state.debugInfo['poll-timer-fired'] = moment().format();
+    var n = tf.state.debugInfo['poll-timer-n'];
+    if (n) {
+        n = n + 1;
+    } else {
+        n = 1;
+    }
+    tf.state.debugInfo['poll-timer-n'] = n;
+
+    var cfn3 = function() {
+        tf.state.setTimer();
+    };
+
+    var cfn2 = function() {
+        if (tf.state.curLogBook) {
+            tf.state.curLogBook.updateFromServer(cfn3);
+        } else {
+            cfn3();
+        }
+    };
+
+    var cfn1 = function() {
+        if (tf.state.curLogBook) {
+            tf.state.curLogBook.sendToServer(cfn2);
+        } else {
+            cfn2();
+        }
+    };
+
+    var cfn0 = function() {
+        tf.state.serverDataUpdateDone();
+        tf.ui.logBookChanged();
+        if (tf.state.curRegatta) {
+            tf.state.curRegatta.updateLogFromServer(cfn1);
+        } else {
+            cfn1();
+        }
+    };
+
+    tf.serverData.update(tf.storage.getSetting('userId'), cfn0);
+};
+
+tf.state.setupLogin = function(continueFn) {
     // check if we're authenticated and possibly login
-    var hasNetwork = (!tf.state.isCordova ||
-                      navigator.connection.type != Connection.NONE);
+    var hasNetwork = tf.state.hasNetwork();
     var token = tf.storage.getSetting('token');
     var email = tf.storage.getSetting('email');
     if (hasNetwork && !tf.storage.getSetting('token')) {
         //console.log('has network, no stored token');
         // we haven't logged in
         tf.ui.loginPage.openPage();
-        continuationfn();
+        continueFn();
     } else if (hasNetwork) {
         //console.log('has network and stored token, validate it');
         // validate the token
@@ -103,47 +180,43 @@ tf.state.setupLogin = function(continuationfn) {
                             userId: response.userId
                         };
                         tf.storage.setSettings(props);
-                        tf.state.onAuthenticatedOnline(continuationfn);
+                        tf.state.onAuthenticatedOnline(continueFn);
                     } else {
                         // saved login not ok
                         tf.ui.loginPage.openPage();
-                        continuationfn();
+                        continueFn();
                     }
                 });
             } else {
                 // invalid token and no stored password.  try to login
                 tf.ui.loginPage.openPage();
-                continuationfn();
+                continueFn();
             }
         } else {
             // token is valid
             //console.log('has network, valid token');
-            tf.state.onAuthenticatedOnline(continuationfn);
+            tf.state.onAuthenticatedOnline(continueFn);
         }
     } else if (tf.storage.getSetting('token')) {
         //console.log('no network, token');
         // we have a token but no network; continue with the data we have
-        tf.state._setupContinue(continuationfn);
+        tf.state._setupContinue(continueFn);
     } else {
         //console.log('no network, no token');
         // no network, no token; not much to do
         tf.ui.alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
                     'du har nätverk.</p>');
-        continuationfn();
+        continueFn();
     }
 };
 
-tf.state.onAuthenticatedOnline = function(continuationfn) {
+tf.state.onAuthenticatedOnline = function(continueFn) {
     tf.state.isLoggedIn = true;
-    // asynchronously update our data from the server
-    tf.serverData.update(tf.storage.getSetting('userId'),
-                         function() {
-                             tf.state.serverDataUpdateDone();
-                             continuationfn();
-                         });
+    tf.state.setTimer();
+    tf.state._timeout();
     // we'll first start from cached data; if things have been updated on
     // the server, we might change active race when we get the reply.
-    tf.state._setupContinue(continuationfn);
+    tf.state._setupContinue(continueFn);
 };
 
 tf.state.serverDataUpdateDone = function() {
@@ -154,21 +227,21 @@ tf.state.serverDataUpdateDone = function() {
     }
 };
 
-tf.state._setupContinue = function(continuationfn) {
+tf.state._setupContinue = function(continueFn) {
 
     var activeRaceId = tf.storage.getSetting('activeRaceId');
 
-    tf.state._setActiveRace2(activeRaceId, continuationfn);
+    tf.state._setActiveRace2(activeRaceId, continueFn);
 };
 
-tf.state.setActiveRace = function(raceId, continuationfn) {
+tf.state.setActiveRace = function(raceId, continueFn) {
     if (raceId == tf.storage.getSetting('activeRaceId')) {
         return;
     }
-    tf.state._setActiveRace2(raceId, continuationfn);
+    tf.state._setActiveRace2(raceId, continueFn);
 };
 
-tf.state._setActiveRace2 = function(raceId, continuationfn) {
+tf.state._setActiveRace2 = function(raceId, continueFn) {
 
     tf.storage.setSettings({activeRaceId: raceId});
 
@@ -204,8 +277,8 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         tf.state.curLogBook.onLogUpdate(function(logBook) {
             tf.storage.setRaceLog(logBook.race.getId(), logBook.getLog());
         }, 110);
-        if (continuationfn) {
-            continuationfn();
+        if (continueFn) {
+            continueFn();
         }
     } else {
         tf.state.curRegatta = null;
@@ -214,8 +287,8 @@ tf.state._setActiveRace2 = function(raceId, continuationfn) {
         tf.state.boatState.engine = false;
         tf.state.boatState.lanterns = false;
         tf.state.activeInterrupt = false;
-        if (continuationfn) {
-            continuationfn();
+        if (continueFn) {
+            continueFn();
         }
     }
 };
@@ -264,7 +337,7 @@ tf.state.logout = function() {
     tf.state.boatState.engine = false;
     tf.state.boatState.lanterns = false;
     tf.state.activeInterrupt = false;
-
+    tf.state.clearTimer();
     tf.serverData.clearCache();
 
     tf.ui.logBookChanged();

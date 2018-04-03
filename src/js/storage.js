@@ -55,6 +55,7 @@ tf.storage.init = function() {
         'savePassword': true, // boolean()
         'numberOfPlans': 3, // int() 1-9
         'fontSize': null, // null | 'small' | 'normal' | 'large' | 'x-large'
+        'pollInterval': 600, // seconds; int() 0-3600
 
         /*
          * Race data
@@ -138,7 +139,7 @@ tf.storage.init = function() {
     try {
         tf.storage._cachedRaces =
             JSON.parse(localStorage.getItem('cachedRaces'));
-        for (r in tf.storage._cachedRaces.data) {
+        for (var r in tf.storage._cachedRaces.data) {
             tf.storage._cachedRaces.data[r] =
                 tf.storage._cachedRaces.data[r].map(tf.storage._mkRace);
         }

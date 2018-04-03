@@ -17,6 +17,8 @@ tf.ui.settings.openPage = function() {
     }
     $('#settings-plans').removeClass('is-invalid');
     $('#settings-plans').val(tf.state.numberOfPlans.get());
+    $('#settings-poll-interval').removeClass('is-invalid');
+    $('#settings-poll-interval').val(tf.state.pollInterval.get());
     $('#settings-font-size').val(tf.state.fontSize.get());
 
     tf.ui.pushPage(
@@ -50,12 +52,26 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#settings-show-debug-btn').on('click', function() {
+        html = '<ul class="list-group">';
+        for (var key in tf.state.debugInfo) {
+            html += '<li class="list-group-item">' +
+                key + ': ' + tf.state.debugInfo[key] + '</li>';
+        }
+        html += '</ul>';
+        tf.ui.alert(html);
+        return false;
+    });
+
     $('#settings-save-btn').on('click', function() {
-        if ($('#settings-plans').hasClass('is-invalid')) {
+        if ($('#settings-plans').hasClass('is-invalid') ||
+            $('#settings-poll-interval').hasClass('is-invalid')) {
             return false;
         }
         var numberOfPlans = parseInt($('#settings-plans').val());
         tf.state.numberOfPlans.set(numberOfPlans);
+        var pollInterval = parseInt($('#settings-poll-interval').val());
+        tf.state.pollInterval.set(pollInterval);
         tf.state.fontSize.set($('#settings-font-size').val());
         tf.ui.popPage();
         return false;
@@ -65,9 +81,19 @@ $(document).ready(function() {
         var plans = parseInt($('#settings-plans').val());
         if (plans >= 1 && plans <= 9) {
             $('#settings-plans').removeClass('is-invalid');
-            tf.state.numberOfPlans.set(plans);
+            //tf.state.numberOfPlans.set(plans);
         } else {
             $('#settings-plans').addClass('is-invalid');
+        }
+    });
+
+    $('#settings-poll-interval').blur(function() {
+        var pollInterval = parseInt($('#settings-poll-interval').val());
+        if (pollInterval >= 0 && pollInterval <= 3600) {
+            $('#settings-poll-interval').removeClass('is-invalid');
+            //tf.state.pollInterval.set(pollInterval);
+        } else {
+            $('#settings-poll-interval').addClass('is-invalid');
         }
     });
 

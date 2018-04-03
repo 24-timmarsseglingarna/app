@@ -32,7 +32,6 @@ tf.Regatta = function(id, racesData, pod) {
             this.last_finish = finish;
         }
     }
-    this.timer = null;
     this.races = {};
     this.teams = {};
     this.last_log_update = null;
@@ -44,18 +43,6 @@ tf.Regatta.prototype.getId = function() {
 
 tf.Regatta.prototype.getPod = function() {
     return this.pod;
-};
-
-tf.Regatta.prototype.setActive = function(active) {
-    if (!active) {
-        window.clearInterval(this.timer);
-    } else {
-        if (this.isOngoing()) {
-            this._timeout();
-            this.times = window.setInterval(function(r) { t._timeout(); },
-                                            60000, this);
-        }
-    }
 };
 
 tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
@@ -71,7 +58,7 @@ tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
     tf.serverData.getNewRegattaLog(
         this.id, teamId, lastUpdate,
         function(log) {
-            for (var i = 0; i < log.length; i++) {
+            for (var i = 0; log != null && i < log.length; i++) {
                 id = log[i].id;
                 var teamId = log[i].team_id;
                 if (!regatta.teams[teamId]) {
@@ -119,7 +106,7 @@ tf.Regatta.prototype.getLeaderBoard = function() {
         res.push({ sxkdist: tf.state.curLogBook.getSXKDistance(),
                    logbook: tf.state.curLogBook });
     }
-    for (teamId in this.teams) {
+    for (var teamId in this.teams) {
         var logbook = this.teams[teamId];
         res.push({ sxkdist: logbook.getSXKDistance(),
                    logbook: logbook });

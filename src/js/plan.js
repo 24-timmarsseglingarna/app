@@ -245,7 +245,7 @@ tf.Plan.prototype.getPlannedSpeed = function() {
 
 tf.Plan.prototype.getETA = function(point) {
     var r = [];
-    for (i = 0; i < this.entries.length; i++) {
+    for (var i = 0; i < this.entries.length; i++) {
         var e = this.entries[i];
         if (e.point == point && e.eta) {
             r.push(e.eta.format('HH:mm D MMM'));

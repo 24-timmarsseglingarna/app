@@ -166,7 +166,7 @@ tf.ui.initialCenterChanged = false;
 tf.ui.pushPage = function(openfn, closefn) {
     // close current page, if there is one
     if (tf.ui.pageStack.length > 0) {
-        cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
+        var cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
         cur.closefn();
     }
     tf.ui.pageStack.push({openfn: openfn,
@@ -183,18 +183,18 @@ tf.ui.pushPage = function(openfn, closefn) {
 /*
  * Note that this is an asynchronous function (on chrome), which means
  * that if you need to do more work after the page has closed (e.g.,
- * open a new page), it must be done in the continuefn.
+ * open a new page), it must be done in the continueFn.
  */
-tf.ui.popPage = function(continuefn) {
-    if (continuefn) {
+tf.ui.popPage = function(continueFn) {
+    if (continueFn) {
         // ensure that we run both the original closefn, and the
-        // continuefn when the history.back's popstate event actually
+        // continueFn when the history.back's popstate event actually
         // triggers.
         prev = tf.ui.pageStack.pop();
         tf.ui.pageStack.push({openfn: prev.openfn,
                               closefn: function() {
                                   prev.closefn();
-                                  continuefn();
+                                  continueFn();
                               }});
     }
     history.back();
@@ -215,7 +215,7 @@ window.addEventListener('popstate', function(event) {
             }
             // re-open last page
             if (tf.ui.pageStack.length > 0) {
-                cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
+                var cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
                 cur.openfn();
             }
         }
