@@ -26,6 +26,10 @@ tf.Race.prototype.getRegattaId = function() {
     return this.raceData.regatta_id;
 };
 
+tf.Race.prototype.getRegatta = function() {
+    return this.regatta;
+};
+
 tf.Race.prototype.getPod = function() {
     return this.regatta.getPod();
 };

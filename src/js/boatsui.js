@@ -10,20 +10,6 @@ tf.ui.boats.openPage = function(options) {
 
     $('#boats-page-name').text(race.raceData.regatta_name);
 
-    var races = tf.serverData.getRacesData(race.getRegattaId());
-    races.sort(function(a,b) {
-        if (a.start_from.isBefore(b.start_from)) {
-            return -1;
-        } else if (a.start_from.isSame(b.start_from)) {
-            return 0;
-        } else {
-            return 1;
-        }
-    });
-    var teams = tf.serverData.getTeamsData(race.getRegattaId());
-
-    var html = '';
-
     var fontclass = '';
     switch (tf.state.fontSize.get()) {
     case 'small':
@@ -39,6 +25,33 @@ tf.ui.boats.openPage = function(options) {
         fontclass = 'tf-xx-large';
         break;
     }
+
+    tf.ui.boats._fillStartList(race, fontclass);
+
+    tf.ui.boats._fillLeaderBoard(race, fontclass);
+
+    var page = $('#boats-page')[0];
+    page.tfOptions = options || {};
+    tf.ui.pushPage(function() { $('#boats-page').modal({backdrop: 'static'}); },
+                   function() { $('#boats-page').modal('hide'); });
+    document.activeElement.blur();
+};
+
+tf.ui.boats._fillStartList = function(race, fontclass) {
+    var races = tf.serverData.getRacesData(race.getRegattaId());
+    races.sort(function(a,b) {
+        if (a.start_from.isBefore(b.start_from)) {
+            return -1;
+        } else if (a.start_from.isSame(b.start_from)) {
+            return 0;
+        } else {
+            return 1;
+        }
+    });
+    var teams = tf.serverData.getTeamsData(race.getRegattaId());
+
+    var html = '';
+
     for (var i = 0; i < races.length; i++) {
         var r = races[i];
         var padding = '';
@@ -117,19 +130,54 @@ tf.ui.boats.openPage = function(options) {
                     '<td>' + t.boat_name + '</td>' +
                     '<td>' + t.boat_type_name + '</td>' +
                     '<td>' + t.boat_sail_number + '</td>' +
-                    '<td>' + t.sxk_handicap + '</td>';
+                    '<td>' + t.sxk_handicap + '</td></tr>';
             }
         }
         html += '</tbody></table></div>';
     }
     $('#boats-start').html(html);
+};
 
+tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
+    var html = '';
 
-    var page = $('#boats-page')[0];
-    page.tfOptions = options || {};
-    tf.ui.pushPage(function() { $('#boats-page').modal({backdrop: 'static'}); },
-                   function() { $('#boats-page').modal('hide'); });
-    document.activeElement.blur();
+    html += '<div class="table-responsive row">' +
+            '<table class="table table-sm">' +
+            '<colgroup>' +
+            '<col class="tf-col-1"></col>' +
+            '<col class="tf-col-1"></col>' +
+            '<col class="tf-col-1"></col>' +
+            '<col class="tf-col-4"></col>' +
+            '<col class="tf-col-4"></col>' +
+            '<col class="tf-col-1"></col>' +
+            '</colgroup>' +
+
+            '<thead>' +
+            '<tr>' +
+            '<th>SXK Distans</th>' +
+            '<th>Senaste Punkt</th>' +
+            '<th>Nr</th>' +
+            '<th>Båtnamm</th>' +
+            '<th>Båttyp</th>' +
+            '<th>Segelnr</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+
+    var lb = race.getRegatta().getLeaderBoard();
+    for (var i = 0; i < lb.length; i++) {
+        var e = lb[i];
+
+        html += '<tr><td>' + e.sxkdist.toFixed(1) + '</td>' +
+            '<td>' + e.logbook.getLastPoint() + '</td>' +
+            '<td>' + e.logbook.teamData.start_number + '</td>' +
+            '<td>' + e.logbook.teamData.boat_name + '</td>' +
+            '<td>' + e.logbook.teamData.boat_type_name + '</td>' +
+            '<td>' + e.logbook.teamData.boat_sail_number + '</td></tr>';
+    }
+    html += '</tbody></table></div>';
+
+    $('#boats-lb').html(html);
 };
 
 /* compare w/ pdf startlist

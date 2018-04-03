@@ -34,9 +34,10 @@ tf.serverData.clearCache = function() {
     tf.serverData._myRegattaIds = [];
 }
 
-tf.serverData.getNewRegattaLog = function(regattaId, lastUpdate, responsefn) {
+tf.serverData.getNewRegattaLog = function(regattaId, teamId,
+                                          lastUpdate, responsefn) {
     tf.serverAPI.getNewRegattaLog(
-        regattaId, null, lastUpdate,
+        regattaId, teamId, lastUpdate,
         function(data, _etag) {
             if (data) {
                 var log = data.map(tf.serverData.mkLogSummaryData);
@@ -247,6 +248,18 @@ tf.serverData.getMyTeamData = function(raceId) {
  */
 tf.serverData.getTeamsData = function(regattaId) {
     return tf.serverData._teams[regattaId];
+};
+
+/**
+ * Return: Team data for the given team in the given regatta.
+ */
+tf.serverData.getTeamData = function(regattaId, teamId) {
+    var teams = tf.serverData._teams[regattaId];
+    for (var i = 0; i < teams.length; i++) {
+        if (teams[i].id == teamId) {
+            return teams[i];
+        }
+    }
 };
 
 
