@@ -64,12 +64,7 @@ tf.storage.init = function() {
     };
     var setDefaultSettings = function() {
         tf.storage._settings = defaultSettings;
-        if (tf.state.isCordova) {
-            tf.storage._settings.clientId =
-                device.platform + '-' + device.model + '-' + device.uuid;
-        } else {
-            tf.storage._settings.clientId = tf.uuid();
-        }
+        tf.storage._settings.clientId = tf.state.defaultClientId();
         tf.storage.setSettings({});
     };
     if (!tf.storage._settings) {
@@ -105,7 +100,7 @@ tf.storage.init = function() {
             // handle the case that we don't have a client id
             // we shouldn't end up here except during development
             if (tf.storage._settings['clientId'] == null) {
-                tf.storage._settings.clientId = tf.uuid();
+                tf.storage._settings.clientId = tf.state.defaultClientId();
             }
             tf.storage.setSettings({});
         }

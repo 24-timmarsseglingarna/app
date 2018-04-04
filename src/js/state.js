@@ -22,6 +22,7 @@ goog.require('tf.storage');
 //tf.defineVariable('curLogBook', null);
 tf.defineVariable(tf.state, 'curPlan', null);
 tf.defineVariable(tf.state, 'numberOfPlans', null);
+tf.defineVariable(tf.state, 'clientId', null);
 tf.defineVariable(tf.state, 'fontSize', null);
 tf.defineVariable(tf.state, 'pollInterval', null);
 
@@ -32,8 +33,6 @@ tf.defineVariable(tf.state, 'pollInterval', null);
 tf.state.curRace = null;
 tf.state.curRegatta = null;
 tf.state.curLogBook = null;
-
-tf.state.clientId = null;
 
 // this is initialized at startup by analyzing the log book, if there is one
 tf.state.boatState = {
@@ -58,7 +57,6 @@ tf.state.debugInfo = {};
 tf.state.init = function() {
     // initialize local storage handler
     tf.storage.init();
-    tf.state.clientId = tf.storage.getSetting('clientId');
 
     tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
     tf.state.numberOfPlans.onChange(function(val) {
@@ -68,6 +66,11 @@ tf.state.init = function() {
         if (p && p.name > tf.plan.numberToName(val)) {
             tf.state.curPlan.set(null);
         }
+    });
+
+    tf.state.clientId.set(tf.storage.getSetting('clientId'));
+    tf.state.clientId.onChange(function(val) {
+        tf.storage.setSettings({clientId: val});
     });
 
     tf.state.fontSize.set(tf.storage.getSetting('fontSize'));
@@ -290,6 +293,16 @@ tf.state._setActiveRace2 = function(raceId, continueFn) {
             continueFn();
         }
     }
+};
+
+tf.state.defaultClientId = function() {
+    var clientId;
+    if (tf.state.isCordova) {
+        clientId = device.platform + '-' + device.model + '-' + device.uuid;
+    } else {
+        clientId = tf.uuid();
+    }
+    return clientId;
 };
 
 tf.state.login = function(email, password, savepassword, responsefn) {

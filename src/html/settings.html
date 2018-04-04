@@ -15,7 +15,7 @@
             <label class="col-md-4 col-form-label
                           text-md-right font-weight-bold"
                    for="settings-login-btn">Inloggning</label>
-            <div class="col-md-8">
+            <div class="col-md-6">
               <input type="button" value="Logga in"
                      id="settings-login-btn"
                      class="btn btn-primary"/>
@@ -27,7 +27,7 @@
             <label class="col-md-4 col-form-label
                           text-md-right font-weight-bold"
                    for="settings-logout-btn">Inloggning</label>
-            <div class="col-md-8">
+            <div class="col-md-6">
               <input type="button" value="Logga ut"
                      id="settings-logout-btn"
                      class="btn btn-secondary"/>
@@ -41,13 +41,28 @@
             <label class="col-md-4 col-form-label
                           text-md-right font-weight-bold"
                    for="settings-font-size">Textstorlek</label>
-            <div class="col-md-8">
+            <div class="col-md-6">
               <select class="form-control" id="settings-font-size">
                 <option value="small">Liten</option>
                 <option value="normal">Normal</option>
                 <option value="large">Stor</option>
                 <option value="x-large">Extra stor</option>
               </select>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label
+                          text-md-right font-weight-bold"
+                   for="settings-poll-interval">Klientid</label>
+            <div class="col-md-6">
+              <input type="text"
+                     class="form-control"
+                     id="settings-client-id"/>
+              <p class="form-text text-muted">
+                Används för att identifiera enheten när flera
+                enheter för loggbok.  Tex "Martins Sony Z4".
+              </p>
             </div>
           </div>
 
@@ -68,7 +83,7 @@
               <label class="col-md-4 col-form-label
                             text-md-right font-weight-bold"
                      for="settings-plans">Antal planer</label>
-              <div class="col-4 col-md-2">
+              <div class="col-md-2">
                 <input type="number" min="1" max="9" step="1"
                        class="form-control"
                        id="settings-plans"/>
@@ -80,8 +95,8 @@
               <label class="col-md-4 col-form-label
                             text-md-right font-weight-bold"
                      for="settings-poll-interval">Pollintervall</label>
-              <div class="col-4 col-md-2">
-                <input type="number" min="0" max="3600" step="1"
+              <div class="col-md-2">
+                <input type="number" min="0" max="3600" step="30"
                        class="form-control"
                        id="settings-poll-interval"/>
                 <div class="invalid-feedback">0-3600 sekunder</div>

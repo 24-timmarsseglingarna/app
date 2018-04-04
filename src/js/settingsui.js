@@ -17,6 +17,7 @@ tf.ui.settings.openPage = function() {
     }
     $('#settings-plans').removeClass('is-invalid');
     $('#settings-plans').val(tf.state.numberOfPlans.get());
+    $('#settings-client-id').val(tf.state.clientId.get());
     $('#settings-poll-interval').removeClass('is-invalid');
     $('#settings-poll-interval').val(tf.state.pollInterval.get());
     $('#settings-font-size').val(tf.state.fontSize.get());
@@ -58,6 +59,12 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#settings-client-id').blur(function() {
+        if ($('#settings-client-id').val().trim() == '') {
+            $('#settings-client-id').val(tf.state.defaultClientId);
+        }
+    });
+
     $('#settings-save-btn').on('click', function() {
         if ($('#settings-plans').hasClass('is-invalid') ||
             $('#settings-poll-interval').hasClass('is-invalid')) {
@@ -67,6 +74,7 @@ $(document).ready(function() {
         tf.state.numberOfPlans.set(numberOfPlans);
         var pollInterval = parseInt($('#settings-poll-interval').val());
         tf.state.pollInterval.set(pollInterval);
+        tf.state.clientId.set($('#settings-client-id').val().trim());
         tf.state.fontSize.set($('#settings-font-size').val());
         tf.ui.popPage();
         return false;
