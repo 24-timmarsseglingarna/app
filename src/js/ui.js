@@ -1012,6 +1012,7 @@ tf.ui.updateStatusBar = function() {
         var speed = tf.state.curLogBook.getAverageSpeed();
         var finished = tf.state.curLogBook.hasFinished();
         dist = tf.state.curLogBook.getSailedDistance();
+        var sxkDist = tf.state.curLogBook.getSXKDistance();
 
         $('#tf-status-boat').text(tf.state.curLogBook.teamData.boat_name);
 
@@ -1039,6 +1040,7 @@ tf.ui.updateStatusBar = function() {
         }
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
+        $('#tf-status-sxk-distance').text(sxkDist.toFixed(1) + ' M');
         if (tf.state.curLogBook.hasConflict()) {
             $('#tf-nav-logbook-badge').show();
         } else {
@@ -1046,6 +1048,7 @@ tf.ui.updateStatusBar = function() {
         }
     } else {
         $('#tf-status-distance').text('-.- M');
+        $('#tf-status-sxk-distance').text('-.- M');
         $('#tf-status-speed').text('-.- kn');
         $('#tf-status-boat').text('');
         $('.tf-status-plan').hide();

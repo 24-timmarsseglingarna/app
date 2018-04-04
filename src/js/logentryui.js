@@ -99,6 +99,8 @@ tf.ui.logEntry.fmtOther = function(e) {
     }
     if (e.type == 'endOfRace') {
         s.push('segling slut');
+    } else if (e.finish) {
+        s.push('målgång');
     }
     return s.join(',');
 };
@@ -663,6 +665,7 @@ tf.ui.logEntry.logEntrySave = function() {
             logEntry.sails = sails;
         }
         logEntry.boats = boats;
+        logEntry.finish = finish;
         break;
     case 'endOfRace':
         logEntry.position = position;

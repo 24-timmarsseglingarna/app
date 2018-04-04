@@ -234,44 +234,6 @@ $(document).ready(function() {
         return false;
     });
 
-    $('#log-book-send').on('click', function() {
-        var logBookPage = $('#log-book-page')[0];
-        var logBook = logBookPage.logBook;
-
-        if (logBook.isSentToServer) {
-            tf.ui.alert('<p>Loggboken har redan skickats in.</p');
-        } else if (!logBook.hasFinished()) {
-            tf.ui.alert('<p>Loggboken kan inte skickas in förrän du ' +
-                        'loggat en punkt som "Målgång".</p>');
-        } else {
-            tf.ui.confirm('<p>Du kan inte göra fler ändringar av loggboken ' +
-                          'när du har skickat in den.</p>' +
-                          '<p>Är du säker att du vill skicka in loggboken?.' +
-                          '</p>',
-                          'Nej',
-                          'Ja',
-                          function() {
-                              var logBookPage = $('#log-book-page')[0];
-                              var logBook = logBookPage.logBook;
-                              tf.ui.alert('<p>Denna funktion är inte ' +
-                                          'implementerad ännu!</p>' +
-                                          '<p>Loggboken ' +
-                                          'måste rapporteras in på det gamla ' +
-                                          'sättet.</p>');
-                              /*
-                              // start spinner
-                              logBook.sendToServer(function(res) {
-                                  if (res) {
-                                      // stop spinner
-                                  } else {
-                                      // stop spinner, alert a warning
-                                  }
-                              });
-                              */
-                          });
-        }
-        return false;
-    });
     $('#log-book-delete-all').on('click', function() {
         tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
                       '</p>',
