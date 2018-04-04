@@ -50,7 +50,7 @@ tf.serverData.getNewRegattaLog = function(regattaId, teamId,
 
 tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
     tf.serverAPI.getNewMyLog(
-        teamId, tf.state.clientId, lastUpdate,
+        teamId, tf.state.clientId.get(), lastUpdate,
         function(data, _etag) {
             if (data) {
                 var log = data.map(tf.serverData.mkLogData);
@@ -340,7 +340,7 @@ tf.serverData.mkServerLogData = function(r, teamId) {
     // 'user_id' and 'updated_at' are filled in by the server
     var s = {
         // always add our client identifier to entries modified by us
-        client: tf.state.clientId,
+        client: tf.state.clientId.get(),
     };
     if (teamId) { // not set on patch
         s.team_id = teamId;

@@ -34,6 +34,7 @@ tf.Regatta = function(id, racesData, pod) {
     }
     this.races = {};
     this.teams = {};
+    this.last_log_entry_time = null;
     this.last_log_update = null;
 };
 
@@ -47,17 +48,18 @@ tf.Regatta.prototype.getPod = function() {
 
 tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
     var regatta = this;
-    var lastUpdate = null;
-    if (this.last_log_update) {
-        lastUpdate = this.last_log_update.toISOString();
+    var lastLogUpdate = null;
+    if (this.last_log_entry_time) {
+        lastLogUpdate = this.last_log_entry_time.toISOString();
     }
     var teamId = null;
     if (tf.state.curLogBook) {
         teamId = tf.state.curLogBook.teamData.id;
     }
     tf.serverData.getNewRegattaLog(
-        this.id, teamId, lastUpdate,
+        this.id, teamId, lastLogUpdate,
         function(log) {
+            regatta.last_log_update = moment();
             for (var i = 0; log != null && i < log.length; i++) {
                 id = log[i].id;
                 var teamId = log[i].team_id;
@@ -75,9 +77,9 @@ tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
                 }
                 // FIXME: add proper API function to LogBook.js
                 regatta.teams[teamId]._addLogFromServer([log[i]]);
-                if (regatta.last_log_update == null ||
-                    log[i].updated_at.isAfter(regatta.last_log_update)) {
-                    regatta.last_log_update = log[i].updated_at;
+                if (regatta.last_log_entry_time == null ||
+                    log[i].updated_at.isAfter(regatta.last_log_entry_time)) {
+                    regatta.last_log_entry_time = log[i].updated_at;
                 }
             }
             continueFn();
@@ -113,4 +115,8 @@ tf.Regatta.prototype.getLeaderBoard = function() {
     }
     res.sort(function(a, b) { return b.sxkdist - a.sxkdist; });
     return res;
+};
+
+tf.Regatta.prototype.getLeaderBoardUpdatedTime = function() {
+    return this.last_log_update;
 };

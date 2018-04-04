@@ -141,30 +141,8 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
 tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
     var html = '';
 
-    html += '<div class="table-responsive row">' +
-            '<table class="table table-sm">' +
-            '<colgroup>' +
-            '<col class="tf-col-1"></col>' +
-            '<col class="tf-col-1"></col>' +
-            '<col class="tf-col-1"></col>' +
-            '<col class="tf-col-4"></col>' +
-            '<col class="tf-col-4"></col>' +
-            '<col class="tf-col-1"></col>' +
-            '</colgroup>' +
-
-            '<thead>' +
-            '<tr>' +
-            '<th>SXK Distans</th>' +
-            '<th>Senaste Punkt</th>' +
-            '<th>Nr</th>' +
-            '<th>Båtnamm</th>' +
-            '<th>Båttyp</th>' +
-            '<th>Segelnr</th>' +
-            '</tr>' +
-            '</thead>' +
-            '<tbody>';
-
     var lb = race.getRegatta().getLeaderBoard();
+    var updated = race.getRegatta().getLeaderBoardUpdatedTime();
     for (var i = 0; i < lb.length; i++) {
         var e = lb[i];
 
@@ -175,9 +153,11 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
             '<td>' + e.logbook.teamData.boat_type_name + '</td>' +
             '<td>' + e.logbook.teamData.boat_sail_number + '</td></tr>';
     }
-    html += '</tbody></table></div>';
 
-    $('#boats-lb').html(html);
+    if (updated) {
+        $('#boats-lb-updated').html(updated.format('YYYY-MM-DD HH:mm:ss'));
+    };
+    $('#boats-lb-tbody').html(html);
 };
 
 /* compare w/ pdf startlist
