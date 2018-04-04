@@ -237,9 +237,20 @@ tf.ui.logEntry.openLogEntry = function(options) {
 
     $('#log-entry-title-type').text(title);
 
+    $('#log-entry-conflict').hide();
+
     if (index != undefined) {
         /* open an existing log entry */
         var entry = log[index];
+
+        if (entry.state == 'conflict') {
+            var user = entry.user || '&lt;okänd>';
+            var client = entry.client || '&lt;okänd>';
+
+            $('#log-entry-user').html('&nbsp;' + user + '&nbsp;');
+            $('#log-entry-client').html('&nbsp;' + client);
+            $('#log-entry-conflict').show();
+        }
 
         var dt = moment(entry.time);
         $('#log-entry-timepicker').datetimepicker('date', dt);

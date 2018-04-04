@@ -84,6 +84,8 @@ tf.state.init = function() {
         tf.state.setTimer();
     });
 
+    document.addEventListener('resume', tf.state.onResume, false);
+
     // initialize server data; doesn't read from the server, but will
     // read cached data from local storage.
     tf.serverData.init();
@@ -92,6 +94,13 @@ tf.state.init = function() {
 tf.state.hasNetwork = function() {
     return (!tf.state.isCordova ||
             navigator.connection.type != Connection.NONE);
+};
+
+// if the timer for some reason is not running, start it
+tf.state.onResume = function() {
+    if (!tf.state._timer) {
+        tf.state.setTimer();
+    }
 };
 
 tf.state.setTimer = function() {

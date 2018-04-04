@@ -36,6 +36,7 @@ tf.Regatta = function(id, racesData, pod) {
     this.teams = {};
     this.last_log_entry_time = null;
     this.last_log_update = null;
+    this.log_updated = false;
 };
 
 tf.Regatta.prototype.getId = function() {
@@ -75,8 +76,11 @@ tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
                     }
                     regatta.teams[teamId] = new tf.LogBook(teamData, race);
                 }
-                // FIXME: add proper API function to LogBook.js
-                regatta.teams[teamId]._addLogFromServer([log[i]]);
+                var added = regatta.teams[teamId].addLogEntryFromServer(log[i]);
+                if (added) {
+                    // mark the log as being updated
+                    regatta.log_updated = true;
+                }
                 if (regatta.last_log_entry_time == null ||
                     log[i].updated_at.isAfter(regatta.last_log_entry_time)) {
                     regatta.last_log_entry_time = log[i].updated_at;

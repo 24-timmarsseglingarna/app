@@ -143,6 +143,9 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
 
     var lb = race.getRegatta().getLeaderBoard();
     var updated = race.getRegatta().getLeaderBoardUpdatedTime();
+    // clear 'updated' flag in the regatta in order to mark
+    // that we've seen it.
+    race.getRegatta().log_updated = false;
     for (var i = 0; i < lb.length; i++) {
         var e = lb[i];
 

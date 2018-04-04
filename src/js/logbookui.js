@@ -20,10 +20,14 @@ tf.ui.logBook.refreshLogBook = function(options) {
     var startNo = logBook.teamData.start_number;
     var log = logBook.getLog();
     var pod = logBook.race.getPod();
-    var distance;
     var prev;
-    var distTD;
     var rows = '';
+
+    if (logBook.hasConflict()) {
+        $('#log-book-conflict').show();
+    } else {
+        $('#log-book-conflict').hide();
+    }
 
     // no header and no arrow in the popup
     var popover_template = "<div class='popover log-book-edit-popover'" +
@@ -33,8 +37,9 @@ tf.ui.logBook.refreshLogBook = function(options) {
     for (var i = 0; i < log.length; i++) {
         var e = log[i];
         if (e.deleted) continue;
-        distance = '';
-        distTD = '<td>';
+        var distance = '';
+        var distTD = '<td>';
+        var distPost = '';
         if (e.point && prev) {
             distance = pod.getDistance(prev.point, e.point);
             if (distance == -1) {
@@ -42,14 +47,18 @@ tf.ui.logBook.refreshLogBook = function(options) {
             }
             if (e._legStatus) {
                 distTD = '<td class="log-book-invalid-dist text-danger">';
+                distPost = '<span class="pl-1 icon-exclamation-circle"></span>';
             }
             prev = e;
         } else if (e.point) {
             prev = e;
         }
         var intTD = '<td>';
+        var intPost = '';
         if (e._interruptStatus) {
             intTD = '<td class="log-book-invalid-interrupt text-danger">';
+            intPost = '<span class="pl-1 icon-exclamation-circle"></span>';
+
         }
         var edit_button_html = "<div class='row log-book-edit-buttons'" +
             " data-logid='" + e.id + "'>" +
@@ -80,6 +89,12 @@ tf.ui.logBook.refreshLogBook = function(options) {
         }
         var comment = e.comment || '';
 
+        var conflict = '';
+        if (e.state == 'conflict') {
+            conflict = '<span class="text-danger' +
+                ' icon-exclamation-circle"></span>';
+        }
+
         rows += '<tr data-logid="' + e.id + '">' +
             '<td><a tabindex="0" class="log-book-edit"' +
             ' role="button"' +
@@ -94,14 +109,15 @@ tf.ui.logBook.refreshLogBook = function(options) {
             ' data-html="true"' +
             ' data-content="' + edit_button_html + '"' +
             ' data-template="' + popover_template + '"' +
-            '><span class="icon-pencil"></span></a></td>' +
+            '><span class="icon-pencil">' + conflict + '</span></a></td>' +
             '<td>' + e.time.format('HH:mm DD MMM')
                        .replace(/\s/g, '&nbsp;') + '</td>' +
             '<td>' + point + '</td>' +
             '<td class="d-none d-sm-table-cell">' + pointName + '</td>' +
-            distTD + distance + '</td>' +
+            distTD + distance + distPost + '</td>' +
             '<td>' + wind + '</td>' +
-            intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt) + '</td>' +
+            intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt) +
+            intPost + '</td>' +
             '<td>' + tf.ui.logEntry.fmtProtest(e.protest) + '</td>' +
             '<td>' + tf.ui.logEntry.fmtSails(e.sails) + '</td>' +
             '<td>' + boats + '</td>' +

@@ -177,6 +177,12 @@ html, body, #map {
     line-height: 0;
 }
 
+.tf-nav-badge {
+    font-size: 60%;
+    /* position at the top, with some space to the icon to the left */
+    position: absolute;
+}
+
 .tf-nav-large {
     font-size: 30px !important;
 }
@@ -282,12 +288,10 @@ html, body, #map {
 }
 .log-book-invalid-dist {
     cursor: pointer;
-    text-decoration: underline;
     font-style: italic;
 }
 .log-book-invalid-interrupt {
     cursor: pointer;
-    text-decoration: underline;
     font-style: italic;
 }
 

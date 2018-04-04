@@ -6,7 +6,7 @@ goog.require('tf');
 goog.require('tf.Pod');
 
 /**
- * Log Entry states:
+ * Log Entry states, local property, not sent to server.
  *    'dirty'    - modified locally
  *    'sync'     - in sync with server
  *    'syncing'  - being sent to server, waiting for reply
@@ -68,6 +68,15 @@ tf.LogBook.prototype.getRace = function() {
     return this.race;
 };
 
+tf.LogBook.prototype.hasConflict = function() {
+    for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].state == 'conflict') {
+            return true;
+        }
+    }
+    return false;
+};
+
 tf.LogBook.prototype.saveToLog = function(logEntry, id) {
     if (id != undefined) {
         // update of an existing entry, find it
@@ -93,7 +102,6 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
     logEntry.deleted = false;
 
     this._addLogEntry(logEntry);
-    //console.log(JSON.stringify(this.log));
     this._updateLog();
 };
 
@@ -452,7 +460,7 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
 
 tf.LogBook.prototype.updateFromServer = function(continueFn) {
     var logBook = this;
-    var lastUpdate;
+    var lastUpdate; // FIXME: keep track of this
     tf.serverData.getNewMyLog(this.teamData.id,
                               lastUpdate,
                               function(res) {
@@ -462,6 +470,22 @@ tf.LogBook.prototype.updateFromServer = function(continueFn) {
                                   continueFn();
                               });
 };
+
+// returns false if the logentry already exists
+tf.LogBook.prototype.addLogEntryFromServer = function(logEntry) {
+    for (var i = 0; i < this.log.length; i++) {
+        if (this.log[i].id == logEntry.id) {
+            if (this.log[i].updated_at &&
+                this.log[i].updated_at.isSame(logEntry.updated_at)) {
+                return false;
+            }
+            continue;
+        }
+    }
+    this._addLogFromServer([logEntry]);
+    return true;
+};
+
 
 tf.LogBook.prototype._addLogFromServer = function(log) {
     var del = [];
@@ -480,6 +504,7 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
             switch (old.state) {
             case 'sync':
                 // not locally modified, just add it
+                new_.state = 'sync'
                 del.push(old.id);
                 add.push(new_);
                 break;
@@ -494,6 +519,7 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
                     // FIXME: how to notify the user?
                     console.log('both modified log entry w/ id ' + new_.id);
                 }
+                new_.state = 'conflict'
                 del.push(old.id);
                 add.push(new_);
                 break;
@@ -505,6 +531,7 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
             }
         } else {
             // brand new entry, just add it
+            new_.state = 'sync'
             add.push(new_);
         }
     }

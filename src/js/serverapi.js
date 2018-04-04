@@ -276,13 +276,13 @@ tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
             return true;
         },
         success: function(data, status, jqXHR) {
-            console.log(method + ' returns ' + data);
             tf.dbg = data;
             responsefn(data);
         },
         error: function(jqXHR, status, errorThrown) {
             console.log(method + ' error ' + status);
             if (jqXHR.status == 409) {
+                console.log(method + ' ' + urlpath + 'returns 409  conflict');
                 responsefn('conflict');
             } else {
                 console.log(method + ' error for ' + urlpath + ': ' +

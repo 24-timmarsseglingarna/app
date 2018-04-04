@@ -1084,6 +1084,11 @@ tf.ui.updateStatusBar = function() {
         }
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
+        if (tf.state.curLogBook.hasConflict()) {
+            $('#tf-nav-logbook-badge').show();
+        } else {
+            $('#tf-nav-logbook-badge').hide();
+        }
     } else {
         $('#tf-status-distance').text('-.- M');
         $('#tf-status-speed').text('-.- kn');
@@ -1093,6 +1098,7 @@ tf.ui.updateStatusBar = function() {
             window.clearInterval(tf.ui.headerTimer);
             tf.ui.headerTimer = null;
         }
+        $('#tf-nav-logbook-badge').hide();
     }
 
     var curPlan = tf.state.curPlan.get();
@@ -1109,6 +1115,12 @@ tf.ui.updateStatusBar = function() {
         $('.tf-status-plan').show();
     } else {
         $('.tf-status-plan').hide();
+    }
+
+    if (tf.state.curRegatta && tf.state.curRegatta.log_updated) {
+        $('#tf-nav-boats-badge').show();
+    } else {
+        $('#tf-nav-boats-badge').hide();
     }
 
 };
@@ -1283,6 +1295,8 @@ tf.ui.onDeviceReady = function() {
             $('#tf-nav-plan-name').html(val.name);
         }
     });
+
+    $('#tf-nav-boats-badge').hide();
 
     tf.state.init();
 
