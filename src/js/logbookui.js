@@ -58,7 +58,6 @@ tf.ui.logBook.refreshLogBook = function(options) {
         if (e._interruptStatus) {
             intTD = '<td class="log-book-invalid-interrupt text-danger">';
             intPost = '<span class="pl-1 icon-exclamation-circle"></span>';
-
         }
         var edit_button_html = "<div class='row log-book-edit-buttons'" +
             " data-logid='" + e.id + "'>" +

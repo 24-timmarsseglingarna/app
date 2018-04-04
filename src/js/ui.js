@@ -176,11 +176,6 @@ tf.ui.pushPage = function(openfn, closefn) {
 };
 
 /*
-  FIXME: BUG: click logbook, click first entry's pen then Ändra,
-              then back, works, but if you click back again, it doesn't work.
-*/
-
-/*
  * Note that this is an asynchronous function (on chrome), which means
  * that if you need to do more work after the page has closed (e.g.,
  * open a new page), it must be done in the continueFn.
@@ -833,46 +828,6 @@ $(document).ready(function() {
     $('#tf-nav-show-legs').change(function(event) {
         tf.ui.showLegsActivate(event.target.checked);
     });
-
-    /* FIXME: tmp debug test code */
-    $('#tf-nav-log-get-others').on('click', function() {
-        // close the dropdown
-        $('#tf-nav-more').dropdown('toggle');
-        if (!tf.state.curRegatta) {
-            tf.ui._alert_no_race('hämta data');
-        } else {
-            tf.state.curRegatta.updateLogFromServer(function() {
-                tf.ui.alert("data received from server");
-            });
-        }
-        return false;
-    });
-    $('#tf-nav-log-get').on('click', function() {
-        // close the dropdown
-        $('#tf-nav-more').dropdown('toggle');
-        if (!tf.state.curLogBook) {
-            tf.ui._alert_no_race('hämta loggboken');
-        } else {
-            tf.state.curLogBook.updateFromServer(function() {
-                tf.ui.alert("data received from server");
-            });
-        }
-        return false;
-    });
-    $('#tf-nav-log-send').on('click', function() {
-        // close the dropdown
-        $('#tf-nav-more').dropdown('toggle');
-        if (!tf.state.curLogBook) {
-            tf.ui._alert_no_race('skicka in loggboken');
-        } else {
-            tf.state.curLogBook.sendToServer(function() {
-                tf.ui.alert("data sent to server");
-            });
-        }
-        return false;
-    });
-
-    /* END FIXME */
 
     $('.tf-nav-distances').change(function(event) {
         switch (event.target.value) {
