@@ -83,7 +83,7 @@
               <label class="col-md-4 col-form-label
                             text-md-right font-weight-bold"
                      for="settings-plans">Antal planer</label>
-              <div class="col-md-2">
+              <div class="col-md-6">
                 <input type="number" min="1" max="9" step="1"
                        class="form-control"
                        id="settings-plans"/>
@@ -95,14 +95,30 @@
               <label class="col-md-4 col-form-label
                             text-md-right font-weight-bold"
                      for="settings-poll-interval">Pollintervall</label>
-              <div class="col-md-2">
+              <div class="col-md-6">
                 <input type="number" min="0" max="3600" step="30"
                        class="form-control"
                        id="settings-poll-interval"/>
                 <div class="invalid-feedback">0-3600 sekunder</div>
                 <p class="form-text text-muted">
-                  Ange hur ofta enheten skall kommunicera med
+                  Hur ofta enheten skall kommunicera med
                   servern.  Värdet 0 slår av funktionen.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-group row align-items-center">
+              <label class="col-6 col-md-4 col-form-label
+                            text-md-right font-weight-bold"
+                     for="settings-immediate-log-send">Skicka log direkt</label>
+              <div class="col-6 col-md-4">
+                <input type="checkbox"
+                       id="settings-immediate-log-send"/>
+              </div>
+              <div class="offset-md-4 col-12 col-md-8">
+                <p class="form-text text-muted">
+                  Kontrollerar om appen skall skicka loggen
+                  till servern direkt efter en uppdatering.
                 </p>
               </div>
             </div>
@@ -113,7 +129,7 @@
               <label class="col-md-4 col-form-label
                             text-md-right font-weight-bold"
                      for="settings-show-debug-btn">Debug</label>
-              <div class="col-md-8">
+              <div class="col-md-6">
                 <input type="button" value="Visa"
                        id="settings-show-debug-btn"
                        class="btn btn-primary"/>

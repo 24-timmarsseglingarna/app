@@ -21,6 +21,8 @@ tf.ui.settings.openPage = function() {
     $('#settings-poll-interval').removeClass('is-invalid');
     $('#settings-poll-interval').val(tf.state.pollInterval.get());
     $('#settings-font-size').val(tf.state.fontSize.get());
+    $('#settings-immediate-log-send').prop(
+        'checked', tf.state.immediateSendToServer.get());
 
     tf.ui.pushPage(
         function() { $('#settings-page').modal({backdrop: 'static'}); },
@@ -76,6 +78,8 @@ $(document).ready(function() {
         tf.state.pollInterval.set(pollInterval);
         tf.state.clientId.set($('#settings-client-id').val().trim());
         tf.state.fontSize.set($('#settings-font-size').val());
+        tf.state.immediateSendToServer.set(
+            $('#settings-immediate-log-send').prop('checked'));
         tf.ui.popPage();
         return false;
     });

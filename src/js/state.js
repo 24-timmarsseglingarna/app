@@ -25,6 +25,8 @@ tf.defineVariable(tf.state, 'numberOfPlans', null);
 tf.defineVariable(tf.state, 'clientId', null);
 tf.defineVariable(tf.state, 'fontSize', null);
 tf.defineVariable(tf.state, 'pollInterval', null);
+tf.defineVariable(tf.state, 'sendLogToServer', null);
+tf.defineVariable(tf.state, 'immediateSendToServer', null);
 
 /**
  * Initialize ephemeral state variables.
@@ -84,6 +86,17 @@ tf.state.init = function() {
         tf.state.setTimer();
     });
 
+    tf.state.sendLogToServer.set(tf.storage.getSetting('sendLogToServer'));
+    tf.state.sendLogToServer.onChange(function(val) {
+        tf.storage.setSettings({sendLogToServer: val});
+    });
+
+    tf.state.immediateSendToServer.set(
+        tf.storage.getSetting('immediateSendToServer'));
+    tf.state.immediateSendToServer.onChange(function(val) {
+        tf.storage.setSettings({immediateSendToServer: val});
+    });
+
     document.addEventListener('resume', tf.state.onResume, false);
 
     // initialize server data; doesn't read from the server, but will
@@ -114,9 +127,14 @@ tf.state.setTimer = function() {
 
 tf.state.clearTimer = function() {
     if (tf.state._timer) {
-        window.clearInterval(tf.state._timer);
+        window.clearTimeout(tf.state._timer);
         tf.state._timer = null;
     }
+};
+
+tf.state.forceTimeout = function() {
+    tf.state.clearTimer();
+    tf.state._timeout();
 };
 
 tf.state._timeout = function() {
@@ -144,7 +162,7 @@ tf.state._timeout = function() {
     };
 
     var cfn1 = function() {
-        if (tf.state.curLogBook) {
+        if (tf.state.curLogBook && tf.state.sendLogToServer.get()) {
             tf.state.curLogBook.sendToServer(cfn2);
         } else {
             cfn2();
@@ -223,8 +241,7 @@ tf.state.setupLogin = function(continueFn) {
 
 tf.state.onAuthenticatedOnline = function(continueFn) {
     tf.state.isLoggedIn = true;
-    tf.state.setTimer();
-    tf.state._timeout();
+    tf.state.forceTimeout();
     // we'll first start from cached data; if things have been updated on
     // the server, we might change active race when we get the reply.
     tf.state._setupContinue(continueFn);
@@ -288,6 +305,15 @@ tf.state._setActiveRace2 = function(raceId, continueFn) {
         tf.state.curLogBook.onLogUpdate(function(logBook) {
             tf.storage.setRaceLog(logBook.race.getId(), logBook.getLog());
         }, 110);
+        tf.state.curLogBook.onLogUpdate(function(logBook, reason) {
+            // communicate with server if the logBook has changed,
+            // but not if the update was triggered by server communication!
+            if (reason != 'syncError' && reason != 'syncDone' &&
+                tf.state.immediateSendToServer.get()) {
+                console.log('forcing: ' + reason);
+                tf.state.forceTimeout();
+            }
+        }, 120);
         if (continueFn) {
             continueFn();
         }

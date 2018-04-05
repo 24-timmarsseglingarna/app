@@ -56,6 +56,8 @@ tf.storage.init = function() {
         'numberOfPlans': 3, // int() 1-9
         'fontSize': null, // null | 'small' | 'normal' | 'large' | 'x-large'
         'pollInterval': 600, // seconds; int() 0-3600
+        'immediateSendToServer': true, // boolean()
+        'sendLogToServer': true, // boolean()
 
         /*
          * Race data

@@ -39,7 +39,7 @@ tf.LogBook = function(teamData, race, log) {
     this.points = [];
     this.isSentToServer = false;
 
-    this._updateLog();
+    this._updateLog('init');
 };
 
 tf.LogBook.prototype.getLog = function() {
@@ -102,7 +102,7 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
     logEntry.deleted = false;
 
     this._addLogEntry(logEntry);
-    this._updateLog();
+    this._updateLog('save');
 };
 
 tf.LogBook.prototype._addLogEntry = function(logEntry) {
@@ -138,7 +138,7 @@ tf.LogBook.prototype._delLogEntryById = function(id) {
  *   status of legs in the log
  *   time offset due to interruption for helping others
 */
-tf.LogBook.prototype._updateLog = function() {
+tf.LogBook.prototype._updateLog = function(reason) {
     // distance is given with one decimal.  in order to work around
     // rounding errors, we multiply by 10 so that we can use round()
     // at the end.
@@ -262,7 +262,7 @@ tf.LogBook.prototype._updateLog = function() {
     this.nlegs = nlegs;
     this.points = points;
     for (var i = 0; i < this.onLogUpdateFns.length; i++) {
-        this.onLogUpdateFns[i].fn(this);
+        this.onLogUpdateFns[i].fn(this, reason);
     }
 };
 
@@ -442,7 +442,7 @@ tf.LogBook.prototype.deleteLogEntry = function(id) {
         // local entry, just delete it
         this.log.splice(index, 1);
     }
-    this._updateLog();
+    this._updateLog('delete');
 };
 
 tf.LogBook.prototype.deleteAllLogEntries = function() {
@@ -455,7 +455,7 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
         } // else local entry, just delete it
     }
     this.log = newLog;
-    this._updateLog();
+    this._updateLog('delete');
 };
 
 tf.LogBook.prototype.updateFromServer = function(continueFn) {
@@ -535,15 +535,20 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
             add.push(new_);
         }
     }
+    var updated = false;
     // now delete all that should be deleted
     for (var i = 0; i < del.length; i++) {
         this._delLogEntryById(del[i]);
+        updated = true;
     }
     // now add all that should be added
     for (var i = 0; i < add.length; i++) {
         this._addLogEntry(add[i]);
+        updated = true;
     }
-    this._updateLog();
+    if (updated) {
+        this._updateLog('syncDone');
+    }
 };
 
 tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
@@ -560,7 +565,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         // error; wait and try later
                         e.state = 'dirty';
                         if (updated) {
-                            logBook._updateLog();
+                            logBook._updateLog('syncError');
                         }
                         continueFn();
                         return;
@@ -593,7 +598,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                         // error; wait and try later
                         e.state = 'dirty';
                         if (updated) {
-                            logBook._updateLog();
+                            logBook._updateLog('syncError');
                         }
                         continueFn();
                         return;
@@ -620,7 +625,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
     }
     // no more log entries to send
     if (updated) {
-        this._updateLog();
+        this._updateLog('syncDone');
     }
     continueFn();
 };
