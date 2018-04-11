@@ -165,7 +165,7 @@ deps/ol:
 	mv v$(OL_VSN)-dist/ol.css .; \
 	rm -rf v$(OL_VSN)-dist
 
-BOOTSTRAP_VSN=4.0.0
+BOOTSTRAP_VSN=4.1.0
 deps/bootstrap:
 	cd deps; \
 	wget https://github.com/twbs/bootstrap/releases/download/v$(BOOTSTRAP_VSN)/bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
