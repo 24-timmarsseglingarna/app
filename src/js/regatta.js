@@ -98,26 +98,26 @@ tf.Regatta.prototype.isOngoing = function() {
     // treat as ongoing up to 24 hours after last finish, in order to
     // handle late finish, but also to handle late entries
     // FIXME: > first_start and isActive
-    var maxTime = moment(this.last_finish).add(24, 'hours')
+    var maxTime = moment(this.last_finish).add(24, 'hours');
     return moment().isBetween(this.first_start, maxTime);
 };
 
 /*
- * Returns: [ { 'sxkdist': <SXK distance logged>
+ * Returns: [ { 'netdist': <Net distance logged>
  *              'logbook': <LogBook> } ]
  */
 tf.Regatta.prototype.getLeaderBoard = function() {
     var res = [];
     if (tf.state.curLogBook) {
-        res.push({ sxkdist: tf.state.curLogBook.getSXKDistance(),
+        res.push({ netdist: tf.state.curLogBook.getNetDistance(),
                    logbook: tf.state.curLogBook });
     }
     for (var teamId in this.teams) {
         var logbook = this.teams[teamId];
-        res.push({ sxkdist: logbook.getSXKDistance(),
+        res.push({ netdist: logbook.getNetDistance(),
                    logbook: logbook });
     }
-    res.sort(function(a, b) { return b.sxkdist - a.sxkdist; });
+    res.sort(function(a, b) { return b.netdist - a.netdist; });
     return res;
 };
 

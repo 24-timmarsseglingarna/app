@@ -48,6 +48,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
             if (e._legStatus) {
                 distTD = '<td class="log-book-invalid-dist text-danger">';
                 distPost = '<span class="pl-1 icon-exclamation-circle"></span>';
+                distance = 0;
             }
             prev = e;
         } else if (e.point) {
@@ -132,13 +133,25 @@ tf.ui.logBook.refreshLogBook = function(options) {
         '</tr>';
 
     var dist = logBook.getSailedDistance();
-    var sxkdist = logBook.getSXKDistance();
+    var netdist = logBook.getNetDistance();
+    var earlydist = logBook.getEarlyStartDistance();
+    var latedist = logBook.getLateFinishDistance();
+    var compdist = logBook.getCompensationDistance();
+    var plaquedist = logBook.getPlaqueDistance();
     var speed = logBook.getAverageSpeed();
+
+    // FIXME: if (finish || retire) then enable else disable
+    $('#log-book-sign').addClass('disabled');
 
     $('#log-book-boat').text(boatName);
     $('#log-book-startno').text(startNo);
-    $('#log-book-distance').text(dist.toFixed(1) + ' M');
-    $('#log-book-sxk-distance').text(sxkdist.toFixed(1) + ' M');
+    $('#log-book-sailed-dist').text(dist.toFixed(1) + ' M');
+    $('#log-book-net-dist').text(netdist.toFixed(1) + ' M');
+    $('#log-book-net-dist2').text(netdist.toFixed(1) + ' M');
+    $('#log-book-early-dist').text('-' + earlydist.toFixed(1) + ' M');
+    $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M');
+    $('#log-book-compensation-dist').text(compdist.toFixed(1) + ' M');
+    $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);
     $('.log-book-edit').popover();
@@ -247,6 +260,11 @@ $(document).ready(function() {
                               logBook: logBookPage.logBook});
                       });
         return false;
+    });
+    $(document).on('click', '#log-book-sign', function(event) {
+        // FIXME: if !(skipper) then alert only skipper can sign
+        //        if !(finish || retire) then alert you need to finish first
+        tf.ui.alert('<p>För att kunna signera måste du bla bla.</p>');
     });
     $(document).on('click', '#log-book-btn-edit', function(event) {
         var id = $(event.currentTarget.parentElement).data('logid');

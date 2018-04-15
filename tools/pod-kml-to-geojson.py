@@ -6,6 +6,9 @@
 #
 # In order to get the starting points XML file, run 'get-start-points.sh'
 # with the data in 'kretsar.txt' as input.
+#
+# NOTE, as of 2018, the kml file contains info about the starting points, so the
+# get-start-points thingie is not needed anymore.
 
 import xml.etree.ElementTree as etree
 import argparse
@@ -20,19 +23,21 @@ if sys.version < '3':
 kmlns= 'http://www.opengis.net/kml/2.2'
 nsmap={'kml':kmlns}
 
+# Temporary code: this should be read from the PoD.
+zeroDistsWithNoTime = [('11','13'),
+                       ('12','41'),
+                       ('25','27'),
+                       ('1028','1029')]
+
 def run():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--spfile", help="start points file")
     parser.add_argument("-i", "--infile", help="input file")
     parser.add_argument("-o", "--outfile", help="output file")
     parser.add_argument("--pod-version", dest="pod_version", help="version")
     args = parser.parse_args()
-    sptree = etree.parse(args.spfile)
     tree = etree.parse(args.infile)
 
     version = get_pod_version(tree, args)
-
-    fix_points(tree, sptree)
 
     start_points, turning_points = get_points(tree)
     inshore_legs, offshore_legs = get_legs(tree)
@@ -58,29 +63,6 @@ def get_pod_version(tree, args):
         [d] = re.findall(".*(\d{4}-\d{2}-\d{2}).*", name)
         return d
 
-# Some points in the kml file are duplicates.  This code removes the
-# duplicate point.  If the kml generator is fixed, this function can
-# be removed (but it is harmless in this case).
-#
-# Also, this code marks start points.
-def fix_points(tree, sptree):
-    spdoc = sptree.getroot()
-    start_points = []
-    for sp in spdoc.findall("nummer"):
-        start_points.append(sp.text)
-    doc = tree.getroot()[0]
-    f = doc.find("kml:Folder[kml:name='Punkter']", nsmap)
-    points = f.findall("kml:Placemark[kml:styleUrl='#rundpunkt']", nsmap)
-    for i in range(1, len(points)):
-        name = points[i].find("kml:name", nsmap).text
-        prev = points[i-1].find("kml:name", nsmap).text
-        if name == prev:
-            f.remove(points[i-1])
-
-        [(number, rest)] = re.findall("(\d+) (.*)", name)
-        if number in start_points:
-            points[i].find("kml:styleUrl", nsmap).text = '#startpunkt'
-
 def output_pod(fname, version, features):
     if sys.version < '3':
         fd = codecs.open(fname, "w", encoding="utf-8")
@@ -99,35 +81,39 @@ def output_pod(fname, version, features):
 
 def get_points(tree):
     doc = tree.getroot()[0]
-    f = doc.find("kml:Folder[kml:name='Punkter']", nsmap)
-    def get_points_by_style(style):
+    def add_point_(points, p):
+        d = p.find("kml:ExtendedData/kml:Data[@name='Beskrivning']/"
+                   "kml:value", nsmap)
+        [(number, name)] = re.findall("(\d+) (.*)",
+                                      p.find("kml:name", nsmap).text)
+        properties = {"number": number,
+                      "name": name,
+                      "descr": d.text}
+        c = p.find("kml:Point/kml:coordinates", nsmap).text
+        [lng, lat] = c.split(",")
+        geometry = {"type": "Point",
+                    "coordinates": [float(lng), float(lat)]}
+        point = {"type": "Feature",
+                 "properties": properties,
+                 "geometry": geometry},
+        points.extend(point)
+
+    def get_points_by_name(name):
         points = []
-        for p in f.findall("kml:Placemark[kml:styleUrl='%s']" % style, nsmap):
-            d = p.find("kml:ExtendedData/kml:Data[@name='Beskrivning']/"
-                       "kml:value", nsmap)
-            [(number, name)] = re.findall("(\d+) (.*)",
-                                          p.find("kml:name", nsmap).text)
-            properties = {"number": number,
-                          "name": name,
-                          "descr": d.text}
-            c = p.find("kml:Point/kml:coordinates", nsmap).text
-            [lng, lat] = c.split(",")
-            geometry = {"type": "Point",
-                        "coordinates": [float(lng), float(lat)]}
-            point = {"type": "Feature",
-                     "properties": properties,
-                     "geometry": geometry},
-            points.extend(point)
+        f = doc.find("kml:Folder[kml:name='%s']" % name, nsmap)
+        for p in f.findall("kml:Placemark", nsmap):
+            add_point_(points, p)
         return points
-    return (get_points_by_style('#startpunkt'),
-            get_points_by_style('#rundpunkt'))
+
+    return (get_points_by_name('Startpunkter'),
+            get_points_by_name('Rundpunkter'))
 
 def get_legs(tree):
     points = get_leg_dict(tree)
     doc = tree.getroot()[0]
-    def get_legs_by_style(style):
+    def get_legs_by_name(name):
         legs = []
-        f = doc.find("kml:Folder[kml:name='%s']" % style, nsmap)
+        f = doc.find("kml:Folder[kml:name='%s']" % name, nsmap)
         for p in f.findall("kml:Placemark", nsmap):
             name = p.find("kml:name", nsmap)
             [r] = re.findall("(\d+)-(\d+)", name.text)
@@ -137,6 +123,9 @@ def get_legs(tree):
             properties = {"src": src,
                           "dst": dst,
                           "dist": float(dist)}
+            if properties["dist"] == 0:
+                if (src,dst) not in zeroDistsWithNoTime:
+                    properties["addtime"] = True;
             c = p.find("kml:LineString/kml:coordinates", nsmap).text
             [a,b] = c.split(" ")
             [alng, alat] = a.split(",")
@@ -149,15 +138,18 @@ def get_legs(tree):
                    "geometry": geometry},
             legs.extend(leg)
         return legs
-    return (get_legs_by_style('Kustdistanser'),
-            get_legs_by_style('Havsdistanser'))
+    return (get_legs_by_name('Kustdistanser'),
+            get_legs_by_name('Havsdistanser'))
 
 # build a dict:  <point-number>, <legs>
 # where <legs> is a dict: <target point-number>, <distance>
 def get_leg_dict(tree):
     doc = tree.getroot()[0]
     points = {}
-    f = doc.find("kml:Folder[kml:name='Punkter']", nsmap)
+    f = doc.find("kml:Folder[kml:name='Startpunkter']", nsmap)
+    for p in f.findall("kml:Placemark", nsmap):
+        add_point(points, p)
+    f = doc.find("kml:Folder[kml:name='Rundpunkter']", nsmap)
     for p in f.findall("kml:Placemark", nsmap):
         add_point(points, p)
     return points

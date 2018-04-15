@@ -17,12 +17,12 @@ tf.ui.activateRace.openPage = function() {
 };
 
 tf.ui.activateRace._populateRaces = function() {
-    var racesData = tf.serverData.getMyRacesData();
+    var races = tf.serverData.getMyRaces();
     var curActiveRaceId = 0;
     if (tf.state.curRace) {
         curActiveRaceId = tf.state.curRace.getId();
     }
-    if (racesData.length == 0) {
+    if (races.length == 0) {
         $('#activate-race-list').hide();
         $('#activate-race-no-races').show();
         $('#activate-race-register-link').attr('href', tf.serverAPI.URL);
@@ -39,12 +39,16 @@ tf.ui.activateRace._populateRaces = function() {
             s += ' active';
         }
         s += '">' +
-            '<p>Ingen segling aktiverad</p>' +
+            '<strong>Ingen segling aktiverad</strong>' +
             '</button>';
 
-        for (var i = 0; i < racesData.length; i++) {
-            var isActive = (racesData[i].id == curActiveRaceId);
-            var r = racesData[i];
+        // FIXME: read pod from server
+        var pod = tf.state.defaultPod;
+
+        for (var i = 0; i < races.length; i++) {
+            var r = races[i].raceData;
+            var t = races[i].teamData;
+            var isActive = (r.id == curActiveRaceId);
             s += '<button type="button" autocomplete="off"' +
                 ' id="activate-race-button-' + r.id + '"' +
                 ' onclick="tf.ui.activateRace.buttonClick(' + r.id + ')"' +
@@ -54,12 +58,24 @@ tf.ui.activateRace._populateRaces = function() {
                 s += ' active';
             }
             s += '">' +
-                '<p>' + r.organizer_name + '</p>' +
-                '<p>' + r.regatta_name + '</p>' +
-                '<p>' + r.period + ' timmar. ';
+                '<strong>' + r.regatta_name + '</strong><br/>' +
+                '<span class="small">' +
+                r.organizer_name + '<br/>' +
+                r.period + ' timmar, ';
             if (r.description) {
-                s += r.description + '. ';
+                s += r.description;
             }
+            if (r.common_finish) {
+                s += ', gemensamt mål ' + r.common_finish;
+                var p = pod.getPoint(r.common_finish);
+                if (p) {
+                    s += ' ' + p.name;
+                }
+            } else {
+                s += ', mål vid start';
+            }
+            s += '<br/>';
+
             s += 'Start: ' + r.start_from.format('dddd D MMMM [kl.] HH:mm');
             if (!r.start_from.isSame(r.start_to)) {
                 s += ' - ';
@@ -69,7 +85,15 @@ tf.ui.activateRace._populateRaces = function() {
                     s += r.start_to.format('dddd D MMMM [kl.] HH:mm');
                 }
             }
-            s += '</p></button>';
+            s += ' från ' + t.start_point;
+            var p = pod.getPoint(t.start_point);
+            if (p) {
+                s += ' ' + p.name;
+            }
+            s += '<br/>';
+            s += t.boat_type_name + ' ' + t.boat_sail_number + ' ' +
+                t.boat_name;
+            s += '</span></button>';
         }
         $('#activate-race-buttons').html(s);
     }
@@ -83,3 +107,15 @@ tf.ui.activateRace.buttonClick = function(raceId) {
 
     tf.state.setActiveRace(raceId, function() { tf.ui.logBookChanged(); });
 };
+
+/**
+ * Set up handlers for buttons
+ */
+$(document).ready(function() {
+    $('#activate-update-btn').on('click', function() {
+        tf.serverData.update(tf.storage.getSetting('personId'),
+                             function() {
+                                 tf.ui.activateRace._populateRaces();
+                             });
+    })
+});

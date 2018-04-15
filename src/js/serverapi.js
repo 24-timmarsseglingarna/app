@@ -10,7 +10,7 @@ goog.require('tf');
  */
 tf.serverAPI.URL = 'http://giona.herokuapp.com';
 tf.serverAPI.URL = 'https://giona-dev.24-timmars.nu';
-tf.serverAPI.URL = 'http://192.168.0.6:3000';
+//tf.serverAPI.URL = 'http://192.168.0.6:3000';
 
 /**
  * Keep track of email and token; necessary in all API calls.

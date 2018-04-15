@@ -32,13 +32,10 @@ build/24h.js: $(JS_SRC)
 	$(CLOSURE_ARGS) --js_output_file=$@ $^
 
 # This is temporary.  The pod will be downloaded from the server.
-# For now you need to get a PoD.kml covering the entire area and
+# For now you need to get a PoD.xml covering the entire area and
 # store it here.
-build/pod.js: PoD.kml start_points.xml tools/pod-kml-to-geojson.py
-	tools/pod-kml-to-geojson.py -i PoD.kml -s start_points.xml -o $@
-
-start_points.xml: support/kretsar.txt tools/get-start-points.sh
-	tools/get-start-points.sh $< > $@
+build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
+	tools/pod-xml-to-geojson.py -i PoD.xml -o $@
 
 build/icomoon.css: src/icomoon/style.css
 	cp $< $@
@@ -155,7 +152,7 @@ deps/jquery:
 	cd deps; \
 	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
 
-OL_VSN=4.6.4
+OL_VSN=4.6.5
 deps/ol:
 	cd deps; \
 	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \

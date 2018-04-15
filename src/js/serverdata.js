@@ -32,7 +32,7 @@ tf.serverData.clearCache = function() {
     tf.serverData._myTeams = [];
     tf.serverData._myTeamsETag = null;
     tf.serverData._myRegattaIds = [];
-}
+};
 
 tf.serverData.getNewRegattaLog = function(regattaId, teamId,
                                           lastUpdate, responsefn) {
@@ -195,14 +195,15 @@ tf.serverData.updateTeams = function(continueFn) {
  * Return: Race data for the active races the logged in user
  * participates in.
  */
-tf.serverData.getMyRacesData = function() {
+tf.serverData.getMyRaces = function() {
     var r = [];
     for (var i = 0; i < tf.serverData._myTeams.length; i++) {
         var team = tf.serverData._myTeams[i];
         var races = tf.serverData._races[team.regatta_id];
         for (var j = 0; j < races.length; j++) {
             if (races[j].id == team.race_id) {
-                r.push(races[j]);
+                r.push({raceData: races[j],
+                        teamData: team});
             }
         }
     }
@@ -282,7 +283,7 @@ tf.serverData.mkTeamData = function(s) {
         boat_name:        s.boat_name,         // string
         boat_type_name:   s.boat_type_name,    // string
         boat_sail_number: s.boat_sail_number,  // string
-        sxk_handicap:     s.sxk || 1           // float
+        sxk_handicap:     s.sxk || 2           // float
     };
     return r;
 };
@@ -295,7 +296,10 @@ tf.serverData.mkRaceData = function(s) {
         regatta_id:     s.regatta_id,          // int
         start_from:     moment(s.start_from),  // date and time
         start_to:       moment(s.start_to),    // date and time
+        common_finish:  s.common_finish,       // null | int (point)
         period:         s.period,              // int (12,24,48,...)
+        // FIXME: read from server
+        min_period:     s.period - 3,          // int (11,23,43,...)
         description:    s.description          // string
     };
     return r;
@@ -400,6 +404,9 @@ tf.serverData.mkServerLogData = function(r, teamId) {
     case 'lanterns':
         data.position = r.position;
         data.lanterns = r.lanterns;
+        break;
+    case 'retire':
+        data.position = r.position;
         break;
     case 'other':
         break;

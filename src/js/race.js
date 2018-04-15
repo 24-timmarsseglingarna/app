@@ -15,6 +15,10 @@ goog.require('tf');
 tf.Race = function(regatta, raceData) {
     this.regatta = regatta;
     this.raceData = raceData;
+    this.startTimes = {
+        start_from: raceData.start_from,
+        start_to: raceData.start_to
+    },
     this.plans = {};
 };
 
@@ -36,6 +40,10 @@ tf.Race.prototype.getPod = function() {
 
 tf.Race.prototype.getRaceLengthHours = function() {
     return this.raceData.period;
+};
+
+tf.Race.prototype.getStartTimes = function() {
+    return this.startTimes;
 };
 
 tf.Race.prototype.getPlan = function(name) {

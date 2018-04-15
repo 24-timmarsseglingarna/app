@@ -238,7 +238,7 @@ tf.Plan.prototype.getPlannedSpeed = function() {
     var dist = this.totalDist / 10;
     var start = this.logbook.getStartTime();
     var raceLengthMinutes = this.logbook.race.getRaceLengthHours() * 60;
-    var raceLeftMinutes = raceLengthMinutes - this.logbook.getTotalTime();
+    var raceLeftMinutes = raceLengthMinutes - this.logbook.getSailedTime();
 
     return dist * 60 / raceLeftMinutes;
 };

@@ -33,17 +33,12 @@ tf.Pod = function(spec) {
      *         }}
      */
     this.points = {};
-    this.version = spec.version;
     this.spec = spec;
 
     this._addPoints(spec.startPoints, tf.pod.START_POINT);
     this._addPoints(spec.turningPoints, tf.pod.TURNING_POINT);
     this._addLegs(spec.inshoreLegs);
     this._addLegs(spec.offshoreLegs);
-};
-
-tf.Pod.prototype.getVersion = function() {
-    return this.version;
 };
 
 tf.Pod.prototype.getSpec = function() {
@@ -60,6 +55,17 @@ tf.Pod.prototype.getDistance = function(a, b) {
         x = x.legs[b];
         if (x) {
             return x.dist;
+        }
+    }
+    return -1; // invalid leg
+};
+
+tf.Pod.prototype.getAddTime = function(a, b) {
+    var x = this.points[a];
+    if (x) {
+        x = x.legs[b];
+        if (x) {
+            return x.addtime;
         }
     }
     return -1; // invalid leg
@@ -146,7 +152,11 @@ tf.Pod.prototype._addPoints = function(points, type) {
 tf.Pod.prototype._addLegs = function(legs) {
     for (var i = 0; i < legs.features.length; i++) {
         var p = legs.features[i].properties;
-        this.points[p.src].legs[p.dst] = {dist: p.dist};
-        this.points[p.dst].legs[p.src] = {dist: p.dist};
+        var v = {dist: p.dist};
+        if (p.addtime) {
+            v.addtime = true;
+        }
+        this.points[p.src].legs[p.dst] = v;
+        this.points[p.dst].legs[p.src] = v;
     }
 };

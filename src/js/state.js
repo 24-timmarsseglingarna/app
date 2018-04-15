@@ -310,7 +310,6 @@ tf.state._setActiveRace2 = function(raceId, continueFn) {
             // but not if the update was triggered by server communication!
             if (reason != 'syncError' && reason != 'syncDone' &&
                 tf.state.immediateSendToServer.get()) {
-                console.log('forcing: ' + reason);
                 tf.state.forceTimeout();
             }
         }, 120);
@@ -343,7 +342,7 @@ tf.state.defaultClientId = function() {
 tf.state.login = function(email, password, savepassword, responsefn) {
     tf.serverAPI.login(
         email, password,
-        function (response) {
+        function(response) {
             if (response) {
                 props = {
                     email: response.email,

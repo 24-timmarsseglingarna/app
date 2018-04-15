@@ -313,9 +313,12 @@ tf.ui.styleCache = {};
  * Point Popup handling
  */
 
-tf.ui.mkPointPopupHTML = function(number, name, descr, eta) {
+tf.ui.mkPointPopupHTML = function(number, name, descr, footnote, eta) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p>' + descr + '</p>';
+    if (footnote) {
+        s += '<p class="font-italic">' + footnote + '</p>';
+    }
     for (var i = 0; i < eta.length; i++) {
         s += '<p>Planerad rundningstid: ' + eta[i] + '</p>';
     }
@@ -420,10 +423,11 @@ tf.ui.handleMapClick = function(event) {
                         }
                         // show the popup from the center of the point
                         var coord = geom.getCoordinates();
+                        var footnote = feature.get('footnote');
                         tf.ui.pointPopup.show(
                             coord,
                             tf.ui.mkPointPopupHTML(number, name, descr,
-                                                   eta));
+                                                   footnote, eta));
                     }
                 }
             }
@@ -1012,18 +1016,15 @@ tf.ui.updateStatusBar = function() {
         var speed = tf.state.curLogBook.getAverageSpeed();
         var finished = tf.state.curLogBook.hasFinished();
         dist = tf.state.curLogBook.getSailedDistance();
-        var sxkDist = tf.state.curLogBook.getSXKDistance();
+        var netDist = tf.state.curLogBook.getNetDistance();
 
         $('#tf-status-boat').text(tf.state.curLogBook.teamData.boat_name);
 
         if (start) {
             if (!tf.ui.headerTimer && !finished) {
-                // called first time from saveToLog
-                // set interval to 5 seconds to get faster update after
-                // sleep; otherwise 60 seconds would work as interval.
                 tf.ui.updateStatusBarTime();
                 tf.ui.headerTimer =
-                    window.setInterval(tf.ui.updateStatusBarTime, 5000);
+                    window.setInterval(tf.ui.updateStatusBarTime, 60000);
             } else if (finished && tf.ui.headerTimer) {
                 window.clearInterval(tf.ui.headerTimer);
                 tf.ui.headerTimer = null;
@@ -1040,7 +1041,7 @@ tf.ui.updateStatusBar = function() {
         }
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
-        $('#tf-status-sxk-distance').text(sxkDist.toFixed(1) + ' M');
+        $('#tf-status-net-distance').text(netDist.toFixed(1) + ' M');
         if (tf.state.curLogBook.hasConflict()) {
             $('#tf-nav-logbook-badge').show();
         } else {
@@ -1048,7 +1049,7 @@ tf.ui.updateStatusBar = function() {
         }
     } else {
         $('#tf-status-distance').text('-.- M');
-        $('#tf-status-sxk-distance').text('-.- M');
+        $('#tf-status-net-distance').text('-.- M');
         $('#tf-status-speed').text('-.- kn');
         $('#tf-status-boat').text('');
         $('.tf-status-plan').hide();
@@ -1274,6 +1275,8 @@ tf.ui.onDeviceReady = function() {
     }
 
     tf.ui.updateStatusBar();
+
+    document.addEventListener('resume', tf.state.updateStatusBarTime, false);
 
     tf.state.setupLogin(tf.ui.stateSetupDone);
 

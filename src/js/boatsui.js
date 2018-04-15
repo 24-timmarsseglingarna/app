@@ -39,7 +39,7 @@ tf.ui.boats.openPage = function(options) {
 
 tf.ui.boats._fillStartList = function(race, fontclass) {
     var races = tf.serverData.getRacesData(race.getRegattaId());
-    races.sort(function(a,b) {
+    races.sort(function(a, b) {
         if (a.start_from.isBefore(b.start_from)) {
             return -1;
         } else if (a.start_from.isSame(b.start_from)) {
@@ -114,7 +114,7 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
         var points = Object.keys(startPoints).sort();
         for (var j = 0; j < points.length; j++) {
             var p = points[j];
-            var ts = startPoints[p].sort(function(a,b) {
+            var ts = startPoints[p].sort(function(a, b) {
                 return Number(a.start_number) - Number(b.start_number);
             });
             var point = race.getPod().getPoint(p);
@@ -146,10 +146,11 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
     // clear 'updated' flag in the regatta in order to mark
     // that we've seen it.
     race.getRegatta().log_updated = false;
+    $('#tf-nav-boats-badge').hide(); // and immediately hide the info badge
     for (var i = 0; i < lb.length; i++) {
         var e = lb[i];
 
-        html += '<tr><td>' + e.sxkdist.toFixed(1) + '</td>' +
+        html += '<tr><td>' + e.netdist.toFixed(1) + '</td>' +
             '<td>' + e.logbook.getLastPoint() + '</td>' +
             '<td>' + e.logbook.teamData.start_number + '</td>' +
             '<td>' + e.logbook.teamData.boat_name + '</td>' +
@@ -159,7 +160,7 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
 
     if (updated) {
         $('#boats-lb-updated').html(updated.format('YYYY-MM-DD HH:mm:ss'));
-    };
+    }
     $('#boats-lb-tbody').html(html);
 };
 

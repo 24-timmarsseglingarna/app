@@ -17,7 +17,7 @@
             <b>Båt:</b> <span id="log-book-boat"></span>
           </div>
           <div class="col-6">
-            <b>Seglad distans:</b> <span id="log-book-distance"></span>
+            <b>Seglad distans:</b> <span id="log-book-sailed-dist"></span>
           </div>
         </div>
         <div class="row">
@@ -25,7 +25,7 @@
             <b>Startnummer:</b> <span id="log-book-startno"></span>
           </div>
           <div class="col-6">
-            <b>SXK-distans:</b> <span id="log-book-sxk-distance"></span>
+            <b>Nettodistans:</b> <span id="log-book-net-dist"></span>
           </div>
         </div>
         <div class="row">
@@ -57,12 +57,56 @@
         </div>
       </div>
 
+      <div class="container border-top">
+        <div class="row">
+          <div class="col-6">
+            <b>Nettodistans:</b> <span id="log-book-net-dist2"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Avdrag tidig start:</b> <span
+            id="log-book-early-dist"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Avdrag försening:</b> <span
+            id="log-book-late-dist"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Tillägg undsättning:</b> <span
+            id="log-book-compensation-dist"></span>
+          </div>
+        </div>
+<!--
+        <div class="row">
+          <div class="col-6">
+            <b>Bestraffning:</b> <span
+            id="log-book-penalty-dist">-10 M</span>
+          </div>
+        </div>
+-->
+      </div>
+      <div class="container border-top">
+        <div class="row">
+          <div class="col-6">
+            <b>Plakettdistans:</b> <span
+            id="log-book-plaque-dist"></span>
+          </div>
+        </div>
+      </div>
+
       <!-- justify-content-between: equal space between the buttons -->
-      <div class="modal-footer">
+      <div class="modal-footer justify-content-between">
         <input type="button" class="btn btn-secondary mr-auto"
                value="Radera loggboken" id="log-book-delete-all"/>
+        <input type="button" class="btn btn-secondary mr-auto disabled"
+               value="Signera loggboken" id="log-book-sign"/>
         <input type="button" class="btn btn-primary ml-auto"
-               value="Stäng" id="log-book-cancel"/>
+               value="Avbryt" id="log-book-cancel"/>
       </div>
     </div>
   </div>

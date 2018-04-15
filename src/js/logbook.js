@@ -21,16 +21,24 @@ tf.LogBook = function(teamData, race, log) {
     this.teamData = teamData,
     this.log = log || [];
     this.race = race;
-    /* total logged distance. */
-    this.totalDist = 0;
-    /* total time (in minutes) for sailing totalDist.  if there
-       were any interrupts, that time is excluded. */
-    this.totalTime = 0;
-    /* total time (in minutes) for interrupts and 0-distances. */
-    this.timeOffset = 0;
+    /* total logged distance, except invalid legs/points */
+    this.sailedDist = 0;
+    /* total time (in minutes) for sailing sailedDist (including interrupts) */
+    this.sailedTime = 0;
+    /* moment : min(logged start time, race.start_to) */
+    this.startTime = null;
+    /* moment */
+    this.finishTime = null;
+    /* total time (in minutes) for rescue interrupts (see RR 11.5)
+       and 0-distances.  this time is added to sailing period. */
+    this.compensationTime = 0;
     /* total time (in minutes) for distance additions due to interrupts.
-       (see 11.5 in RR) */
-    this.distOffset = 0;
+       (see RR 11.5) */
+    this.compensationDistTime = 0;
+    /* early start in minutes */
+    this.earlyStartTime = 0;
+    /* late finish in minutes */
+    this.lateFinishTime = 0;
     /* keep track of how many times points are rounded (max 2 allowed) */
     this.npoints = {};
     /* keep track of how many times legs are sailed (max 2 allowed) */
@@ -142,14 +150,18 @@ tf.LogBook.prototype._updateLog = function(reason) {
     // distance is given with one decimal.  in order to work around
     // rounding errors, we multiply by 10 so that we can use round()
     // at the end.
-    var totalDist = 0;
-    var totalTime = 0;
-    var timeOffset = 0;
-    var distOffset = 0;
-    var curTimeOffset = 0;
-    var curDistOffset = 0;
+    var sailedDist = 0; // D(netto)
+    var sailedTime = 0;  // T(seglad)
+    var earlyStartTime = 0;
+    var lateFinishTime = 0;
+    var compensationTime = 0;
+    var compensationDistTime = 0;
+    var curCompensationTime = 0;
+    var curCompensationDistTime = 0;
     var prev; // last entry w/ rounded point
     var startPoint;
+    var startTime;
+    var finishTime;
     var startIdx = 0;
     var npoints = {};
     var nlegs = {};
@@ -168,12 +180,25 @@ tf.LogBook.prototype._updateLog = function(reason) {
             var p = pod.getPoint(e.point);
             if (p) {
                 startPoint = e.point;
+                startTime = e.time;
                 points.push({point: e.point, time: e.time});
                 startIdx = i;
                 prev = e;
             }
         }
     }
+
+    if (startTime) {
+        startTimes = this.race.getStartTimes();
+        if (startTime.isAfter(startTimes.start_to)) {
+            // too late start; count start_to as starttime (RR 6.3)
+            startTime = startTimes.start_to;
+        } else if (startTime.isBefore(startTimes.start_from)) {
+            // too early start; add penalty
+            earlyStartTime = startTimes.start_from.diff(startTime, 'minutes');
+        }
+    }
+
     // note that the first start point does not count as a round in the
     // code below
 
@@ -181,6 +206,7 @@ tf.LogBook.prototype._updateLog = function(reason) {
     for (var i = (startIdx + 1); startPoint && i < this.log.length; i++) {
         var e = this.log[i];
         if (e.deleted) continue;
+
         e._legStatus = null;
         e._invalidLeg = null;
         e._interruptStatus = null;
@@ -192,6 +218,9 @@ tf.LogBook.prototype._updateLog = function(reason) {
             // unless this was the finish, count the point as rounded
             if (!e.finish) {
                 npoints[e.point] = npoints[e.point] + 1;
+            }
+            if (e.finish) {
+                finishTime = e.time;
             }
             var leg = tf.legName(e.point, prev.point);
             if (!nlegs[leg]) {
@@ -211,19 +240,20 @@ tf.LogBook.prototype._updateLog = function(reason) {
                 // this is not a correct leg; simply don't count it
                 e._legStatus = 'no-leg';
                 e._invalidLeg = prev.point;
-            } else if (curDist == 0) {
-                // zero-distance leg; add the time to offset, and
-                // ignore any interrupts
-                timeOffset += e.time.diff(prev.time, 'minutes');
+            } else if (curDist == 0 &&
+                       pod.getAddTime(prev.point, e.point) == true) {
+                // zero-distance leg with time compensation;
+                // add the time to offset, and ignore any interrupts
+                compensationTime += e.time.diff(prev.time, 'minutes');
             } else {
-                totalDist += 10 * curDist;
-                totalTime += e.time.diff(prev.time, 'minutes') - curTimeOffset;
-                timeOffset += curTimeOffset;
-                distOffset += curDistOffset;
+                sailedDist += 10 * curDist;
+                sailedTime += e.time.diff(prev.time, 'minutes');
+                compensationTime += curCompensationTime;
+                compensationDistTime += curCompensationDistTime;
             }
-            // reset offsets
-            curTimeOffset = 0;
-            curDistOffset = 0;
+            // reset compensation counters
+            curCompensationTime = 0;
+            curCompensationDistTime = 0;
             prev = e;
         } else if (e.interrupt && e.interrupt.type != 'done') {
             // Find the corresponding log entry for interrupt done
@@ -232,12 +262,12 @@ tf.LogBook.prototype._updateLog = function(reason) {
                 var f = this.log[j];
                 if (f.deleted) continue;
                 if (f.interrupt && f.interrupt.type == 'done') {
-                    var interrupttime = f.time.diff(e.time, 'minutes');
-                    if (e.interrupt.type == 'rescue-dist') {
-                        curDistOffset += interrupttime;
-                    } else {
-                        curTimeOffset += interrupttime;
-                    }
+                    var interruptTime = f.time.diff(e.time, 'minutes');
+                    if (e.interrupt.type == 'rescue-time') {
+                        curCompensationTime += interruptTime;
+                    } else if (e.interrupt.type == 'rescue-dist') {
+                        curCompensationDistTime += interruptTime;
+                    } // no compensation for other interrupts
                     found = true;
                 } else if (f.point) {
                     // A rounding log entry before starting to sail again -
@@ -254,10 +284,28 @@ tf.LogBook.prototype._updateLog = function(reason) {
             //   2.  user has logged a point - error (detected above)
         }
     }
-    this.totalDist = Math.round(totalDist) / 10;
-    this.totalTime = totalTime;
-    this.timeOffset = timeOffset;
-    this.distOffset = distOffset;
+//    if (!finishTime && prev) {
+//        // treat last entry as finish ??
+//        finishTime = prev.time;
+//    }
+    if (finishTime) {
+        var raceLengthMin =
+            this.race.getRaceLengthHours() * 60 + compensationTime;
+        // moment's add function mutates the original object; thus copy first
+        var realFinishTime = moment(startTime).add(raceLengthMin, 'minutes');
+        if (finishTime.isAfter(realFinishTime)) {
+            lateFinishTime = finishTime.diff(realFinishTime, 'minutes');
+        }
+    }
+
+    this.sailedDist = Math.round(sailedDist) / 10;
+    this.sailedTime = sailedTime;
+    this.startTime = startTime;
+    this.finishTime = finishTime;
+    this.earlyStartTime = earlyStartTime;
+    this.lateFinishTime = lateFinishTime;
+    this.compensationTime = compensationTime;
+    this.compensationDistTime = compensationDistTime;
     this.npoints = npoints;
     this.nlegs = nlegs;
     this.points = points;
@@ -309,15 +357,7 @@ tf.LogBook.prototype.getLegSailed = function(pointA, pointB) {
 };
 
 tf.LogBook.prototype.getStartTime = function() {
-    // time of the first logged point
-    for (var i = 0; i < this.log.length; i++) {
-        var e = this.log[i];
-        if (e.deleted) continue;
-        if (e.point) {
-            return e.time;
-        }
-    }
-    return null;
+    return this.startTime;
 };
 
 tf.LogBook.prototype.hasFinished = function() {
@@ -330,53 +370,80 @@ tf.LogBook.prototype.hasFinished = function() {
     return false;
 };
 
+// includes any compensation time due to rescue interrupts
 tf.LogBook.prototype.getRaceLeftMinutes = function() {
-    var start = this.getStartTime();
-    var raceLengthMinutes = this.race.getRaceLengthHours() * 60;
-    if (start == null) {
-        return raceLengthMinutes;
+    var raceMinutes = this.getRaceLengthMinutes();
+    if (this.startTime == null) {
+        return raceMinutes;
     } else {
-        var timeoffset = this.getTimeOffset();
         var now = moment();
-        var racedMinutes = now.diff(start, 'minutes') - timeoffset;
-        return raceLengthMinutes - racedMinutes;
+        var racedMinutes = now.diff(this.startTime, 'minutes');
+        return raceMinutes - racedMinutes;
     }
 };
 
-tf.LogBook.prototype.getTotalDistance = function() {
-    return this.totalDist;
+// includes any compensation time due to rescue interrupts
+tf.LogBook.prototype.getRaceLengthMinutes = function() {
+    return this.race.getRaceLengthHours() * 60 + this.compensationTime;
 };
 
 tf.LogBook.prototype.getSailedDistance = function() {
-    // sailed distance is total dist + (speed * distOffset)
-    var speed = this.getAverageSpeed();
-    return this.totalDist + (speed * this.distOffset / 60);
+    return this.sailedDist;
 };
 
-tf.LogBook.prototype.getSXKDistance = function() {
-    // SXK distance is sailed distance / sxk-handicap
-    var dist = this.getSailedDistance();
-    return dist / this.teamData.sxk_handicap;
+tf.LogBook.prototype.getNetDistance = function() {
+    // Net distance is sailed distance / sxk-handicap
+    return this.sailedDist / this.teamData.sxk_handicap;
+};
+
+// net time
+tf.LogBook.prototype.getEarlyStartDistance = function() {
+    // we can't calculate this properly until the race has finished
+    if (this.finishTime) {
+        return (2 * this.getNetDistance() * this.earlyStartTime) /
+            this.getRaceLengthMinutes();
+    } else {
+        return 0;
+    }
+};
+
+// net time
+tf.LogBook.prototype.getLateFinishDistance = function() {
+    // we can't calculate this properly until the race has finished
+    if (this.finishTime) {
+        return (2 * this.getNetDistance() * this.lateFinishTime) /
+            this.getRaceLengthMinutes();
+    } else {
+        return 0;
+    }
+};
+
+tf.LogBook.prototype.getCompensationDistance = function() {
+    // we can't calculate this properly until the race has finished
+    if (this.finishTime) {
+        return (this.getAverageSpeed() * this.compensationDistTime) / 60;
+    } else {
+        return 0;
+    }
+};
+
+tf.LogBook.prototype.getPlaqueDistance = function() {
+    return this.getNetDistance() + this.getCompensationDistance() -
+        (this.getEarlyStartDistance() + this.getLateFinishDistance());
 };
 
 tf.LogBook.prototype.getAverageSpeed = function() {
     var speed = 0;
-    if (this.totalTime > 0) {
-        speed = this.totalDist * 60 / this.totalTime;
+    var time = this.sailedTime -
+        (this.compensationTime + this.compensationDistTime);
+    if (time > 0) {
+        speed = this.sailedDist * 60 / time;
     }
     return speed;
 };
 
-tf.LogBook.prototype.getTotalTime = function() {
-    return this.totalTime;
-};
-
-tf.LogBook.prototype.getTimeOffset = function() {
-    return this.timeOffset;
-};
-
-tf.LogBook.prototype.getDistOffset = function() {
-    return this.distOffset;
+tf.LogBook.prototype.getSailedTime = function() {
+    return this.sailedTime;
 };
 
 tf.LogBook.prototype.getEngine = function() {
@@ -465,7 +532,7 @@ tf.LogBook.prototype.updateFromServer = function(continueFn) {
                               lastUpdate,
                               function(res) {
                                   if (res) {
-                                      logBook._addLogFromServer(res)
+                                      logBook._addLogFromServer(res);
                                   }
                                   continueFn();
                               });
@@ -504,7 +571,7 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
             switch (old.state) {
             case 'sync':
                 // not locally modified, just add it
-                new_.state = 'sync'
+                new_.state = 'sync';
                 del.push(old.id);
                 add.push(new_);
                 break;
@@ -519,7 +586,7 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
                     // FIXME: how to notify the user?
                     console.log('both modified log entry w/ id ' + new_.id);
                 }
-                new_.state = 'conflict'
+                new_.state = 'conflict';
                 del.push(old.id);
                 add.push(new_);
                 break;
@@ -531,7 +598,7 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
             }
         } else {
             // brand new entry, just add it
-            new_.state = 'sync'
+            new_.state = 'sync';
             add.push(new_);
         }
     }

@@ -99,6 +99,8 @@ tf.ui.logEntry.fmtOther = function(e) {
     }
     if (e.type == 'endOfRace') {
         s.push('segling slut');
+    } else if (e.type == 'retire') {
+        s.push('bryter seglingen');
     } else if (e.finish) {
         s.push('målgång');
     }
@@ -111,6 +113,7 @@ tf.ui.logEntry.fmtOther = function(e) {
  *  type :: 'round' | 'endOfRace'
  *        | 'seeOtherBoats' | 'protest' | 'interrupt'
  *        | 'changeSails' | 'engine' | 'lanterns'
+ *        | 'retire'
  *        | 'other'
  *  index  -- either type or index MUST be given
  *  point
@@ -201,6 +204,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     case 'seeOtherBoats':
         title = 'Siktar båtar';
         tf.ui.logEntry._initBoats(regattaId);
+        tf.ui.logEntry._initGeoPosition();
         $('#log-entry-form-boats').show();
         $('#log-entry-form-position').show();
         break;
@@ -229,7 +233,13 @@ tf.ui.logEntry.openLogEntry = function(options) {
         break;
     case 'lanterns':
         title = 'Lanternor';
+        tf.ui.logEntry._initGeoPosition();
         $('#log-entry-form-lanterns').show();
+        $('#log-entry-form-position').show();
+        break;
+    case 'retire':
+        title = 'Bryter seglingen';
+        tf.ui.logEntry._initGeoPosition();
         $('#log-entry-form-position').show();
         break;
     case 'other':
@@ -690,6 +700,9 @@ tf.ui.logEntry.logEntrySave = function() {
         break;
     case 'lanterns':
         logEntry.lanterns = lanterns;
+        logEntry.position = position;
+        break;
+    case 'retire':
         logEntry.position = position;
         break;
     case 'other':

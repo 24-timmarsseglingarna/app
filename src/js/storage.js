@@ -11,7 +11,8 @@ goog.require('tf');
  * Note that this is not an object b/c this a global property.
  */
 
-tf.storage._curVersion = 1;
+// version 1: app <= 1.0.3
+tf.storage._curVersion = 1.1; // FIXME: devel version change to 2 at release
 
 tf.storage.init = function() {
     tf.storage._keys = [
