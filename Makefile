@@ -35,7 +35,7 @@ build/24h.js: $(JS_SRC)
 # For now you need to get a PoD.xml covering the entire area and
 # store it here.
 build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
-	tools/pod-xml-to-geojson.py -i PoD.xml -o $@
+	tools/pod-xml-to-geojson.py --javascript -i PoD.xml -o $@
 
 build/icomoon.css: src/icomoon/style.css
 	cp $< $@

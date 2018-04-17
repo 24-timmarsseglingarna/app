@@ -2,6 +2,9 @@
 
 # Converts a PoD XML file to a GeoJSON file.
 #
+# With the --javascript parameter, the generated file is a javascript
+# file defining a variable 'basePodSpec'.
+#
 # Get the PoD XML file from http://dev.24-timmars.nu/PoD/xmlapi_app.php.
 
 import xml.etree.ElementTree as etree
@@ -23,33 +26,45 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--infile", help="input file")
     parser.add_argument("-o", "--outfile", help="output file")
+    parser.add_argument("--javascript", action="store_true")
     args = parser.parse_args()
     tree = etree.parse(args.infile)
 
     all_points, start_points, turning_points = get_points(tree)
     inshore_legs, offshore_legs = get_legs(tree, all_points)
 
-    output_pod(args.outfile,
+    output_pod(args.outfile, args.javascript,
                [('startPoints', start_points),
                 ('turningPoints', turning_points),
                 ('inshoreLegs', inshore_legs),
                 ('offshoreLegs', offshore_legs)])
 
-def output_pod(fname, features):
+def output_pod(fname, javascript, features):
     if sys.version < '3':
         fd = codecs.open(fname, "w", encoding="utf-8")
     else:
         fd = io.open(fname, "w", encoding="utf-8")
-    fd.write(u'var basePodSpec = {');
+    if javascript:
+        fd.write(u'var basePodSpec = {')
+    else:
+        fd.write(u'{')
+    flen = len(features)
+    i = 1
     for (name, obj) in features:
         fd.write(u'"%s": {"type": "FeatureCollection",'
                  '"crs": { "type": "name",'
                  '"properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },'
                  '"features":' % name)
         fd.write(json.dumps(obj, ensure_ascii=False))
-        fd.write(u'},\n')
-    # we write a dummy object to avoid keeping track of last , above
-    fd.write(u'"dummy": null};\n')
+        if i == flen:
+            fd.write(u'}')
+        else:
+            i = i + 1
+            fd.write(u'},\n')
+    if javascript:
+        fd.write(u'};\n')
+    else:
+        fd.write(u'}\n')
 
 def get_points(tree):
     doc = tree.getroot()
