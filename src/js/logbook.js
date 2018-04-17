@@ -45,7 +45,8 @@ tf.LogBook = function(teamData, race, log) {
     this.nlegs = {};
     /* keep track of points logged (in order) */
     this.points = [];
-    this.isSentToServer = false;
+    this.state = 'init'; // 'init' | 'started' | 'finished' | 'retired'
+                         // | 'signed' | 'signed-sync'
 
     this._updateLog('init');
 };
@@ -113,6 +114,19 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
     this._updateLog('save');
 };
 
+tf.LogBook.prototype.sign = function() {
+    if (this.state == 'finished' || this.state == 'retired') {
+        var logEntry = {
+            type: 'sign',
+            time: moment()
+        };
+        this.saveToLog(logEntry, undefined);
+        return true;
+    } else {
+        return false;
+    }
+};
+
 tf.LogBook.prototype._addLogEntry = function(logEntry) {
     var low = 0;
     var high = this.log.length;
@@ -168,6 +182,9 @@ tf.LogBook.prototype._updateLog = function(reason) {
     var points = [];
     var curDist;
     var pod = this.race.getPod();
+    var retired = false;
+    var signed = false;
+    var signedSync = false;
 
     // find startpoint - the first log entry that has a point.
     // we currently allow _any_ point (including points not marked as
@@ -282,8 +299,33 @@ tf.LogBook.prototype._updateLog = function(reason) {
             // if we haven't found a 'done' entry there are two cases:
             //   1.  user is still in interrupt mode - ok
             //   2.  user has logged a point - error (detected above)
+        } else if (e.type == 'retire') {
+            retired = true;
+        } else if (e.type == 'sign') {
+            signed = true;
+            if (e.state == 'sync') {
+                signedSync = true;
+            }
         }
     }
+
+    this.state = 'init';
+    if (startTime) {
+        this.state = 'started';
+    }
+    if (finishTime) {
+        this.state = 'finished';
+    }
+    if (retired) {
+        this.state = 'retired';
+    }
+    if (signed) {
+        this.state = 'signed';
+    }
+    if (signedSync) {
+        this.state = 'signed-sync';
+    }
+
 //    if (!finishTime && prev) {
 //        // treat last entry as finish ??
 //        finishTime = prev.time;
@@ -343,6 +385,14 @@ tf.LogBook.prototype.getLastPoint = function() {
 
 tf.LogBook.prototype.getStartPoint = function() {
     return this.teamData.start_point;
+};
+
+tf.LogBook.prototype.isReadOnly = function() {
+    // FIXME: if signed || not Own || opted out then readonly
+    if (this.state == 'signed' || this.state == 'signed-sync') {
+        return true;
+    }
+    return false;
 };
 
 /**

@@ -408,6 +408,8 @@ tf.serverData.mkServerLogData = function(r, teamId) {
     case 'retire':
         data.position = r.position;
         break;
+    case 'sign':
+        break;
     case 'other':
         break;
     }

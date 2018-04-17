@@ -150,8 +150,13 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
     for (var i = 0; i < lb.length; i++) {
         var e = lb[i];
 
+        var last = e.logbook.getLastPoint();
+        if (last == null) {
+            last = '';
+        }
+
         html += '<tr><td>' + e.netdist.toFixed(1) + '</td>' +
-            '<td>' + e.logbook.getLastPoint() + '</td>' +
+            '<td>' + last + '</td>' +
             '<td>' + e.logbook.teamData.start_number + '</td>' +
             '<td>' + e.logbook.teamData.boat_name + '</td>' +
             '<td>' + e.logbook.teamData.boat_type_name + '</td>' +

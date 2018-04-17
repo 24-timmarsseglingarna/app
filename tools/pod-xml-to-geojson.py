@@ -15,6 +15,10 @@ import datetime
 if sys.version < '3':
     import codecs
 
+# points number 9000 and above are real points; they are used to mark
+# area borders
+MAXPOINT=8999
+
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--infile", help="input file")
@@ -61,6 +65,9 @@ def get_points(tree):
 
     for p in doc.findall("points/point"):
         number = p.find("number").text
+        if int(number) > MAXPOINT:
+            continue
+
         name = p.find("name").text
         descr = p.find("descr").text
         lat = p.find("lat").text
@@ -99,6 +106,9 @@ def get_legs(tree, all_points):
     for p in doc.findall("legs/leg"):
         src = p.find("from").text
         dst = p.find("to").text
+        if int(src) > MAXPOINT or int(dst) > MAXPOINT:
+            continue
+
         dist = p.find("dist").text
         sea = p.find("sea").text
         addtime = p.find("addtime").text

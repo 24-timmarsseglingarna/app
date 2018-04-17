@@ -9,6 +9,10 @@
         <h3 class="modal-title">
           Loggbok <span id="log-book-conflict" class="font-italic">- motstridiga
           ändringar</span>
+          <span id="log-book-signed" class="font-italic">- signerad
+          men inte inskickad</span>
+          <span id="log-book-signed-sync" class="font-italic">- signerad
+          och inskickad</span>
         </h3>
       </div>
       <div class="modal-body">
@@ -17,7 +21,9 @@
             <b>Båt:</b> <span id="log-book-boat"></span>
           </div>
           <div class="col-6">
-            <b>Seglad distans:</b> <span id="log-book-sailed-dist"></span>
+            <b class="d-inline d-sm-none">Seglad dist:</b>
+            <b class="d-none d-sm-inline">Seglad distans:</b>
+            <span id="log-book-sailed-dist"></span>
           </div>
         </div>
         <div class="row">
@@ -25,11 +31,16 @@
             <b>Startnummer:</b> <span id="log-book-startno"></span>
           </div>
           <div class="col-6">
-            <b>Nettodistans:</b> <span id="log-book-net-dist"></span>
+            <b class="d-inline d-sm-none">Nettodist:</b>
+            <b class="d-none d-sm-inline">Nettodistans:</b>
+            <span id="log-book-net-dist"></span>
           </div>
         </div>
         <div class="row">
-          <div class="offset-6 col-6">
+          <div class="col-6">
+            <b>SXK-tal:</b> <span id="log-book-sxk"></span>
+          </div>
+          <div class="col-6">
             <b>Medelfart:</b> <span id="log-book-speed"></span>
           </div>
         </div>
@@ -59,26 +70,26 @@
 
       <div class="container border-top">
         <div class="row">
-          <div class="col-6">
+          <div class="col-12">
             <b>Nettodistans:</b> <span id="log-book-net-dist2"></span>
           </div>
         </div>
-        <div class="row">
-          <div class="col-6">
+        <div class="row" id="log-book-early-elem">
+          <div class="col-12">
             <b>Avdrag tidig start:</b> <span
             id="log-book-early-dist"></span>
           </div>
         </div>
-        <div class="row">
-          <div class="col-6">
+        <div class="row" id="log-book-late-elem">
+          <div class="col-12">
             <b>Avdrag försening:</b> <span
             id="log-book-late-dist"></span>
           </div>
         </div>
-        <div class="row">
-          <div class="col-6">
+        <div class="row" id="log-book-comp-elem">
+          <div class="col-12">
             <b>Tillägg undsättning:</b> <span
-            id="log-book-compensation-dist"></span>
+            id="log-book-comp-dist"></span>
           </div>
         </div>
 <!--
@@ -92,7 +103,7 @@
       </div>
       <div class="container border-top">
         <div class="row">
-          <div class="col-6">
+          <div class="col-12">
             <b>Plakettdistans:</b> <span
             id="log-book-plaque-dist"></span>
           </div>
@@ -103,8 +114,10 @@
       <div class="modal-footer justify-content-between">
         <input type="button" class="btn btn-secondary mr-auto"
                value="Radera loggboken" id="log-book-delete-all"/>
-        <input type="button" class="btn btn-secondary mr-auto disabled"
-               value="Signera loggboken" id="log-book-sign"/>
+        <input type="button" class="btn btn-secondary mr-auto"
+               value="Skicka in" id="log-book-send"/>
+        <input type="button" class="btn btn-secondary mr-auto"
+               value="Signera" id="log-book-sign"/>
         <input type="button" class="btn btn-primary ml-auto"
                value="Avbryt" id="log-book-cancel"/>
       </div>

@@ -104,6 +104,9 @@ tf.ui.logEntry.fmtOther = function(e) {
     } else if (e.finish) {
         s.push('målgång');
     }
+    if (e.type == 'sign') {
+        s.push('signerad');
+    }
     return s.join(',');
 };
 
@@ -113,7 +116,7 @@ tf.ui.logEntry.fmtOther = function(e) {
  *  type :: 'round' | 'endOfRace'
  *        | 'seeOtherBoats' | 'protest' | 'interrupt'
  *        | 'changeSails' | 'engine' | 'lanterns'
- *        | 'retire'
+ *        | 'retire' | 'sign'
  *        | 'other'
  *  index  -- either type or index MUST be given
  *  point

@@ -16,8 +16,10 @@ tf.ui.logBook.openLogBook = function(options) {
 
 tf.ui.logBook.refreshLogBook = function(options) {
     var logBook = options.logBook;
+    var isReadOnly = logBook.isReadOnly();
     var boatName = logBook.teamData.boat_name;
     var startNo = logBook.teamData.start_number;
+    var sxk = logBook.teamData.sxk_handicap;
     var log = logBook.getLog();
     var pod = logBook.race.getPod();
     var prev;
@@ -28,6 +30,19 @@ tf.ui.logBook.refreshLogBook = function(options) {
     } else {
         $('#log-book-conflict').hide();
     }
+    if (logBook.state == 'signed') {
+        $('#log-book-signed').show();
+    } else {
+        $('#log-book-signed').hide();
+    }
+    if (logBook.state == 'signed-sync') {
+        $('#log-book-signed-sync').show();
+    } else {
+        $('#log-book-signed-sync').hide();
+    }
+    $('#log-book-early-elem').hide();
+    $('#log-book-late-elem').hide();
+    $('#log-book-comp-elem').hide();
 
     // no header and no arrow in the popup
     var popover_template = "<div class='popover log-book-edit-popover'" +
@@ -81,7 +96,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
 
         var wind = '';
         if (e.wind) {
-            wind = e.wind.dir + ' ' + e.wind.speed;
+            wind = e.wind.dir + '&nbsp;' + e.wind.speed;
         }
         var boats = '';
         if (e.boats != undefined) {
@@ -95,21 +110,27 @@ tf.ui.logBook.refreshLogBook = function(options) {
                 ' icon-exclamation-circle"></span>';
         }
 
-        rows += '<tr data-logid="' + e.id + '">' +
-            '<td><a tabindex="0" class="log-book-edit"' +
-            ' role="button"' +
-            ' data-toggle="popover"' +
-            ' data-animation="false"' +
-            ' data-trigger="click"' + // FIXME: with "focus", outside clicks
-                                      // removes the popup, but the buttons
-                                      // don't work :(
-            ' data-container="#log-book-entries"' +
-            ' data-placement="top"' +
-            ' data-viewport="#log-book-entries"' +
-            ' data-html="true"' +
-            ' data-content="' + edit_button_html + '"' +
-            ' data-template="' + popover_template + '"' +
-            '><span class="icon-pencil">' + conflict + '</span></a></td>' +
+        rows += '<tr data-logid="' + e.id + '">';
+        if (isReadOnly) {
+            rows += '<td></td>';
+        } else {
+            rows +=
+                '<td><a tabindex="0" class="log-book-edit"' +
+                ' role="button"' +
+                ' data-toggle="popover"' +
+                ' data-animation="false"' +
+                ' data-trigger="click"' + // FIXME: with "focus", outside clicks
+                                          // removes the popup, but the buttons
+                                          // don't work :(
+                ' data-container="#log-book-entries"' +
+                ' data-placement="top"' +
+                ' data-viewport="#log-book-entries"' +
+                ' data-html="true"' +
+                ' data-content="' + edit_button_html + '"' +
+                ' data-template="' + popover_template + '"' +
+                '><span class="icon-pencil">' + conflict + '</span></a></td>';
+        }
+        rows +=
             '<td>' + e.time.format('HH:mm DD MMM')
                        .replace(/\s/g, '&nbsp;') + '</td>' +
             '<td>' + point + '</td>' +
@@ -125,13 +146,14 @@ tf.ui.logBook.refreshLogBook = function(options) {
             '<td>' + comment + '</td>' +
             '</tr>';
     }
-    rows += '<tr>' +
-        '<td><a tabindex="0" class="log-book-add-entry"' +
-        ' role="button"' +
-        ' onclick="tf.ui.logBook.addEntryClick();"' +
-        '><span class="icon-plus"></span></a></td>' +
-        '</tr>';
-
+    if (!isReadOnly) {
+        rows += '<tr>' +
+            '<td><a tabindex="0" class="log-book-add-entry"' +
+            ' role="button"' +
+            ' onclick="tf.ui.logBook.addEntryClick();"' +
+            '><span class="icon-plus"></span></a></td>' +
+            '</tr>';
+    }
     var dist = logBook.getSailedDistance();
     var netdist = logBook.getNetDistance();
     var earlydist = logBook.getEarlyStartDistance();
@@ -140,17 +162,41 @@ tf.ui.logBook.refreshLogBook = function(options) {
     var plaquedist = logBook.getPlaqueDistance();
     var speed = logBook.getAverageSpeed();
 
-    // FIXME: if (finish || retire) then enable else disable
-    $('#log-book-sign').addClass('disabled');
+    if (earlydist > 0) {
+        $('#log-book-early-elem').show();
+    }
+    if (latedist > 0) {
+        $('#log-book-late-elem').show();
+    }
+    if (compdist > 0) {
+        $('#log-book-comp-elem').show();
+    }
+
+    $('#log-book-sign').removeClass('disabled');
+    if (!(logBook.state == 'finished' || logBook.state == 'retired')
+        || logBook.hasConflict()) {
+        $('#log-book-sign').addClass('disabled');
+    }
+    $('#log-book-delete-all').show();
+    $('#log-book-sign').show();
+    if (isReadOnly) {
+        $('#log-book-delete-all').hide();
+        $('#log-book-sign').hide();
+    }
+    $('#log-book-send').hide();
+    if (logBook.state == 'signed') {
+        $('#log-book-send').show();
+    }
 
     $('#log-book-boat').text(boatName);
     $('#log-book-startno').text(startNo);
+    $('#log-book-sxk').text(sxk);
     $('#log-book-sailed-dist').text(dist.toFixed(1) + ' M');
     $('#log-book-net-dist').text(netdist.toFixed(1) + ' M');
     $('#log-book-net-dist2').text(netdist.toFixed(1) + ' M');
     $('#log-book-early-dist').text('-' + earlydist.toFixed(1) + ' M');
     $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M');
-    $('#log-book-compensation-dist').text(compdist.toFixed(1) + ' M');
+    $('#log-book-comp-dist').text(compdist.toFixed(1) + ' M');
     $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);
@@ -173,21 +219,6 @@ tf.ui.logBook.addEntryClick = function(col) {
             tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
         }
     });
-};
-
-tf.ui.logBook.deleteAllClick = function(col) {
-    tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
-                  '</p>',
-                  'Nej',
-                  'Ja',
-                  function() {
-                      var logBookPage = $('#log-book-page')[0];
-                      var logBook = logBookPage.logBook;
-                      logBook.deleteAllLogEntries();
-                      tf.ui.logBook.refresgLogBook({
-                          logBook: logBookPage.logBook
-                      });
-                  });
 };
 
 tf.ui.logBook.logBookInvalidDistClick = function(col) {
@@ -261,10 +292,45 @@ $(document).ready(function() {
                       });
         return false;
     });
-    $(document).on('click', '#log-book-sign', function(event) {
+    $('#log-book-sign').on('click', function(event) {
         // FIXME: if !(skipper) then alert only skipper can sign
         //        if !(finish || retire) then alert you need to finish first
-        tf.ui.alert('<p>För att kunna signera måste du bla bla.</p>');
+        var logBookPage = $('#log-book-page')[0];
+        var logBook = logBookPage.logBook;
+        if (!(logBook.state == 'finished' || logBook.state == 'retired')) {
+            tf.ui.alert('<p>För att kunna signera loggboken måste du ha' +
+                        ' loggat målgång eller brutit seglingen.</p>');
+        } else if (logBook.hasConflict()) {
+            tf.ui.alert('<p>Loggboken har ändringar gjorda av någon annan.' +
+                        ' Dessa måste lösas genom att klicka på pennan' +
+                        ' vid den markerade raden och välja Ändra.</p>');
+        } else {
+            tf.ui.confirm('<p>Kontrollera noggrant att loggboken är korrekt' +
+                          ' ifylld.</p>' +
+                          '<p>När loggboken är signerad går det inte att' +
+                          ' göra fler ändringar.</p>' +
+                          '<p>Är du säker på att du vill signera' +
+                          ' loggboken?</p>',
+                          'Avbryt',
+                          'Signera',
+                          function() {
+                              logBook.sign();
+                              logBook.sendToServer(function() {
+                                  tf.ui.logBook.refreshLogBook({
+                                      logBook: logBookPage.logBook
+                                  });
+                              });
+                          });
+        }
+    });
+    $('#log-book-send').on('click', function(event) {
+        var logBookPage = $('#log-book-page')[0];
+        var logBook = logBookPage.logBook;
+        logBook.sendToServer(function() {
+            tf.ui.logBook.refreshLogBook({
+                logBook: logBook
+            });
+        });
     });
     $(document).on('click', '#log-book-btn-edit', function(event) {
         var id = $(event.currentTarget.parentElement).data('logid');
