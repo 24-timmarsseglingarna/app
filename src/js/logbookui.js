@@ -172,13 +172,17 @@ tf.ui.logBook.refreshLogBook = function(options) {
         $('#log-book-comp-elem').show();
     }
 
+    if (tf.state.personId == logBook.teamData.skipper_id) {
+        $('#log-book-sign').show();
+    } else {
+        $('#log-book-sign').hide();
+    }
     $('#log-book-sign').removeClass('disabled');
     if (!(logBook.state == 'finished' || logBook.state == 'retired')
         || logBook.hasConflict()) {
         $('#log-book-sign').addClass('disabled');
     }
     $('#log-book-delete-all').show();
-    $('#log-book-sign').show();
     if (isReadOnly) {
         $('#log-book-delete-all').hide();
         $('#log-book-sign').hide();

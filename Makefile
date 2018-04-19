@@ -177,7 +177,7 @@ deps/bootstrap:
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js .; \
 	rm -rf bootstrap-$(BOOTSTRAP_VSN)-dist
 
-TEMPUSDOMINUS_VSN=5.0.0-alpha14
+TEMPUSDOMINUS_VSN=5.0.0-alpha18
 deps/tempusdominus:
 	cd deps; \
 	wget https://github.com/tempusdominus/bootstrap-4/archive/$(TEMPUSDOMINUS_VSN).tar.gz; \

@@ -128,11 +128,25 @@
             <div class="form-group row">
               <label class="col-md-4 col-form-label
                             text-md-right font-weight-bold"
+                     for="settings-login-btn">Rensa lokalt data</label>
+              <div class="col-md-6">
+                <input type="button" value="Rensa"
+                       id="settings-clear-state-btn"
+                       class="btn btn-secondary"/>
+                <p class="form-text text-muted">
+                  Rensar allt lokalt data, utom inloggningsuppgifter.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label class="col-md-4 col-form-label
+                            text-md-right font-weight-bold"
                      for="settings-show-debug-btn">Debug</label>
               <div class="col-md-6">
                 <input type="button" value="Visa"
                        id="settings-show-debug-btn"
-                       class="btn btn-primary"/>
+                       class="btn btn-secondary"/>
                 <p class="form-text text-muted">
                   Visa intern debuginformation.
                 </p>

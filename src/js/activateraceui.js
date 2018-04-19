@@ -105,7 +105,7 @@ tf.ui.activateRace.buttonClick = function(raceId) {
     btn.parent().find('button').removeClass('active');
     btn.addClass('active');
 
-    tf.state.setActiveRace(raceId, function() { tf.ui.logBookChanged(); });
+    tf.state.activateRace(raceId);
 };
 
 /**

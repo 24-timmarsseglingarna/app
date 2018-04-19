@@ -50,6 +50,11 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#settings-clear-state-btn').on('click', function() {
+        tf.state.reset(true);
+        return false;
+    });
+
     $('#settings-show-debug-btn').on('click', function() {
         html = '<ul class="list-group">';
         for (var key in tf.state.debugInfo) {

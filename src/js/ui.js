@@ -322,7 +322,7 @@ tf.ui.mkPointPopupHTML = function(number, name, descr, footnote, eta) {
     for (var i = 0; i < eta.length; i++) {
         s += '<p>Planerad rundningstid: ' + eta[i] + '</p>';
     }
-    if (tf.state.curLogBook) {
+    if (tf.state.curLogBook && !tf.state.curLogBook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
         // and w/o href in a bad way
         s += '<p><a class="log-point-button" tabindex="0"' +
@@ -861,6 +861,10 @@ $(document).ready(function() {
     $('#tf-nav-log').on('click', function(event) {
         if (!tf.state.curLogBook) {
             tf.ui._alert_no_race('göra en loggboksanteckning');
+            return false;
+        } else if (tf.state.curLogBook.isReadOnly()) {
+            tf.ui.alert('<p>När loggboken är signerad går det inte att' +
+                        ' göra en loggboksanteckning.</p>');
             return false;
         }
         tf.ui.addLogEntry.openPage();

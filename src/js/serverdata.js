@@ -147,11 +147,6 @@ tf.serverData.update = function(personId, continueFn) {
                             data: races,
                             etags: racesETags});
                     }
-                    if (myTeams.length == 1) {
-                        // the user is registered for a single race,
-                        // make it active
-                        tf.state.setActiveRace(myTeams[0].race_id);
-                    }
                     tf.serverData.updateTeams(continueFn);
                 }
             );
@@ -283,6 +278,7 @@ tf.serverData.mkTeamData = function(s) {
         boat_name:        s.boat_name,         // string
         boat_type_name:   s.boat_type_name,    // string
         boat_sail_number: s.boat_sail_number,  // string
+        skipper_id:       s.skipper_id,        // int (person.id)
         sxk_handicap:     s.sxk || 2           // float
     };
     return r;
@@ -298,8 +294,7 @@ tf.serverData.mkRaceData = function(s) {
         start_to:       moment(s.start_to),    // date and time
         common_finish:  s.common_finish,       // null | int (point)
         period:         s.period,              // int (12,24,48,...)
-        // FIXME: read from server
-        min_period:     s.period - 3,          // int (11,23,43,...)
+        min_period:     s.minimal,             // int (11,23,43,...)
         description:    s.description          // string
     };
     return r;
@@ -316,6 +311,7 @@ tf.serverData.mkLogData = function(s) {
         user:             s.user_id,           // int
         client:           s.client,            // string
         deleted:          s.deleted,           // boolean
+        updated_at:       moment(s.updated_at) // date and time
     };
     if (s.point) {
         r.point = s.point;                     // int

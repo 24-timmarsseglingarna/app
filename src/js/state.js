@@ -48,6 +48,7 @@ tf.state.activeInterrupt = false;
 tf.state.defaultPod = new tf.Pod(basePodSpec);
 
 tf.state.isLoggedIn = false;
+tf.state.personId = null;
 
 tf.state.isCordova = 'cordova' in window;
 
@@ -187,6 +188,7 @@ tf.state.setupLogin = function(continueFn) {
     var hasNetwork = tf.state.hasNetwork();
     var token = tf.storage.getSetting('token');
     var email = tf.storage.getSetting('email');
+    var personId = tf.storage.getSetting('personId');
     if (hasNetwork && !tf.storage.getSetting('token')) {
         //console.log('has network, no stored token');
         // we haven't logged in
@@ -209,7 +211,8 @@ tf.state.setupLogin = function(continueFn) {
                             personId: response.personId
                         };
                         tf.storage.setSettings(props);
-                        tf.state.onAuthenticatedOnline(continueFn);
+                        tf.state.onAuthenticatedOnline(props.personId,
+                                                       continueFn);
                     } else {
                         // saved login not ok
                         tf.ui.loginPage.openPage();
@@ -224,7 +227,7 @@ tf.state.setupLogin = function(continueFn) {
         } else {
             // token is valid
             //console.log('has network, valid token');
-            tf.state.onAuthenticatedOnline(continueFn);
+            tf.state.onAuthenticatedOnline(personId, continueFn);
         }
     } else if (tf.storage.getSetting('token')) {
         //console.log('no network, token');
@@ -239,8 +242,9 @@ tf.state.setupLogin = function(continueFn) {
     }
 };
 
-tf.state.onAuthenticatedOnline = function(continueFn) {
+tf.state.onAuthenticatedOnline = function(personId, continueFn) {
     tf.state.isLoggedIn = true;
+    tf.state.personId = personId;
     tf.state.forceTimeout();
     // we'll first start from cached data; if things have been updated on
     // the server, we might change active race when we get the reply.
@@ -248,9 +252,15 @@ tf.state.onAuthenticatedOnline = function(continueFn) {
 };
 
 tf.state.serverDataUpdateDone = function() {
-    // check if the current activeRaceId is still valid
     var curActiveRaceId = tf.storage.getSetting('activeRaceId');
-    if (tf.serverData.getRaceData(curActiveRaceId) == null) {
+    var races = tf.serverData.getMyRaces();
+
+    if (races.length == 1 && races.raceData.id != curActiveRaceId) {
+        // the user is registered for a single race,
+        // make it active
+        tf.state.setActiveRace(races.raceData.id);
+    } else if (tf.serverData.getRaceData(curActiveRaceId) == null) {
+        // current activeRaceId is not valid
         tf.state._setActiveRace2(null);
     }
 };
@@ -262,11 +272,14 @@ tf.state._setupContinue = function(continueFn) {
     tf.state._setActiveRace2(activeRaceId, continueFn);
 };
 
-tf.state.setActiveRace = function(raceId, continueFn) {
+tf.state.activateRace = function(raceId) {
     if (raceId == tf.storage.getSetting('activeRaceId')) {
         return;
     }
-    tf.state._setActiveRace2(raceId, continueFn);
+    tf.state._setActiveRace2(raceId, function() {
+        // force an update of serverdata when a new race is activated
+        tf.state.forceTimeout();
+    });
 };
 
 tf.state._setActiveRace2 = function(raceId, continueFn) {
@@ -355,9 +368,10 @@ tf.state.login = function(email, password, savepassword, responsefn) {
                     props.password = null;
                 }
                 tf.storage.setSettings(props);
-                tf.state.onAuthenticatedOnline(function() {
-                    tf.ui.logBookChanged();
-                });
+                tf.state.onAuthenticatedOnline(props.personId,
+                                               function() {
+                                                   tf.ui.logBookChanged();
+                                               });
                 responsefn(true);
             } else {
                 responsefn(false);
@@ -376,6 +390,7 @@ tf.state.logout = function() {
     };
     tf.storage.setSettings(props);
     tf.state.isLoggedIn = false;
+    tf.state.personId = null;
     tf.state.curRace = null;
     tf.state.curRegatta = null;
     tf.state.curLogBook = null;
@@ -389,5 +404,20 @@ tf.state.logout = function() {
     tf.ui.logBookChanged();
 };
 
-tf.state.sendLogBook = function(logBook) {
+tf.state.reset = function(keepauth) {
+    var email = tf.storage.getSetting('email');
+    var password = tf.storage.getSetting('password');
+    var token = tf.storage.getSetting('token');
+    tf.state.logout();
+    localStorage.clear();
+    tf.storage.init();
+    if (keepauth) {
+        props = {
+            email: email,
+            password: password,
+            token: token
+        };
+    }
+    tf.storage.setSettings(props);
+    tf.state.setupLogin(function() {});
 };

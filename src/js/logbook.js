@@ -48,6 +48,7 @@ tf.LogBook = function(teamData, race, log) {
     this.state = 'init'; // 'init' | 'started' | 'finished' | 'retired'
                          // | 'signed' | 'signed-sync'
 
+    this.lastServerUpdate = null;
     this._updateLog('init');
 };
 
@@ -577,7 +578,10 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
 
 tf.LogBook.prototype.updateFromServer = function(continueFn) {
     var logBook = this;
-    var lastUpdate; // FIXME: keep track of this
+    var lastUpdate = null;
+    if (this.lastServerUpdate) {
+        lastUpdate = this.lastServerUpdate.toISOString();
+    }
     tf.serverData.getNewMyLog(this.teamData.id,
                               lastUpdate,
                               function(res) {
@@ -609,6 +613,10 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
     var add = [];
     for (var i = 0; i < log.length; i++) {
         var new_ = log[i];
+        if (this.lastServerUpdate == null ||
+            new_.updated_at.isAfter(this.lastServerUpdate)) {
+            this.lastServerUpdate = new_.updated_at;
+        }
         var old = null;
         for (var j = 0; j < this.log.length; j++) {
             if (this.log[j].id == new_.id) {

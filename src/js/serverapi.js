@@ -205,6 +205,7 @@ tf.serverAPI.patchLogEntry = function(logid, data, responsefn) {
 };
 
 tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
+    console.log('req: ' + urlpath);
     $.ajax({
         url: tf.serverAPI.URL + urlpath,
         dataType: 'json',
@@ -235,6 +236,7 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
 };
 
 tf.serverAPI.getAJAX = function(urlpath, etag, opaque) {
+    console.log('req: ' + urlpath);
     return $.ajax({
         url: tf.serverAPI.URL + urlpath,
         dataType: 'json',
