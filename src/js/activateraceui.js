@@ -76,13 +76,13 @@ tf.ui.activateRace._populateRaces = function() {
             }
             s += '<br/>';
 
-            s += 'Start: ' + r.start_from.format('dddd D MMMM [kl.] HH:mm');
+            s += 'Start: ' + r.start_from.format('dddd D MMMM Y [kl.] HH:mm');
             if (!r.start_from.isSame(r.start_to)) {
                 s += ' - ';
                 if (r.start_from.isSame(r.start_to, 'day')) {
                     s += r.start_to.format('HH:mm');
                 } else {
-                    s += r.start_to.format('dddd D MMMM [kl.] HH:mm');
+                    s += r.start_to.format('dddd D MMMM Y [kl.] HH:mm');
                 }
             }
             s += ' från ' + t.start_point;

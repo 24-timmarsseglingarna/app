@@ -178,7 +178,9 @@ tf.ui.logBook.refreshLogBook = function(options) {
         $('#log-book-sign').hide();
     }
     $('#log-book-sign').removeClass('disabled');
-    if (!(logBook.state == 'finished' || logBook.state == 'retired')
+    if (!(logBook.state == 'finished' ||
+          logBook.state == 'finished-early' ||
+          logBook.state == 'retired')
         || logBook.hasConflict()) {
         $('#log-book-sign').addClass('disabled');
     }
@@ -190,6 +192,15 @@ tf.ui.logBook.refreshLogBook = function(options) {
     $('#log-book-send').hide();
     if (logBook.state == 'signed') {
         $('#log-book-send').show();
+    }
+
+    $('#log-book-plaque-reason').hide();
+    if (logBook.state == 'finished-early') {
+        $('#log-book-plaque-reason').show();
+        $('#log-book-plaque-reason').html('(för kort segling)');
+    } else if (logBook.state == 'retired') {
+        $('#log-book-plaque-reason').show();
+        $('#log-book-plaque-reason').html('(seglingen bruten)');
     }
 
     $('#log-book-boat').text(boatName);
@@ -297,11 +308,11 @@ $(document).ready(function() {
         return false;
     });
     $('#log-book-sign').on('click', function(event) {
-        // FIXME: if !(skipper) then alert only skipper can sign
-        //        if !(finish || retire) then alert you need to finish first
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
-        if (!(logBook.state == 'finished' || logBook.state == 'retired')) {
+        if (!(logBook.state == 'finished' ||
+              logBook.state == 'finished-early' ||
+              logBook.state == 'retired')) {
             tf.ui.alert('<p>För att kunna signera loggboken måste du ha' +
                         ' loggat målgång eller brutit seglingen.</p>');
         } else if (logBook.hasConflict()) {

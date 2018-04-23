@@ -371,6 +371,9 @@ tf.serverData.mkServerLogData = function(r, teamId) {
         if (r.sails) {
             data.sails = r.sails;
         }
+        if (r.finish) {
+            data.finish = r.finish;
+        }
         data.boats = r.boats;
         break;
     case 'endOfRace':

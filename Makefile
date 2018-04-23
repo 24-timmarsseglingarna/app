@@ -76,6 +76,8 @@ copy-target: all
 
 app: 24h-app
 
+# set PLATFORM_VSN to force a specific version of the cordova
+# platform plugin, e.g,: env PLATFORM_VSN=@7.1.0 make build-app
 ifeq ($(shell uname -s),Darwin)
 PLATFORM=ios
 APPID=nu.24-timmars
@@ -107,7 +109,7 @@ build-app: 24h-app
 	sed -e 's/version="1.0.0"/version="$(VSN)"/' \
 	    -e 's/org.homenet.mbj.tjugofyratimmars/$(APPID)/' \
 	    config.xml > c.xml; mv c.xml config.xml; \
-	cordova platform add $(PLATFORM); \
+	cordova platform add $(PLATFORM)$(PLATFORM_VSN); \
 	cp -r ../tiles www
 
 cordova-template/template_src/res: \

@@ -42,6 +42,10 @@ tf.Race.prototype.getRaceLengthHours = function() {
     return this.raceData.period;
 };
 
+tf.Race.prototype.getMinimumRaceLengthHours = function() {
+    return this.raceData.min_period;
+};
+
 tf.Race.prototype.getStartTimes = function() {
     return this.startTimes;
 };

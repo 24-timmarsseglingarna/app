@@ -1282,8 +1282,6 @@ tf.ui.onDeviceReady = function() {
 
     document.addEventListener('resume', tf.state.updateStatusBarTime, false);
 
-    tf.state.setupLogin(tf.ui.stateSetupDone);
-
     tf.ui.map.setView(tf.ui.view);
 
     $('.tf-default-hidden').removeClass('tf-default-hidden');
@@ -1291,4 +1289,19 @@ tf.ui.onDeviceReady = function() {
     if (tf.state.isCordova) {
         navigator.splashscreen.hide();
     }
+
+/* I don't know if this is a good idea or not...
+
+    // if no client id has been set, ask the user to provide one
+    if (tf.state.clientId.get() == null) {
+        tf.ui.addclientid.open(function() {
+            tf.state.setupLogin(tf.ui.stateSetupDone);
+        });
+    } else {
+        tf.state.setupLogin(tf.ui.stateSetupDone);
+    }
+*/
+
+    tf.state.setupLogin(tf.ui.stateSetupDone);
+
 };

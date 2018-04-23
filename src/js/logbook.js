@@ -45,7 +45,8 @@ tf.LogBook = function(teamData, race, log) {
     this.nlegs = {};
     /* keep track of points logged (in order) */
     this.points = [];
-    this.state = 'init'; // 'init' | 'started' | 'finished' | 'retired'
+    this.state = 'init'; // 'init' | 'started'
+                         // | 'finished' | 'finished-early' | 'retired'
                          // | 'signed' | 'signed-sync'
 
     this.lastServerUpdate = null;
@@ -116,7 +117,9 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
 };
 
 tf.LogBook.prototype.sign = function() {
-    if (this.state == 'finished' || this.state == 'retired') {
+    if (this.state == 'finished' ||
+        this.state == 'finished-early' ||
+        this.state == 'retired') {
         var logEntry = {
             type: 'sign',
             time: moment()
@@ -177,6 +180,7 @@ tf.LogBook.prototype._updateLog = function(reason) {
     var startPoint;
     var startTime;
     var finishTime;
+    var earlyFinish = false;
     var startIdx = 0;
     var npoints = {};
     var nlegs = {};
@@ -212,8 +216,9 @@ tf.LogBook.prototype._updateLog = function(reason) {
             // too late start; count start_to as starttime (RR 6.3)
             startTime = startTimes.start_to;
         } else if (startTime.isBefore(startTimes.start_from)) {
-            // too early start; add penalty
+            // too early start; add penalty, count start_from as starttime
             earlyStartTime = startTimes.start_from.diff(startTime, 'minutes');
+            startTime = startTimes.start_from;
         }
     }
 
@@ -310,12 +315,32 @@ tf.LogBook.prototype._updateLog = function(reason) {
         }
     }
 
+    if (finishTime) {
+        var raceLength =
+            this.race.getRaceLengthHours() * 60 + compensationTime;
+        var raceMinLength =
+            this.race.getMinimumRaceLengthHours() * 60 + compensationTime;
+        // moment's add function mutates the original object; thus copy first
+        var realFinishTime = moment(startTime).add(raceLength, 'minutes');
+        var minFinishTime = moment(startTime).add(raceMinLength, 'minutes');
+        if (finishTime.isAfter(realFinishTime)) {
+            lateFinishTime = finishTime.diff(realFinishTime, 'minutes');
+        }
+        if (finishTime.isBefore(minFinishTime)) {
+            // too short race, does not count
+            earlyFinish = true;
+        }
+    }
+
     this.state = 'init';
     if (startTime) {
         this.state = 'started';
     }
     if (finishTime) {
         this.state = 'finished';
+    }
+    if (earlyFinish) {
+        this.state = 'finished-early';
     }
     if (retired) {
         this.state = 'retired';
@@ -325,20 +350,6 @@ tf.LogBook.prototype._updateLog = function(reason) {
     }
     if (signedSync) {
         this.state = 'signed-sync';
-    }
-
-//    if (!finishTime && prev) {
-//        // treat last entry as finish ??
-//        finishTime = prev.time;
-//    }
-    if (finishTime) {
-        var raceLengthMin =
-            this.race.getRaceLengthHours() * 60 + compensationTime;
-        // moment's add function mutates the original object; thus copy first
-        var realFinishTime = moment(startTime).add(raceLengthMin, 'minutes');
-        if (finishTime.isAfter(realFinishTime)) {
-            lateFinishTime = finishTime.diff(realFinishTime, 'minutes');
-        }
     }
 
     this.sailedDist = Math.round(sailedDist) / 10;
@@ -479,6 +490,9 @@ tf.LogBook.prototype.getCompensationDistance = function() {
 };
 
 tf.LogBook.prototype.getPlaqueDistance = function() {
+    if (this.state == 'finished-early' || this.state == 'retired') {
+        return 0;
+    }
     return this.getNetDistance() + this.getCompensationDistance() -
         (this.getEarlyStartDistance() + this.getLateFinishDistance());
 };
