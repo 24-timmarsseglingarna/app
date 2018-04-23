@@ -123,6 +123,10 @@ def get_legs(tree, all_points):
         dst = p.find("to").text
         if int(src) > MAXPOINT or int(dst) > MAXPOINT:
             continue
+        if int(src) < int(dst):
+            # since all legs are present twice (in both directions),
+            # skip one direction
+            continue
 
         dist = p.find("dist").text
         sea = p.find("sea").text
