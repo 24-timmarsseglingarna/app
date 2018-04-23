@@ -10,7 +10,7 @@ Planering
 
 ## Building
 
-1. For now, a file "PoD.kml" must be present in the current
+1. For now, a file "PoD.xml" must be present in the current
    directory.  The PoD should cover the entire area.  In the near
    future, the PoD will be downloaded from the server instead.
 2. `make` - downloads all dependencies and builds the app.

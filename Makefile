@@ -123,7 +123,6 @@ deps:
 	$(MAKE) deps/closure-compiler
 	$(MAKE) deps/jquery
 	$(MAKE) deps/ol
-	$(MAKE) deps/dialog-polyfill
 	$(MAKE) deps/bootstrap
 	$(MAKE) deps/tempusdominus
 	$(MAKE) deps/popper
