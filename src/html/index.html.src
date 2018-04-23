@@ -80,7 +80,6 @@ m4_include(planmenu.html)
 
     <!-- open layers -->
     <script type="text/javascript" src="deps/ol.js"></script>
-    <script type="text/javascript" src="deps/longtouchinteraction.js"></script>
 
     <script type="text/javascript" src="pod.js"></script>
 

@@ -105,7 +105,7 @@ build-app: 24h-app
 	cordova create 24h-app --template src/cordova-template; \
 	TGT_DIR=24h-app/www $(MAKE) copy-target; \
 	cd 24h-app; \
-	rm -f deps/*.css.map; \
+	rm -f deps/*.css.map deps/*.js.map; \
 	sed -e 's/version="1.0.0"/version="$(VSN)"/' \
 	    -e 's/org.homenet.mbj.tjugofyratimmars/$(APPID)/' \
 	    config.xml > c.xml; mv c.xml config.xml; \
@@ -173,9 +173,9 @@ deps/bootstrap:
 	cd ..; \
 	rm -f bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.min.css .; \
-	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.css .; \
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.min.css.map .; \
 	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js .; \
+	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js.map .; \
 	rm -rf bootstrap-$(BOOTSTRAP_VSN)-dist
 
 TEMPUSDOMINUS_VSN=5.0.0-alpha18
@@ -195,6 +195,7 @@ deps/popper:
 	tar zxf v$(POPPER_VSN).tar.gz; \
 	rm v$(POPPER_VSN).tar.gz; \
 	mv popper.js-$(POPPER_VSN)/dist/umd/popper.min.js .; \
+	mv popper.js-$(POPPER_VSN)/dist/umd/popper.min.js.map .; \
 	rm -rf popper.js-$(POPPER_VSN)
 
 MOMENT_VSN=2.20.1
