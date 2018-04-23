@@ -1,0 +1,214 @@
+#!/usr/bin/env python
+
+# Simulates a set of apps; reads script from the provided
+# json files and adds log book entries as defined in the script.
+
+# Format of script file:
+# [
+#   { 'user': { 'email': <email>, 'password': <password> },
+#     'team': <teamname>,
+#     'client': <clientstring>,
+#     'log': [
+#              { 'time': <iso dateandtime>,
+#                'type': 'round',
+#                'point': <integer>
+#              } ...
+#            ]
+#   } ...
+# ]
+
+import argparse
+import dateutil.parser
+from dateutil.relativedelta import relativedelta
+import json
+import sys
+import requests
+
+SERVER='http://192.168.0.6:3000'
+
+def run():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', nargs='+')
+    parser.add_argument('--server', nargs='?',
+                        default=SERVER)
+    args = parser.parse_args()
+
+    (auths, instrs) = parse_data_files(args.file)
+    sign_in_users(args.server, auths)
+    exec_instrs(auths, instrs)
+
+def exec_instrs(auths, instrs):
+    state = 'wait_for_cmd'
+    curtime = instrs[0]['time']
+    nexttime = None
+    for instr in instrs:
+        if state == 'wait_for_cmd':
+            (op, arg) = readcmd(curtime)
+            if op == 'step':
+                curtime = exec_instr(instr)
+            elif op == 'finish':
+                state = 'finish'
+                curtime = exec_instr(instr)
+            elif op == 'quit':
+                return
+            elif op == 'h':
+                nexttime = curtime + relativedelta(hours=arg)
+                state = 'nexttime'
+            elif op == 'm':
+                nexttime = curtime + relativedelta(minutes=arg)
+                state = 'nexttime'
+        elif state == 'nexttime':
+            if instr['time'] <= nexttime:
+                curtime = exec_instr(instr)
+            else:
+                curtime = nexttime
+                state = 'wait_for_cmd'
+        elif state == 'finish':
+            curtime = exec_instr(instr)
+
+def parse_data_files(files):
+    auths = []
+    instrs = []
+    for file in files:
+        data = json.load(open(file))
+        (auths0, instrs0) = parse_data(data)
+        auths.extend(auths0)
+        instrs.extend(instrs0)
+    instrs.sort(key=lambda i: i['time'])
+    return (auths, instrs)
+
+def parse_data(data):
+    auths = []
+    instrs = []
+    for d in data:
+        auth = {'user': d['user'],
+                'token': None,
+                'team_id': None,
+                'client': d['client']
+        }
+        auths.append(auth)
+        for e in d['log']:
+            instr = {'auth': auth,
+                     'team': d['team'],
+                     'time': dateutil.parser.parse(e['time']),
+                     'point': e['point'],
+                     'type': e['type']}
+            instrs.append(instr)
+    return (auths, instrs)
+
+_lastcmd = ('step', None)
+
+def readcmd(curtime):
+    global _lastcmd
+    sys.stdout.write("%s> " % curtime)
+    line = sys.stdin.readline().strip('\n\r')
+    toks = line.split()
+    if len(toks) == 0:
+        return _lastcmd
+    op = toks[0]
+    arg = None
+    if len(toks) == 2:
+        arg = toks[1]
+
+    if op == 's':
+        cmd = ('step', None)
+    elif op == 'f':
+        cmd = ('finish', None)
+    elif op == 'q':
+        cmd = ('quit', None)
+    elif (op == 'h' or op == 'm') and arg is not None:
+        try:
+            v = int(arg)
+            if v <= 0:
+                raise ValueError('negative time')
+            cmd = (op, v)
+        except:
+            print("unknown command, type '?' for help")
+            return readcmd()
+    elif op == '?':
+        print("Commands:")
+        print("  <enter> : execute same command again")
+        print("  s       : execute next instruction")
+        print("  h <int> : step HH hours")
+        print("  m <int> : step MM minutes")
+        print("  f       : execute to finish")
+        print("  ?       : print this help")
+        print("  q       : quit")
+        return readcmd(curtime)
+    else:
+        print("unknown command, type '?' for help")
+        return readcmd(curtime)
+    _lastcmd = cmd
+    return cmd
+
+def sign_in_users(server, auths):
+    url = server + '/users/sign_in.json'
+    headers = {'Content-Type': 'application/json'}
+    for a in auths:
+        payload = {'user': a['user']}
+        email = a['user']['email']
+        r = requests.post(url, headers=headers, data=json.dumps(payload))
+        data = json.loads(r.text)
+        person_id = None
+        try:
+            a['token'] = data['authentication_token']
+            person_id = data['person_id']
+        except:
+            error("signing in %s" % email, r.text)
+
+        url2 = SERVER + '/api/v1/teams?has_person=%d&is_active=true' % person_id
+        headers2 = {
+            'Content-Type': 'application/json',
+            'X-User-Email': a['user']['email'],
+            'X-User-Token': a['token']
+        }
+        r = requests.get(url2, headers=headers2)
+        data = json.loads(r.text)
+        if len(data) != 1:
+            error("found %d teams (expected 1) for %s" % (len(data), email),
+                  r.text)
+        try:
+            a['team_id'] = data[0]['id']
+        except:
+            error("getting teams for %s" % email, r.text)
+
+def exec_instr(instr):
+    verb = ""
+    if instr['type'] == 'round':
+        verb = "rounded"
+    print("team %s %s %s at %s" %
+          (instr['team'], verb, instr['point'], instr['time']))
+    if instr['type'] == 'round':
+        do_log_round(instr)
+
+    return instr['time']
+
+def do_log_round(instr):
+    a = instr['auth']
+    email = a['user']['email']
+    url = SERVER + '/api/v1/logs'
+    headers = {
+        'Content-Type': 'application/json',
+        'X-User-Email': a['user']['email'],
+        'X-User-Token': a['token']
+    }
+    payload = {
+        'team_id': a['team_id'],
+        'client': a['client'],
+        'log_type': 'round',
+        'time': str(instr['time']),
+        'point': instr['point']
+    }
+    r = requests.post(url, headers=headers, data=json.dumps(payload))
+    data = json.loads(r.text)
+    try:
+        id = data['id']
+    except:
+        error("getting posting log %s" % email, r.text)
+
+def error(title, text):
+    print("** error %s: %s" % (title, text))
+    sys.exit(1)
+
+if __name__ == '__main__':
+    run()

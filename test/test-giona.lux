@@ -1,0 +1,86 @@
+[doc "test giona api as used by the app"]
+
+# usage: lux --var EMAIL=<user email> --var PASS=<passwd> test-giona.lux
+
+[global SERVER=https://giona-dev.24-timmars.nu]
+[global SERVER=http://192.168.0.6:3000]
+
+[shell client]
+    [progress sign in]
+    !curl -H "Content-Type: application/json" \
+      -d '{ "user": { "email": "${EMAIL}", "password": "${PASS}" } }' \
+      ${SERVER}/users/sign_in.json \
+      | python -m json.tool
+    ?"authentication_token": "(.*)"
+    [global TOKEN=$1]
+    ?"id": ([0-9]+)
+    [global USERID=$1]
+    ?"role":
+    ?SH-PROMPT
+
+    [progress get person]
+    !curl -H "Content-Type: application/json" \
+          -H "X-User-Email: ${EMAIL}" \
+          -H "X-User-Token: ${TOKEN}" \
+       ${SERVER}/api/v1/people?has_user=${USERID} \
+       | python -m json.tool
+    ?"id": ([0-9]+)
+    [global PEOPLEID=$1]
+    ?SH-PROMPT
+
+    [progress get active teams]
+    !curl -H "Content-Type: application/json" \
+          -H "X-User-Email: ${EMAIL}" \
+          -H "X-User-Token: ${TOKEN}" \
+       "${SERVER}/api/v1/teams?has_person=${PEOPLEID}&is_active=true" \
+       | python -m json.tool
+    ?"boat_name":
+    ?"boat_sail_number":
+    ?"boat_type_name":
+    ?"id": ([0-9]+)
+    [global TEAMID=$1]
+    ?"race_id": ([0-9]+)
+    [global RACEID=$1]
+    ?"regatta_id": ([0-9]+)
+    [global REGATTAID=$1]
+    ?"skipper_id": ([0-9]+)
+    ?"start_number": ([0-9]+)
+    ?"start_point": ([0-9]+)
+    ?"sxk": ([0-9]+(\.[0-9]+)?)
+    ?SH-PROMPT
+
+    [progress get races per regatta]
+    !curl -H "Content-Type: application/json" \
+          -H "X-User-Email: ${EMAIL}" \
+          -H "X-User-Token: ${TOKEN}" \
+       "${SERVER}/api/v1/races?from_regatta=${REGATTAID}" \
+       | python -m json.tool
+    ?"common_finish":
+    ?"description":
+    ?"id": ${RACEID}
+    ?"minimal": ([0-9]+)
+    ?"organizer_name":
+    ?"period": ([0-9]+)
+    ?"regatta_id": ${REGATTAID}
+    ?"regatta_name":
+    ?"start_from":
+    ?"start_to":
+    ?SH-PROMPT
+
+    [progress get teams per regatta]
+    !curl -H "Content-Type: application/json" \
+          -H "X-User-Email: ${EMAIL}" \
+          -H "X-User-Token: ${TOKEN}" \
+       "${SERVER}/api/v1/teams?from_regatta=${REGATTAID}" \
+       | python -m json.tool
+    ?"boat_name":
+    ?"boat_sail_number":
+    ?"boat_type_name":
+    ?"id": ${TEAMID}
+    ?"race_id": ${RACEID}
+    ?"regatta_id": ${REGATTAID}
+    ?"skipper_id": ([0-9]+)
+    ?"start_number": ([0-9]+)
+    ?"start_point": ([0-9]+)
+    ?"sxk": ([0-9]+(\.[0-9]+)?)
+    ?SH-PROMPT
