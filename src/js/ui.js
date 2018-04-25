@@ -1280,7 +1280,7 @@ tf.ui.onDeviceReady = function() {
 
     tf.ui.updateStatusBar();
 
-    document.addEventListener('resume', tf.state.updateStatusBarTime, false);
+    document.addEventListener('resume', tf.ui.updateStatusBarTime, false);
 
     tf.ui.map.setView(tf.ui.view);
 
