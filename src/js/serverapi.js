@@ -8,9 +8,20 @@ goog.require('tf');
  * Base URL for server requests.
  * @const {string}
  */
-tf.serverAPI.URL = 'http://giona.herokuapp.com';
-tf.serverAPI.URL = 'https://giona-dev.24-timmars.nu';
-tf.serverAPI.URL = 'http://192.168.0.6:3000';
+tf.serverAPI.stagingURL = 'https://giona-stage.herokuapp.com';
+tf.serverAPI.productionURL = 'https://segla.24-timmars.nu';
+tf.serverAPI.productionURL = 'https://giona-dev.24-timmars.nu';
+tf.serverAPI.productionURL = 'http://192.168.0.6:3000';
+
+tf.serverAPI.URL = tf.serverAPI.productionURL;
+
+tf.serverAPI.setProductionServer = function() {
+    tf.serverAPI.URL = tf.serverAPI.productionURL;
+};
+
+tf.serverAPI.setStagingServer = function() {
+    tf.serverAPI.URL = tf.serverAPI.stagingURL;
+};
 
 /**
  * Keep track of email and token; necessary in all API calls.
@@ -205,7 +216,7 @@ tf.serverAPI.patchLogEntry = function(logid, data, responsefn) {
 };
 
 tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
-    console.log('req: ' + urlpath);
+    //console.log('req: ' + urlpath);
     $.ajax({
         url: tf.serverAPI.URL + urlpath,
         dataType: 'json',
@@ -236,7 +247,7 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
 };
 
 tf.serverAPI.getAJAX = function(urlpath, etag, opaque) {
-    console.log('req: ' + urlpath);
+    //console.log('req: ' + urlpath);
     return $.ajax({
         url: tf.serverAPI.URL + urlpath,
         dataType: 'json',
@@ -282,9 +293,8 @@ tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
             responsefn(data);
         },
         error: function(jqXHR, status, errorThrown) {
-            console.log(method + ' error ' + status);
             if (jqXHR.status == 409) {
-                console.log(method + ' ' + urlpath + 'returns 409  conflict');
+                //console.log(method + ' ' + urlpath + 'returns 409  conflict');
                 responsefn('conflict');
             } else {
                 console.log(method + ' error for ' + urlpath + ': ' +

@@ -840,16 +840,6 @@ $(document).ready(function() {
         return false;
     });
 
-    $('#log-entry-interrupt').on('click', function(event) {
-        tf.ui.logEntry.logEntryOpenInterrupt();
-        return false;
-    });
-
-    $('#log-entry-protest').on('click', function(event) {
-        tf.ui.logEntry.logEntryOpenProtest();
-        return false;
-    });
-
     $('.log-entry-sail').change(function(event) {
         tf.ui.logEntry.sailChanged(event.target);
     });

@@ -59,6 +59,7 @@ tf.storage.init = function() {
         'pollInterval': 600, // seconds; int() 0-3600
         'immediateSendToServer': true, // boolean()
         'sendLogToServer': true, // boolean()
+        'serverId': 1, // 1 (production) | 2 (staging)
 
         /*
          * Race data

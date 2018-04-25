@@ -12,6 +12,9 @@ tf.defineVariable = function(obj, name, val) {
             return obj[name]._val;
         },
         'set': function(val) {
+            if (obj[name]._val == val) {
+                return;
+            }
             obj[name]._val = val;
             fns = obj[name]._onChangeFns;
             for (var i = 0; i < fns.length; i++) {

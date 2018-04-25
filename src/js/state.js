@@ -27,6 +27,7 @@ tf.defineVariable(tf.state, 'fontSize', null);
 tf.defineVariable(tf.state, 'pollInterval', null);
 tf.defineVariable(tf.state, 'sendLogToServer', null);
 tf.defineVariable(tf.state, 'immediateSendToServer', null);
+tf.defineVariable(tf.state, 'serverId', null);
 
 /**
  * Initialize ephemeral state variables.
@@ -97,6 +98,23 @@ tf.state.init = function() {
     tf.state.immediateSendToServer.onChange(function(val) {
         tf.storage.setSettings({immediateSendToServer: val});
     });
+
+    var serverId = tf.storage.getSetting('serverId');
+    tf.state.serverId.set(serverId);
+    tf.state.serverId.onChange(function(val) {
+        if (val == 2) {
+            tf.serverAPI.setStagingServer();
+        } else {
+            tf.serverAPI.setProductionServer();
+        }
+        tf.storage.setSettings({serverId: val});
+        tf.state.logout()
+    });
+    if (serverId == 2) {
+        tf.serverAPI.setStagingServer();
+    } else {
+        tf.serverAPI.setProductionServer();
+    }
 
     document.addEventListener('resume', tf.state.onResume, false);
 

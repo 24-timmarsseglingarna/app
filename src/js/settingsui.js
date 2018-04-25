@@ -23,7 +23,14 @@ tf.ui.settings.openPage = function() {
     $('#settings-font-size').val(tf.state.fontSize.get());
     $('#settings-immediate-log-send').prop(
         'checked', tf.state.immediateSendToServer.get());
-
+    switch (tf.state.serverId.get()) {
+    case 2:
+        $('#settings-server-staging').prop('checked', true);
+        break;
+    default:
+        $('#settings-server-production').prop('checked', true);
+        break;
+    }
     tf.ui.pushPage(
         function() { $('#settings-page').modal({backdrop: 'static'}); },
         function() { $('#settings-page').modal('hide'); });
@@ -85,6 +92,12 @@ $(document).ready(function() {
         tf.state.fontSize.set($('#settings-font-size').val());
         tf.state.immediateSendToServer.set(
             $('#settings-immediate-log-send').prop('checked'));
+        var serverId = 1;
+        if ($('#settings-server-staging').prop('checked')) {
+            serverId = 2;
+        }
+        tf.state.serverId.set(serverId);
+
         tf.ui.popPage();
         return false;
     });

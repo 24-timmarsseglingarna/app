@@ -117,13 +117,41 @@
               </div>
               <div class="offset-md-4 col-12 col-md-8">
                 <p class="form-text text-muted">
-                  Kontrollerar om appen skall skicka loggen
+                  Styr om appen skall skicka loggen
                   till servern direkt efter en uppdatering.
                 </p>
               </div>
             </div>
 
             <hr/>
+
+            <fieldset class="form-group">
+              <div class="row">
+                <legend class="col-md-4 col-form-label
+                               text-md-right font-weight-bold"
+                        for="settings-server">Server</legend>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio"
+                           name="settings-server-select"
+                           id="settings-server-production" value="production"/>
+                    <label class="form-check-label"
+                           for="settings-server-production">
+                      Produktion
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio"
+                           name="settings-server-select"
+                           id="settings-server-staging" value="staging"/>
+                    <label class="form-check-label"
+                           for="settings-server-production">
+                      Staging
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
 
             <div class="form-group row">
               <label class="col-md-4 col-form-label
