@@ -20,10 +20,26 @@ tf.ui.loginPage.openPage = function() {
 
 tf.ui.loginPage.loginResponseFn = function(response) {
     $('#login-submit').val('Login');
-    if (response) {
+    if (response == true) {
+        console.log('loginPage response == true');
         tf.ui.popPage();
     } else {
-        $('#login-error-btn').val('Inloggningen misslyckades');
+        console.log('loginPage response != true');
+        var errStr;
+        switch (response.errorCode) { // from tf.serverAPI.login
+        case -2:
+            errStr = 'Okänt fel från servern';
+            break;
+        case -1: // real error from server
+            errStr = response.errorStr;
+            break;
+        case 0: // unknown connection error
+            errStr = 'Kan inte kontakta servern';
+            break;
+        default: // HTTP error
+            errStr = response.errorStr;
+        }
+        $('#login-error-btn').val(errStr);
         $('#login-error-btn').show();
     }
 };

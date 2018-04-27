@@ -8,10 +8,8 @@ goog.require('tf');
  * Base URL for server requests.
  * @const {string}
  */
-tf.serverAPI.stagingURL = 'https://giona-stage.herokuapp.com';
+tf.serverAPI.stagingURL = 'https://segla-stage.24-timmars.nu';
 tf.serverAPI.productionURL = 'https://segla.24-timmars.nu';
-tf.serverAPI.productionURL = 'https://giona-dev.24-timmars.nu';
-tf.serverAPI.productionURL = 'http://192.168.0.6:3000';
 
 tf.serverAPI.URL = tf.serverAPI.productionURL;
 
@@ -56,14 +54,23 @@ tf.serverAPI.login = function(email, password, responsefn) {
                     token: token,
                     personId: personId
                 });
+            } else if (data.error) {
+                responsefn({errorCode: -1,
+                            errorStr: data.error});
             } else {
-                console.log('login: no token from server');
-                responsefn(null);
+                console.log('login: bad response from server');
+                responsefn({errorCode: -2});
             }
         },
-        error: function(jqXHR, status, errorThrown) {
-            console.log('login error ' + jqXHR.status + ' ' + status);
-            responsefn(null);
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('login error ' + jqXHR.status + ' ' + textStatus);
+            if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                responsefn({errorCode: jqXHR.status,
+                            errorStr: jqXHR.responseJSON.error});
+            } else {
+                responsefn({errorCode: jqXHR.status,
+                            errorStr: textStatus + ' ' + errorThrown});
+            }
         }
     });
 };
@@ -239,7 +246,7 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
                 responsefn(data, etag);
             }
         },
-        error: function(jqXHR, status, errorThrown) {
+        error: function(jqXHR, textStatus, errorThrown) {
             console.log('req error for ' + urlpath + ': ' + jqXHR.status);
             responsefn(null, null);
         }
@@ -292,7 +299,7 @@ tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
             tf.dbg = data;
             responsefn(data);
         },
-        error: function(jqXHR, status, errorThrown) {
+        error: function(jqXHR, textStatus, errorThrown) {
             if (jqXHR.status == 409) {
                 //console.log(method + ' ' + urlpath + 'returns 409  conflict');
                 responsefn('conflict');
@@ -317,7 +324,7 @@ tf.serverAPI.delObj = function(urlpath, responsefn) {
         success: function(data, status, jqXHR) {
             responsefn(true);
         },
-        error: function(jqXHR, status, errorThrown) {
+        error: function(jqXHR, textStatus, errorThrown) {
             console.log('delete error for ' + urlpath + ': ' + jqXHR.status);
             if (jqXHR.status == 404) {
                 // The object doesn't exists on the server, good.

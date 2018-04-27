@@ -273,10 +273,10 @@ tf.state.serverDataUpdateDone = function() {
     var curActiveRaceId = tf.storage.getSetting('activeRaceId');
     var races = tf.serverData.getMyRaces();
 
-    if (races.length == 1 && races.raceData.id != curActiveRaceId) {
+    if (races.length == 1 && races[0].raceData.id != curActiveRaceId) {
         // the user is registered for a single race,
         // make it active
-        tf.state.setActiveRace(races.raceData.id);
+        tf.state.activateRace(races[0].raceData.id);
     } else if (tf.serverData.getRaceData(curActiveRaceId) == null) {
         // current activeRaceId is not valid
         tf.state._setActiveRace2(null);
@@ -374,7 +374,7 @@ tf.state.login = function(email, password, savepassword, responsefn) {
     tf.serverAPI.login(
         email, password,
         function(response) {
-            if (response) {
+            if (response.token) {
                 props = {
                     email: response.email,
                     password: response.password,
@@ -392,7 +392,7 @@ tf.state.login = function(email, password, savepassword, responsefn) {
                                                });
                 responsefn(true);
             } else {
-                responsefn(false);
+                responsefn(response);
             }
         });
 };
