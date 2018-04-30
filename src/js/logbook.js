@@ -423,11 +423,12 @@ tf.LogBook.prototype.getStartTime = function() {
 };
 
 tf.LogBook.prototype.hasFinished = function() {
-    for (var i = 0; i < this.log.length; i++) {
-        if (this.log[i].deleted) continue;
-        if (this.log[i].finish) {
-            return true;
-        }
+    if (this.state == 'finished' ||
+        this.state == 'finished-early' ||
+        this.state == 'retired' ||
+        this.state == 'signed' ||
+        this.state == 'signed-sync') {
+        return true;
     }
     return false;
 };

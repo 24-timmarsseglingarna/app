@@ -716,7 +716,9 @@ tf.ui.mkLegStyleFunc = function(color) {
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
-                } else if (tf.state.curLogBook) {
+                } else if (tf.state.curLogBook &&
+                           (!tf.state.curLogBook.hasFinished() ||
+                            tf.state.curLogBook.isReadOnly())) {
                     var p = tf.state.curLogBook.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;

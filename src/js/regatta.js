@@ -32,8 +32,8 @@ tf.Regatta = function(id, racesData, pod) {
             this.last_finish = finish;
         }
     }
-    this.races = {};
-    this.teams = {};
+    this.races = {}; // { raceId => Race() }
+    this.teams = {}; // { teamId => LogBook() }
     this.last_log_entry_time = null;
     this.last_log_update = null;
     this.log_updated = false;
