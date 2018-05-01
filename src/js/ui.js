@@ -660,7 +660,7 @@ tf.ui.mkLegStyleFunc = function(color) {
     // used when a leg is logged once and planned
     // FIXME: in order to do this, we need to keep track of the leg's
     // direction ('580-581' vs '581-580') in the logbook and in the plan,
-    // and use this style iff one direction is logged, and the other sailed.
+    // and use this style iff one direction is logged, and the other planned.
 /*
     var plannedAndloggedLegStyle =
         tf.ui.getLegStyle('plannedAndloggedLegStyle',
@@ -1171,7 +1171,18 @@ tf.ui.centerChanged = function(event) {
     tf.ui.initialCenterChanged = true;
 };
 
-tf.ui.stateSetupDone = function() {
+tf.ui.alertUpgrade = function(text) {
+    tf.ui.alert(
+        '<p>Den här versionen av appen är inte kompatibel med servern. ' +
+            'Du behöver uppgradera appen.</p>' +
+            '<p>' + text + '</p>');
+};
+
+tf.ui.stateSetupDone = function(response) {
+    if (response && response != true) {
+        tf.ui.alertUpgrade(response.errorStr);
+    }
+
     // 1. center on 580 initially
     // 2. then if we have a latest logged position, center there.
     // 3. else if we have start point, center there.

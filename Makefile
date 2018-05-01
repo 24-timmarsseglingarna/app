@@ -27,7 +27,10 @@ all: 	build/deps \
 build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
-build/24h.js: $(JS_SRC)
+deps/vsn.js: vsn.mk
+	echo "tf.appVsn = '$(VSN)';" > $@
+
+build/24h.js: $(JS_SRC) deps/vsn.js
 	java -jar deps/closure-compiler-v$(CLOSURE_COMPILER_VSN).jar \
 	$(CLOSURE_ARGS) --js_output_file=$@ $^
 

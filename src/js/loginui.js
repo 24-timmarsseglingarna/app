@@ -6,6 +6,20 @@ goog.require('tf.serverAPI');
 goog.require('tf.ui');
 
 tf.ui.loginPage.openPage = function() {
+    if (tf.state.isServerCompatible != true) {
+        tf.state.checkServerCompatible(function(response) {
+            if (response == true) {
+                tf.ui.loginPage._openPage2();
+            } else {
+                tf.ui.alertUpgrade(response.errorStr);
+            }
+        });
+    } else {
+        tf.ui.loginPage._openPage2();
+    }
+};
+
+tf.ui.loginPage._openPage2 = function() {
     $('#login-error-btn').hide();
     $('#login-submit').val('Login');
     $('#login-email').val(tf.storage.getSetting('email'));
@@ -25,21 +39,7 @@ tf.ui.loginPage.loginResponseFn = function(response) {
         tf.ui.popPage();
     } else {
         console.log('loginPage response != true');
-        var errStr;
-        switch (response.errorCode) { // from tf.serverAPI.login
-        case -2:
-            errStr = 'Okänt fel från servern';
-            break;
-        case -1: // real error from server
-            errStr = response.errorStr;
-            break;
-        case 0: // unknown connection error
-            errStr = 'Kan inte kontakta servern';
-            break;
-        default: // HTTP error
-            errStr = response.errorStr;
-        }
-        $('#login-error-btn').val(errStr);
+        $('#login-error-btn').val(response.errStr);
         $('#login-error-btn').show();
     }
 };

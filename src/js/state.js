@@ -33,6 +33,7 @@ tf.defineVariable(tf.state, 'serverId', null);
  * Initialize ephemeral state variables.
  */
 
+tf.state.isServerCompatible = null;
 tf.state.curRace = null;
 tf.state.curRegatta = null;
 tf.state.curLogBook = null;
@@ -52,6 +53,7 @@ tf.state.isLoggedIn = false;
 tf.state.personId = null;
 
 tf.state.isCordova = 'cordova' in window;
+tf.state.platform = null;
 
 // internal timer
 tf.state._timer = null;
@@ -61,6 +63,12 @@ tf.state.debugInfo = {};
 tf.state.init = function() {
     // initialize local storage handler
     tf.storage.init();
+
+    if (tf.state.isCordova) {
+        tf.state.platform = device.platform;
+    } else {
+        tf.state.platform = 'web';
+    }
 
     tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
     tf.state.numberOfPlans.onChange(function(val) {
@@ -201,7 +209,84 @@ tf.state._timeout = function() {
     tf.serverData.update(tf.storage.getSetting('personId'), cfn0);
 };
 
+/**
+ * We expect the server to return the following json structure:
+ *  {
+ *     "api_version": "<major>.<minor>.<patch>",
+ *     "app_info": {
+ *         "require_upgrade": [ {
+ *             "platform": "*" | "iOS" | "Android" | "web",
+ *             "app_version": <regexp>,
+ *             "upgrade_text": <string>, // optional text that will be shown
+ *                                       // to the user if os/app-version
+ *                                       // matches
+ *         } ]
+ *  }
+ *
+ * This function calls responseFn(true | { errorStr: <string> })
+ */
+tf.state.checkServerCompatible = function(responseFn) {
+    if (tf.state.isServerCompatible == true) {
+        responseFn(true);
+    } else {
+        tf.serverAPI.getAPIVersion(function(data) {
+            // check for platform / upgrade match
+            if (data.app_info && data.app_info.require_upgrade) {
+                var r = data.app_info.require_upgrade;
+                for (var i = 0; i < r.length; i ++) {
+                    if (r[i].platform == '*' ||
+                        r[i].platform == tf.state.platform) {
+                        var re = new RegExp(r[i].app_version);
+                        if (re.test(tf.appVsn)) {
+                            tf.state.isServerCompatible = false;
+                            responseFn({ errorStr: r[i].upgrade_text });
+                            return;
+                        }
+                    }
+                }
+            }
+            if (data.api_version) {
+                var x = data.api_version.split('.');
+                var major = parseInt(x[0]) || 0;
+                if (major == 1) {
+                    tf.state.isServerCompatible = true;
+                    responseFn(true);
+                } else {
+                    // new major version on server
+                    tf.state.isServerCompatible = false;
+                    responseFn({ errorStr: "" });
+                }
+            } else if (data.errorCode == 0) {
+                // connection error, keep going
+                tf.state.isServerCompatible = null;
+                responseFn(true);
+            } else if (data.errorStr) {
+                // some other error, treat as non-compatible
+                tf.state.isServerCompatible = false;
+                responseFn(data);
+            } else {
+                tf.state.isServerCompatible = false;
+                responseFn({ errorStr: "" });
+            }
+        });
+    }
+};
+
 tf.state.setupLogin = function(continueFn) {
+    if (tf.state.hasNetwork() && tf.state.isServerCompatible == null) {
+        tf.state.checkServerCompatible(function(response) {
+            if (response == true) {
+                tf.state._setupLogin2(continueFn);
+            } else {
+                continueFn(response);
+            }
+        });
+    } else {
+        tf.state._setupLogin2(continueFn);
+    }
+};
+
+tf.state._setupLogin2 = function(continueFn) {
     // check if we're authenticated and possibly login
     var hasNetwork = tf.state.hasNetwork();
     var token = tf.storage.getSetting('token');

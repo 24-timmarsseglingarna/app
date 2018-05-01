@@ -29,6 +29,25 @@ tf.serverAPI.state = {
     token: null
 };
 
+tf.serverAPI.getAPIVersion = function(responsefn) {
+    $.ajax({
+        url: tf.serverAPI.URL + '/api_version.json',
+        dataType: 'json',
+        beforeSend: function(jqXHR, settings) {
+            // make sure we don't use the browser's cache
+            jqXHR.setRequestHeader('If-None-Match', '');
+            return true;
+        },
+        success: function(data, status, jqXHR) {
+            responsefn(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('req error api_version: ' + jqXHR.status);
+            responsefn(tf.serverAPI._mkError(jqXHR, textStatus, errorThrown));
+        }
+    });
+};
+
 tf.serverAPI.login = function(email, password, responsefn) {
     $.ajax({
         url: tf.serverAPI.URL + '/users/sign_in.json',
@@ -44,7 +63,6 @@ tf.serverAPI.login = function(email, password, responsefn) {
         cache: false,
         success: function(data, status, jqXHR) {
             var token = data.authentication_token;
-            var personId = data.person_id;
             if (token) {
                 tf.serverAPI.state.email = email;
                 tf.serverAPI.state.token = token;
@@ -52,27 +70,38 @@ tf.serverAPI.login = function(email, password, responsefn) {
                     email: email,
                     password: password,
                     token: token,
-                    personId: personId
+                    personId: data.person_id,
+                    role: data.role
                 });
             } else if (data.error) {
                 responsefn({errorCode: -1,
                             errorStr: data.error});
             } else {
                 console.log('login: bad response from server');
-                responsefn({errorCode: -2});
+                responsefn({errorCode: -2,
+                            errStr: 'Okänt fel från servern'});
             }
         },
         error: function(jqXHR, textStatus, errorThrown) {
             console.log('login error ' + jqXHR.status + ' ' + textStatus);
-            if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
-                responsefn({errorCode: jqXHR.status,
-                            errorStr: jqXHR.responseJSON.error});
-            } else {
-                responsefn({errorCode: jqXHR.status,
-                            errorStr: textStatus + ' ' + errorThrown});
-            }
+            responsefn(tf.serverAPI._mkError(jqXHR, textStatus, errorThrown));
         }
     });
+};
+
+tf.serverAPI._mkError = function(jqXHR, textStatus, errorThrown) {
+    var errorStr = undefined;
+    if (jqXHR.status == 0) {
+        // unknown connection error
+        errorStr = 'Kan inte kontakta servern';
+    } else if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+        // error string sent from server
+        errorStr = jqXHR.responseJSON.error;
+    } else {
+        errorStr = textStatus + ' ' + errorThrown;
+    }
+    return { errorCode: jqXHR.status,
+             errorStr: errorStr };
 };
 
 tf.serverAPI.validateToken = function(email, token) {

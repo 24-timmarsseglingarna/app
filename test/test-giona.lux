@@ -1,9 +1,10 @@
 [doc "test giona api as used by the app"]
 
+# NOTE: requires an active race for the user on the server
 # usage: lux --var EMAIL=<user email> --var PASS=<passwd> test-giona.lux
 
-[global SERVER=https://giona-dev.24-timmars.nu]
-[global SERVER=http://192.168.0.6:3000]
+[global SERVER=https://segla-stage.24-timmars.nu]
+#[global SERVER=http://192.168.0.6:3000]
 
 [shell client]
     [progress sign in]
