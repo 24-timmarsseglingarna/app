@@ -54,6 +54,16 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
 
     for (var i = 0; i < races.length; i++) {
         var r = races[i];
+        // check if there are any teams in this race; if not, don't show it
+        var found = false;
+        for (var j = 0; !found && j < teams.length; j++) {
+            if (teams[j].race_id == r.id) {
+                found = true;
+            }
+        }
+        if (!found) {
+            continue;
+        }
         var padding = '';
         if (i > 0) {
             padding = ' pt-4';

@@ -316,6 +316,12 @@ tf.serverData.mkLogData = function(s) {
     if (s.point) {
         r.point = s.point;                     // int
     }
+    // FIXME: user attribute name; try to handle different names
+    if (s.user_name) {
+        r.user = s.user_name;
+    } else if (s.user) {
+        r.user = s.user;
+    }
     tf.serverData.parseJSONLogData(r, s.data);
     return r;
 };

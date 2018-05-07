@@ -65,8 +65,17 @@ $(document).ready(function() {
     $('#settings-show-debug-btn').on('click', function() {
         html = '<ul class="list-group">';
         for (var key in tf.state.debugInfo) {
-            html += '<li class="list-group-item">' +
-                key + ': ' + tf.state.debugInfo[key] + '</li>';
+            var val = tf.state.debugInfo[key];
+            if (typeof val === 'function') {
+                var keyvals = val();
+                for (var i = 0; i < keyvals.length; i++) {
+                    html += '<li class="list-group-item">' +
+                        keyvals[i].key + ': ' + keyvals[i].val + '</li>';
+                }
+            } else {
+                html += '<li class="list-group-item">' +
+                    key + ': ' + val + '</li>';
+            }
         }
         html += '</ul>';
         tf.ui.alert(html);

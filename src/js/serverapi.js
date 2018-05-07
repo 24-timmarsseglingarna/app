@@ -79,11 +79,10 @@ tf.serverAPI.login = function(email, password, responsefn) {
             } else {
                 console.log('login: bad response from server');
                 responsefn({errorCode: -2,
-                            errStr: 'Okänt fel från servern'});
+                            errorStr: 'Okänt fel från servern'});
             }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-            console.log('login error ' + jqXHR.status + ' ' + textStatus);
             responsefn(tf.serverAPI._mkError(jqXHR, textStatus, errorThrown));
         }
     });
@@ -100,6 +99,8 @@ tf.serverAPI._mkError = function(jqXHR, textStatus, errorThrown) {
     } else {
         errorStr = textStatus + ' ' + errorThrown;
     }
+    tf.state.debugInfo['reqerror'] = errorStr;
+    console.log('mkerror ' + errorStr);
     return { errorCode: jqXHR.status,
              errorStr: errorStr };
 };

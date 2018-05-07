@@ -15,6 +15,14 @@ goog.require('tf');
 tf.storage._curVersion = 1.1; // FIXME: devel version change to 2 at release
 
 tf.storage.init = function() {
+    tf.state.debugInfo['storage'] = function() {
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            keys.push(localStorage.key(i));
+        }
+        return [{key: 'storagekeys', val: keys}];
+    };
+
     tf.storage._keys = [
         'settings',      // configuration parameters and state data
         'raceIds',       // for each id, there is state data 'racelog-<id>'

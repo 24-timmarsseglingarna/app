@@ -39,7 +39,7 @@ tf.ui.loginPage.loginResponseFn = function(response) {
         tf.ui.popPage();
     } else {
         console.log('loginPage response != true');
-        $('#login-error-btn').val(response.errStr);
+        $('#login-error-btn').val(response.errorStr);
         $('#login-error-btn').show();
     }
 };

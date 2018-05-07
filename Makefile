@@ -40,6 +40,10 @@ build/24h.js: $(JS_SRC) deps/vsn.js
 build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
 	tools/pod-xml-to-geojson.py --javascript -i PoD.xml -o $@
 
+PoD.xml:
+	curl -s "http://dev.24-timmars.nu/PoD/xmlapi_app.php" > $@
+
+
 build/icomoon.css: src/icomoon/style.css
 	cp $< $@
 
