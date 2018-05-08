@@ -29,7 +29,7 @@
     <meta name="msapplication-tap-highlight" content="no"/>
 
     <meta name="viewport"
-          content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+          content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 
     <link rel="stylesheet" href="deps/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="deps/ol.css" type="text/css" />
