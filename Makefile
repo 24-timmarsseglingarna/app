@@ -225,4 +225,4 @@ deps/ol3-ext:
 	rm -rf ol3-ext-$(OL3_EXT_VSN)
 
 tiles:
-	wget http://mbj.homenet.org/24h/map.tgz -O - | tar zx
+	wget http://4468.se/24h/map.tgz -O - | tar zx
