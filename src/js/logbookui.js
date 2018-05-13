@@ -294,7 +294,7 @@ $(document).ready(function() {
     });
 
     $('#log-book-delete-all').on('click', function() {
-        tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?.' +
+        tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?' +
                       '</p>',
                       'Nej',
                       'Ja',

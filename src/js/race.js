@@ -56,3 +56,7 @@ tf.Race.prototype.getPlan = function(name) {
     }
     return this.plans[name];
 };
+
+tf.Race.prototype.hasStarted = function() {
+    return moment().isAfter(this.startTimes.start_from);
+};

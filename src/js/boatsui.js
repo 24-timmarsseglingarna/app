@@ -139,7 +139,7 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
                 html += '<tr><td>' + t.start_number + '</td>' +
                     '<td>' + t.boat_name + '</td>' +
                     '<td>' + t.boat_type_name + '</td>' +
-                    '<td>' + t.boat_sail_number + '</td>' +
+                    '<td>' + (t.boat_sail_number || '-') + '</td>' +
                     '<td>' + t.sxk_handicap + '</td></tr>';
             }
         }
@@ -170,7 +170,8 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
             '<td>' + e.logbook.teamData.start_number + '</td>' +
             '<td>' + e.logbook.teamData.boat_name + '</td>' +
             '<td>' + e.logbook.teamData.boat_type_name + '</td>' +
-            '<td>' + e.logbook.teamData.boat_sail_number + '</td></tr>';
+            '<td>' + (e.logbook.teamData.boat_sail_number || '-') +
+            '</td></tr>';
     }
 
     if (updated) {

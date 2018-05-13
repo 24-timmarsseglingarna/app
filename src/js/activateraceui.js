@@ -91,7 +91,7 @@ tf.ui.activateRace._populateRaces = function() {
                 s += ' ' + p.name;
             }
             s += '<br/>';
-            s += t.boat_type_name + ' ' + t.boat_sail_number + ' ' +
+            s += t.boat_type_name + ' ' + (t.boat_sail_number || '') + ' ' +
                 t.boat_name;
             s += '</span></button>';
         }

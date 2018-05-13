@@ -127,6 +127,25 @@ tf.ui.logEntry.openLogEntry = function(options) {
     if (!options.logBook) {
         return;
     }
+    // if the race hasn't started and this is the first log entry, ask
+    // the user to confirm.
+    if (options.logBook.getLog().length == 0 &&
+        !options.logBook.getRace().hasStarted()) {
+        var s = tf.state.curRace.startTimes.start_from.format(
+            'YYYY-MM-DD HH:mm:ss');
+        tf.ui.confirm('<p>Seglingen startar ' + s +'. Vill du verkligen göra ' +
+                      'en loggboksanteckning?',
+                      'Nej',
+                      'Ja',
+                      function() {
+                          tf.ui.logEntry._openLogEntry2(options);
+                      });
+    } else {
+        tf.ui.logEntry._openLogEntry2(options);
+    }
+}
+
+tf.ui.logEntry._openLogEntry2 = function(options) {
     var logEntryPage = $('#log-entry-page')[0];
     logEntryPage.logBook = options.logBook;
     logEntryPage.logEntryId = options.id;
