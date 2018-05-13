@@ -12,7 +12,7 @@ goog.require('tf');
  */
 
 // version 1: app <= 1.0.3
-tf.storage._curVersion = 1.1; // FIXME: devel version change to 2 at release
+tf.storage._curVersion = 2;
 
 tf.storage.init = function() {
     tf.state.debugInfo['storage'] = function() {

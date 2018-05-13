@@ -1,3 +1,15 @@
+2.0 - 2018-05-14
+
+  - Bättre hantering av ruttplanering
+
+  - Loggboken skickas till servern
+
+  - Stöd för loggning från flera enheter på samma båt
+
+  - Startlista
+
+  - Resultatlista (uppdateras dynamiskt)
+
 1.0.3 - 2017-08-26
 
   - Kartan centreras nu vid senast loggade punkt, anmäld startpunkt,

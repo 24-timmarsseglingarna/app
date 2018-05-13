@@ -1,6 +1,6 @@
 # README
 
-En app för 24-timmarsseglingar.  Webbaserad, Android (iOS TBD).
+En app för 24-timmarsseglingar.  Webbaserad, Android, iOS.
 
 PoD - punkt- och distanskarta
 
