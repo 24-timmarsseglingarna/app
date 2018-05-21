@@ -101,7 +101,7 @@ tf.state.init = function() {
     tf.state.pollInterval.set(tf.storage.getSetting('pollInterval'));
     tf.state.pollInterval.onChange(function(val) {
         tf.storage.setSettings({pollInterval: val});
-        tf.state.setTimer();
+        tf.state.forceTimeout();
     });
 
     tf.state.sendLogToServer.set(tf.storage.getSetting('sendLogToServer'));
