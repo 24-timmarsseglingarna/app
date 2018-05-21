@@ -180,7 +180,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
             end = log.length;
         }
         for (var i = 0; i < end && isStart; i++) {
-            if (log[i].type == 'round') {
+            if (!log[i].deleted && log[i].type == 'round') {
                 isStart = false;
             }
         }
@@ -400,7 +400,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
             var found = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
                 // if we find a wind observation from some other entry, use it
-                if (log[i].wind) {
+                if (!log[i].deleted && log[i].wind) {
                     tf.ui.logEntry._initWind(log[i].wind);
                     found = true;
                 }
@@ -409,7 +409,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
         if (type == 'changeSails') {
             var found = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
-                if (log[i].sails) {
+                if (!log[i].deleted && log[i].sails) {
                     tf.ui.logEntry._initSails(log[i].sails);
                     found = true;
                 }
@@ -421,7 +421,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
         if (type == 'engine') {
             var found = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
-                if (log[i].type == type && log[i].engine) {
+                if (!log[i].deleted && log[i].type == type && log[i].engine) {
                     switch (log[i].engine) {
                     case 'on':
                         $('#log-entry-engine-off').prop('checked', true);
@@ -440,7 +440,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
         if (type == 'lanterns') {
             var found = false;
             for (var i = log.length - 1; !found && i >= 0; i--) {
-                if (log[i].type == type && log[i].lanterns) {
+                if (!log[i].deleted && log[i].type == type && log[i].lanterns) {
                     switch (log[i].lanterns) {
                     case 'on':
                         $('#log-entry-lanterns-off').prop('checked', true);
