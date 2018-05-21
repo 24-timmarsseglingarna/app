@@ -20,7 +20,7 @@ tf.storage.init = function() {
         for (var i = 0; i < localStorage.length; i++) {
             keys.push(localStorage.key(i));
         }
-        return [{key: 'storagekeys', val: keys}];
+        return [{key: 'storagekeys', val: keys.join(', ')}];
     };
 
     tf.storage._keys = [

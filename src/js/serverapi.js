@@ -99,7 +99,7 @@ tf.serverAPI._mkError = function(jqXHR, textStatus, errorThrown) {
     } else {
         errorStr = textStatus + ' ' + errorThrown;
     }
-    tf.state.debugInfo['reqerror'] = errorStr;
+    tf.state.debugInfo['reqerror'] = errorStr + ' ' + moment().format();
     console.log('mkerror ' + errorStr);
     return { errorCode: jqXHR.status,
              errorStr: errorStr };
@@ -279,7 +279,8 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
         error: function(jqXHR, textStatus, errorThrown) {
             var errorstr = 'req error for ' + urlpath + ': ' + jqXHR.status;
             console.log(errorstr);
-            tf.state.debugInfo['getjsonerror'] = errorstr;
+            tf.state.debugInfo['getjsonerror'] = errorstr + ' ' +
+                moment().format();
             responsefn(null, null);
         }
     });
@@ -339,7 +340,8 @@ tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
                 var errorstr = method + ' error for ' + urlpath + ': ' +
                     jqXHR.status;
                 console.log(errorstr);
-                tf.state.debugInfo['setjsonerr'] = errorstr;
+                tf.state.debugInfo['setjsonerr'] = errorstr + ' ' +
+                    moment().format();
                 responsefn(null);
             }
         }
