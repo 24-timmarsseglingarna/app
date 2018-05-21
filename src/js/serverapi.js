@@ -277,7 +277,9 @@ tf.serverAPI.getJSON = function(urlpath, etag, responsefn) {
             }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-            console.log('req error for ' + urlpath + ': ' + jqXHR.status);
+            var errorstr = 'req error for ' + urlpath + ': ' + jqXHR.status;
+            console.log(errorstr);
+            tf.state.debugInfo['getjsonerror'] = errorstr;
             responsefn(null, null);
         }
     });
@@ -334,8 +336,10 @@ tf.serverAPI._setJSON = function(method, urlpath, data, responsefn) {
                 //console.log(method + ' ' + urlpath + 'returns 409  conflict');
                 responsefn('conflict');
             } else {
-                console.log(method + ' error for ' + urlpath + ': ' +
-                            jqXHR.status);
+                var errorstr = method + ' error for ' + urlpath + ': ' +
+                    jqXHR.status;
+                console.log(errorstr);
+                tf.state.debugInfo['setjsonerr'] = errorstr;
                 responsefn(null);
             }
         }

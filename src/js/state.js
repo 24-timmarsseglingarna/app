@@ -59,6 +59,14 @@ tf.state.platform = null;
 tf.state._timer = null;
 
 tf.state.debugInfo = {};
+tf.state.debugInfo['timer'] = function() {
+    var val = false;
+    if (tf.state._timer != null) {
+        val = true;
+    }
+    return [{key: 'timer', val: val}];
+};
+
 
 tf.state.init = function() {
     // initialize local storage handler
@@ -136,11 +144,8 @@ tf.state.hasNetwork = function() {
             navigator.connection.type != Connection.NONE);
 };
 
-// if the timer for some reason is not running, start it
 tf.state.onResume = function() {
-    if (!tf.state._timer) {
-        tf.state.setTimer();
-    }
+    tf.state.forceTimeout();
 };
 
 tf.state.setTimer = function() {
