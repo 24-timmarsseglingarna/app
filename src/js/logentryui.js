@@ -154,7 +154,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
     var title;
     var isStart = false;
     var log = options.logBook.getLog();
-    var index;
+    var index = undefined;
 
     if (options.id) {
         for (var i = 0; i < log.length; i++) {
@@ -174,7 +174,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
     if (type == 'round') {
         isStart = true;
         var end;
-        if (index) {
+        if (index != undefined) {
             end = index;
         } else {
             end = log.length;
@@ -213,6 +213,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
             $('#log-entry-form-boats').show();
             $('#log-entry-form-sail').show();
         } else {
+            tf.ui.logEntry._initBoats(-1);
             // FIXME: show finish only if point is possible finish point
             // needs more data about finish from server
             $('#log-entry-form-finish').show();
@@ -292,6 +293,12 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
 
         if (entry.point != undefined) {
             $('#log-entry-point').val(entry.point);
+            var p = options.logBook.getRace().getPod().getPoint(entry.point);
+            if (p) {
+                $('#log-entry-point-name').val(p.name);
+            } else {
+                $('#log-entry-point-name').val('');
+            }
         }
         if (entry.finish != undefined) {
             $('#log-entry-finish').prop('checked', entry.finish);
@@ -538,8 +545,12 @@ tf.ui.logEntry._getBoatsOptions = function(regattaId) {
 
 tf.ui.logEntry._initBoats = function(regattaId) {
     boatsElement = $('#log-entry-boats')[0];
-    // populate 'boats' with list of boats from current regatta
-    boatsElement.innerHTML = tf.ui.logEntry._getBoatsOptions(regattaId);
+    // populate 'boats' with list of boats from current regatta, -1 means reset
+    if (regattaId == -1) {
+        boatsElement.innerHTML = '';
+    } else {
+        boatsElement.innerHTML = tf.ui.logEntry._getBoatsOptions(regattaId);
+    }
 };
 
 tf.ui.logEntry._initProtest = function(regattaId) {
@@ -695,8 +706,8 @@ tf.ui.logEntry.logEntrySave = function() {
         logEntry.wind = wind;
         if (isStart) {
             logEntry.sails = sails;
+            logEntry.boats = boats;
         }
-        logEntry.boats = boats;
         logEntry.finish = finish;
         break;
     case 'endOfRace':
