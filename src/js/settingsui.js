@@ -58,6 +58,7 @@ $(document).ready(function() {
     });
 
     $('#settings-clear-state-btn').on('click', function() {
+        tf.ui.popPage();
         tf.state.reset(true);
         return false;
     });

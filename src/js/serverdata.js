@@ -49,8 +49,12 @@ tf.serverData.getNewRegattaLog = function(regattaId, teamId,
 };
 
 tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
+    var client;
+    if (lastUpdate) {
+        client = tf.state.clientId.get();
+    }
     tf.serverAPI.getNewMyLog(
-        teamId, tf.state.clientId.get(), lastUpdate,
+        teamId, client, lastUpdate,
         function(data, _etag) {
             if (data) {
                 var log = data.map(tf.serverData.mkLogData);

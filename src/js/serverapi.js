@@ -224,8 +224,10 @@ tf.serverAPI.getTeamsPerRegatta = function(regattaIds, prevetags, responsefn) {
 };
 
 tf.serverAPI.getNewMyLog = function(teamId, client, updatedAfter, responsefn) {
-    var url = '/api/v1/logs?from_team=' + teamId +
-        '&not_client=' + client;
+    var url = '/api/v1/logs?from_team=' + teamId;
+    if (client) {
+        url += '&not_client=' + client;
+    }
     if (updatedAfter) {
         url += '&updated_after=' + updatedAfter;
     }

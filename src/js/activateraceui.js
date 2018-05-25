@@ -117,5 +117,5 @@ $(document).ready(function() {
                              function() {
                                  tf.ui.activateRace._populateRaces();
                              });
-    })
+    });
 });

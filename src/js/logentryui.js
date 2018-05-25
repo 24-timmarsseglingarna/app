@@ -133,8 +133,8 @@ tf.ui.logEntry.openLogEntry = function(options) {
         !options.logBook.getRace().hasStarted()) {
         var s = tf.state.curRace.startTimes.start_from.format(
             'YYYY-MM-DD HH:mm:ss');
-        tf.ui.confirm('<p>Seglingen startar ' + s +'. Vill du verkligen göra ' +
-                      'en loggboksanteckning?',
+        tf.ui.confirm('<p>Seglingen startar ' + s +
+                      '. Vill du verkligen göra en loggboksanteckning?',
                       'Nej',
                       'Ja',
                       function() {
@@ -143,7 +143,7 @@ tf.ui.logEntry.openLogEntry = function(options) {
     } else {
         tf.ui.logEntry._openLogEntry2(options);
     }
-}
+};
 
 tf.ui.logEntry._openLogEntry2 = function(options) {
     var logEntryPage = $('#log-entry-page')[0];

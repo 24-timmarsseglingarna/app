@@ -124,7 +124,7 @@ tf.state.init = function() {
             tf.serverAPI.setProductionServer();
         }
         tf.storage.setSettings({serverId: val});
-        tf.state.logout()
+        tf.state.logout();
     });
     if (serverId == 2) {
         tf.serverAPI.setStagingServer();
@@ -238,7 +238,7 @@ tf.state.checkServerCompatible = function(responseFn) {
             // check for platform / upgrade match
             if (data.app_info && data.app_info.require_upgrade) {
                 var r = data.app_info.require_upgrade;
-                for (var i = 0; i < r.length; i ++) {
+                for (var i = 0; i < r.length; i++) {
                     if (r[i].platform == '*' ||
                         r[i].platform == tf.state.platform) {
                         var re = new RegExp(r[i].app_version);
@@ -259,7 +259,7 @@ tf.state.checkServerCompatible = function(responseFn) {
                 } else {
                     // new major version on server
                     tf.state.isServerCompatible = false;
-                    responseFn({ errorStr: "" });
+                    responseFn({ errorStr: '' });
                 }
             } else if (data.errorCode == 0) {
                 // connection error, keep going
@@ -271,7 +271,7 @@ tf.state.checkServerCompatible = function(responseFn) {
                 responseFn(data);
             } else {
                 tf.state.isServerCompatible = false;
-                responseFn({ errorStr: "" });
+                responseFn({ errorStr: '' });
             }
         });
     }
@@ -516,6 +516,7 @@ tf.state.reset = function(keepauth) {
     var email = tf.storage.getSetting('email');
     var password = tf.storage.getSetting('password');
     var token = tf.storage.getSetting('token');
+    var personId = tf.storage.getSetting('personId');
     tf.state.logout();
     localStorage.clear();
     tf.storage.init();
@@ -523,9 +524,20 @@ tf.state.reset = function(keepauth) {
         props = {
             email: email,
             password: password,
-            token: token
+            token: token,
+            personId: personId
         };
     }
-    tf.storage.setSettings(props);
+    tf.storage.setSettings(props, true);
+
+    tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
+    tf.state.clientId.set(tf.storage.getSetting('clientId'));
+    tf.state.fontSize.set(tf.storage.getSetting('fontSize'));
+    tf.state.pollInterval.set(tf.storage.getSetting('pollInterval'));
+    tf.state.sendLogToServer.set(tf.storage.getSetting('sendLogToServer'));
+    tf.state.immediateSendToServer.set(
+        tf.storage.getSetting('immediateSendToServer'));
+    tf.state.serverId.set(tf.storage.getSetting('serverId'));
+
     tf.state.setupLogin(function() {});
 };

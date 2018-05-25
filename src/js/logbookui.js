@@ -180,8 +180,8 @@ tf.ui.logBook.refreshLogBook = function(options) {
     $('#log-book-sign').removeClass('disabled');
     if (!(logBook.state == 'finished' ||
           logBook.state == 'finished-early' ||
-          logBook.state == 'retired')
-        || logBook.hasConflict()) {
+          logBook.state == 'retired') ||
+        logBook.hasConflict()) {
         $('#log-book-sign').addClass('disabled');
     }
     $('#log-book-delete-all').show();
