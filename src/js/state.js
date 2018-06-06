@@ -203,7 +203,7 @@ tf.state._timeout = function() {
 
     var cfn0 = function() {
         tf.state.serverDataUpdateDone();
-        tf.ui.logBookChanged();
+        tf.ui.updateAll();
         if (tf.state.curRegatta) {
             tf.state.curRegatta.updateLogFromServer(cfn1);
         } else {
@@ -407,12 +407,14 @@ tf.state._setActiveRace2 = function(raceId, continueFn) {
         var tmpPod = tf.state.defaultPod;
         var racesData = tf.serverData.getRacesData(raceData.regatta_id);
         tf.state.curRegatta = new tf.Regatta(raceData.regatta_id,
+                                             raceData.regatta_name,
                                              racesData, tmpPod);
         tf.state.curRace = new tf.Race(tf.state.curRegatta, raceData);
         // get the stored log from the app storage
         var raceLog = tf.storage.getRaceLog(raceId) || {};
         var log = raceLog.log || [];
-        tf.state.curLogBook = new tf.LogBook(teamData, tf.state.curRace, log);
+        tf.state.curLogBook =
+            new tf.LogBook(teamData, tf.state.curRace, log, false);
 
         tf.state.boatState.engine = tf.state.curLogBook.getEngine();
         tf.state.boatState.lanterns = tf.state.curLogBook.getLanterns();
@@ -422,7 +424,7 @@ tf.state._setActiveRace2 = function(raceId, continueFn) {
             tf.state.boatState.lanterns = logBook.getLanterns();
             tf.state.activeInterrupt = logBook.getInterrupt();
         }, 90);
-        tf.state.curLogBook.onLogUpdate(tf.ui.logBookChanged, 100);
+        tf.state.curLogBook.onLogUpdate(tf.ui.updateAll, 100);
         tf.state.curLogBook.onLogUpdate(function(logBook) {
             tf.storage.setRaceLog(logBook.race.getId(), logBook.getLog());
         }, 110);
@@ -438,7 +440,11 @@ tf.state._setActiveRace2 = function(raceId, continueFn) {
             continueFn();
         }
     } else {
-        tf.state.curRegatta = null;
+        console.log('** state set null');
+        if (!tf.ui.regattaId) {
+            // FIXME: tmp code
+            tf.state.curRegatta = null;
+        }
         tf.state.curRace = null;
         tf.state.curLogBook = null;
         tf.state.boatState.engine = false;
@@ -478,7 +484,7 @@ tf.state.login = function(email, password, savepassword, responsefn) {
                 tf.storage.setSettings(props);
                 tf.state.onAuthenticatedOnline(props.personId,
                                                function() {
-                                                   tf.ui.logBookChanged();
+                                                   tf.ui.updateAll();
                                                });
                 responsefn(true);
             } else {
@@ -509,7 +515,7 @@ tf.state.logout = function() {
     tf.state.clearTimer();
     tf.serverData.clearCache();
 
-    tf.ui.logBookChanged();
+    tf.ui.updateAll();
 };
 
 tf.state.reset = function(keepauth) {

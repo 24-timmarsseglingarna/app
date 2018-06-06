@@ -717,8 +717,8 @@ tf.ui.mkLegStyleFunc = function(color) {
                         legStyle = nextLegStyle;
                     }
                 } else if (tf.state.curLogBook &&
-                           (!tf.state.curLogBook.hasFinished() ||
-                            tf.state.curLogBook.isReadOnly())) {
+                           !(tf.state.curLogBook.hasFinished() ||
+                             tf.state.curLogBook.isReadOnly())) {
                     var p = tf.state.curLogBook.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
@@ -852,11 +852,15 @@ $(document).ready(function() {
     });
 
     $('#tf-nav-boats').on('click', function(event) {
-        if (!tf.state.curRace) {
+        if (!tf.state.curRegatta) {
             tf.ui._alert_no_race('se deltagande båtar');
             return false;
         }
-        tf.ui.boats.openPage({race: tf.state.curRace});
+        var opts = {regatta: tf.state.curRegatta};
+        if (tf.ui.showRegattaId) {
+            opts['adminView'] = true;
+        }
+        tf.ui.boats.openPage(opts);
         return false;
     });
 
@@ -1107,7 +1111,7 @@ tf.ui.updateStatusBarTime = function() {
 
 tf.ui.headerTimer = null;
 
-tf.ui.logBookChanged = function() {
+tf.ui.updateAll = function() {
     tf.ui.updateStatusBar();
     tf.ui.inshoreLegsLayer.changed();
     tf.ui.offshoreLegsLayer.changed();
@@ -1183,6 +1187,11 @@ tf.ui.stateSetupDone = function(response) {
         tf.ui.alertUpgrade(response.errorStr);
     }
 
+    if (tf.ui.showRegattaId) {
+        tf.ui.showRegatta(tf.ui.showRegattaId);
+        return;
+    }
+
     // 1. center on 580 initially
     // 2. then if we have a latest logged position, center there.
     // 3. else if we have start point, center there.
@@ -1228,7 +1237,7 @@ tf.ui.stateSetupDone = function(response) {
                 maximumAge: 2 * 60 * 1000 // 2 minutes old is ok
             });
     }
-    tf.ui.logBookChanged();
+    tf.ui.updateAll();
 };
 
 tf.ui.onDeviceReady = function() {
@@ -1329,6 +1338,12 @@ tf.ui.onDeviceReady = function() {
             tf.ui.inshoreLegsLayer.changed();
             tf.ui.offshoreLegsLayer.changed();
         }
+        // Experimental and undocumented feature - show all logs in
+        // a given regatta
+        var regatta = params['regatta']
+        if (regatta) {
+            tf.ui.showRegattaId = regatta;
+        }
     }
 
 /* I don't know if this is a good idea or not...
@@ -1344,5 +1359,32 @@ tf.ui.onDeviceReady = function() {
 */
 
     tf.state.setupLogin(tf.ui.stateSetupDone);
+};
 
+tf.ui.showRegatta = function(regattaId) {
+    var cfn2 = function(logs) {
+        var regatta = new tf.Regatta(regattaId, tf.ui.showRaces[0].regatta_name,
+                                     tf.ui.showRaces,
+                                     new tf.Pod(basePodSpec),
+                                     tf.ui.showTeams, logs);
+        $('#tf-nav-boats-badge').show();
+        tf.state.curRegatta = regatta;
+    }
+    var cfn1 = function(teams) {
+        tf.ui.showTeams = teams;
+        tf.serverData.getRegattaLogs(regattaId, cfn2);
+    }
+    var cfn0 = function(races) {
+        tf.ui.showRaces = races;
+        tf.serverData.getRegattaTeams(regattaId, cfn1);
+    }
+    // tmp hack - don't set cur* and boat state when we show the regatta
+    tf.state.curRegatta = null;
+    tf.state.curRace = null;
+    tf.state.curLogBook = null;
+    tf.state.boatState.engine = false;
+    tf.state.boatState.lanterns = false;
+    tf.state.activeInterrupt = false;
+
+    tf.serverData.getRegattaRaces(regattaId, cfn0);
 };

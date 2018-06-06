@@ -48,6 +48,46 @@ tf.serverData.getNewRegattaLog = function(regattaId, teamId,
         });
 };
 
+tf.serverData.getRegattaLogs = function(regattaId, responsefn) {
+    tf.serverAPI.getFullRegattaLog(
+        regattaId,
+        function(data, _etag) {
+            if (data) {
+                var log = data.map(tf.serverData.mkLogData);
+                responsefn(log);
+            } else {
+                responsefn(null);
+            }
+        });
+};
+
+tf.serverData.getRegattaTeams = function(regattaId, responsefn) {
+    tf.serverAPI.getTeamsPerRegatta(
+        [regattaId],
+        [null],
+        function(r, teamsETags) {
+            var teams = null;
+            if (r) {
+                teams = r[regattaId].map(tf.serverData.mkTeamData);
+            }
+            responsefn(teams);
+        });
+};
+
+tf.serverData.getRegattaRaces = function(regattaId, responsefn) {
+    tf.serverAPI.getRacesPerRegatta(
+        [regattaId],
+        [null],
+        function(r, racesETags) {
+            var races = null;
+            if (r) {
+                races = r[regattaId].map(tf.serverData.mkRaceData);
+            }
+            responsefn(races);
+        });
+};
+
+
 tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
     var client;
     if (lastUpdate) {
@@ -213,7 +253,7 @@ tf.serverData.getMyRaces = function() {
  * Return: Race data for all races in the given regatta.
  */
 tf.serverData.getRacesData = function(regattaId) {
-    return tf.serverData._races[regattaId];
+    return tf.serverData._races[regattaId] || [];
 };
 
 /**
@@ -307,24 +347,17 @@ tf.serverData.mkRaceData = function(s) {
 tf.serverData.mkLogData = function(s) {
     var r = {
         id:               s.id,                // int
+        team_id:          s.team_id,           // int
         type:             s.log_type,          // string
         time:             moment(s.time),      // date and time
         gen:              s.gen,               // int
-        // FIXME: should be user_name; use it to show to user if an entry
-        // has been modified on server by someone else
-        user:             s.user_id,           // int
+        user:             s.user_name,         // string
         client:           s.client,            // string
         deleted:          s.deleted,           // boolean
         updated_at:       moment(s.updated_at) // date and time
     };
     if (s.point) {
         r.point = s.point;                     // int
-    }
-    // FIXME: user attribute name; try to handle different names
-    if (s.user_name) {
-        r.user = s.user_name;
-    } else if (s.user) {
-        r.user = s.user;
     }
     tf.serverData.parseJSONLogData(r, s.data);
     return r;

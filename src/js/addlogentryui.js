@@ -20,7 +20,7 @@ tf.ui.addLogEntry.openPage = function(options) {
         $('#tf-log-engine').text('Stänger av motor för laddning');
     }
     if (!tf.state.activeInterrupt) {
-        $('#tf-log-interrupt').text('Avbrott');
+        $('#tf-log-interrupt').text('Avbrott i seglingen');
     } else {
         $('#tf-log-interrupt').text('Återupptar segling');
     }

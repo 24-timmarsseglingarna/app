@@ -16,11 +16,12 @@ goog.require('tf.Pod');
 /**
  * @constructor
  */
-tf.LogBook = function(teamData, race, log) {
+tf.LogBook = function(teamData, race, log, readOnly) {
     this.onLogUpdateFns = [];
     this.teamData = teamData,
     this.log = log || [];
     this.race = race;
+    this.readOnly = readOnly;
     /* total logged distance, except invalid legs/points */
     this.sailedDist = 0;
     /* total time (in minutes) for sailing sailedDist (including interrupts) */
@@ -47,7 +48,8 @@ tf.LogBook = function(teamData, race, log) {
     this.points = [];
     this.state = 'init'; // 'init' | 'started'
                          // | 'finished' | 'finished-early' | 'retired'
-                         // | 'signed' | 'signed-sync'
+
+    this.signed = false; // | 'signed' | 'signed-sync'
 
     this.lastServerUpdate = null;
     this._updateLog('init');
@@ -188,8 +190,6 @@ tf.LogBook.prototype._updateLog = function(reason) {
     var curDist;
     var pod = this.race.getPod();
     var retired = false;
-    var signed = false;
-    var signedSync = false;
 
     // find startpoint - the first log entry that has a point.
     // we currently allow _any_ point (including points not marked as
@@ -308,9 +308,9 @@ tf.LogBook.prototype._updateLog = function(reason) {
         } else if (e.type == 'retire') {
             retired = true;
         } else if (e.type == 'sign') {
-            signed = true;
+            this.signed = 'signed';
             if (e.state == 'sync') {
-                signedSync = true;
+                this.signed = 'signed-sync';
             }
         }
     }
@@ -344,12 +344,6 @@ tf.LogBook.prototype._updateLog = function(reason) {
     }
     if (retired) {
         this.state = 'retired';
-    }
-    if (signed) {
-        this.state = 'signed';
-    }
-    if (signedSync) {
-        this.state = 'signed-sync';
     }
 
     this.sailedDist = Math.round(sailedDist) / 10;
@@ -395,13 +389,20 @@ tf.LogBook.prototype.getLastPoint = function() {
     }
 };
 
+tf.LogBook.prototype.getLastPointAndTime = function() {
+    if (this.points.length > 0) {
+        return this.points[this.points.length - 1];
+    } else {
+        return null;
+    }
+};
+
 tf.LogBook.prototype.getStartPoint = function() {
     return this.teamData.start_point;
 };
 
 tf.LogBook.prototype.isReadOnly = function() {
-    // FIXME: if signed || not Own || opted out then readonly
-    if (this.state == 'signed' || this.state == 'signed-sync') {
+    if (this.readOnly || this.signed != false) {
         return true;
     }
     return false;
@@ -425,9 +426,7 @@ tf.LogBook.prototype.getStartTime = function() {
 tf.LogBook.prototype.hasFinished = function() {
     if (this.state == 'finished' ||
         this.state == 'finished-early' ||
-        this.state == 'retired' ||
-        this.state == 'signed' ||
-        this.state == 'signed-sync') {
+        this.state == 'retired') {
         return true;
     }
     return false;

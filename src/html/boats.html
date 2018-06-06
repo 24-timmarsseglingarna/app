@@ -21,6 +21,10 @@
               </li>
               <li class="nav-item">
                 <a href="#boats-lb" class="nav-link"
+                   data-toggle="tab">Leaderboard</a>
+              </li>
+              <li class="nav-item" id="boats-result-tab">
+                <a href="#boats-result" class="nav-link"
                    data-toggle="tab">Resultat</a>
               </li>
             </ul>
@@ -41,24 +45,51 @@
                 <table class="table table-sm">
                   <colgroup>
                     <col class="tf-col-1"></col>
-                    <col class="tf-col-1"></col>
+                    <col class="tf-col-2"></col>
                     <col class="tf-col-1"></col>
                     <col class="tf-col-4"></col>
                     <col class="tf-col-4"></col>
-                    <col class="tf-col-1"></col>
                   </colgroup>
 
                   <thead>
                     <tr>
-                      <th>Nettodistans</th>
-                      <th>Senaste Punkt</th>
-                      <th>Nr</th>
+                      <th>Netto</th>
+                      <th>Senaste punkt</th>
+                      <th>Tid</th>
                       <th>Båtnamm</th>
                       <th>Båttyp</th>
-                      <th>Segelnr</th>
                     </tr>
                   </thead>
                   <tbody id="boats-lb-tbody">
+                    <!-- dynamically filled in -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="boats-result">
+              <div class="table-responsive row">
+                <table class="table table-sm">
+                  <colgroup>
+                    <col class="tf-col-1"></col>
+                    <col class="tf-col-1"></col>
+                    <col class="tf-col-1"></col>
+                    <col class="tf-col-1"></col>
+                    <col class="tf-col-4"></col>
+                    <col class="tf-col-4"></col>
+                  </colgroup>
+
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th>Plakettdistans</th>
+                      <th>Nettodistans</th>
+                      <th>Nr</th>
+                      <th>Båtnamm</th>
+                      <th>Båttyp</th>
+                    </tr>
+                  </thead>
+                  <tbody id="boats-result-tbody">
                     <!-- dynamically filled in -->
                   </tbody>
                 </table>

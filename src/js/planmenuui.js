@@ -64,13 +64,13 @@ tf.ui.planMenu._itemClick = function(event) {
                     }
                 }
             });
-            plan.onPlanUpdate(tf.ui.logBookChanged);
+            plan.onPlanUpdate(tf.ui.updateAll);
         }
     } else {
         $('#tf-plan-plan').removeClass('disabled');
         plan = new tf.Plan(name, tf.state.defaultPod, undefined);
         tf.state.curPlan.set(plan);
-        plan.onPlanUpdate(tf.ui.logBookChanged);
+        plan.onPlanUpdate(tf.ui.updateAll);
     }
     $('.tf-plan-item').removeClass('active');
     if (!plan) {

@@ -13,8 +13,9 @@ goog.require('tf.LogBook');
 /**
  * @constructor
  */
-tf.Regatta = function(id, racesData, pod) {
+tf.Regatta = function(id, name, racesData, pod, teamsData, logData) {
     this.id = id;
+    this.name = name;
     this.racesData = racesData;
     this.pod = pod;
     this.plans = {};
@@ -34,13 +35,30 @@ tf.Regatta = function(id, racesData, pod) {
     }
     this.races = {}; // { raceId => Race() }
     this.teams = {}; // { teamId => LogBook() }
+    for (var i = 0; i < racesData.length; i++) {
+        this.races[racesData[i].id] = new tf.Race(this, racesData[i]);
+    }
+    if (teamsData) {
+        for (var i = 0; i < teamsData.length; i++) {
+            var teamData = teamsData[i];
+            var race = this.races[teamData.race_id]
+            this.teams[teamData.id] = new tf.LogBook(teamData, race, [], true);
+        }
+    }
     this.last_log_entry_time = null;
     this.last_log_update = null;
     this.log_updated = false;
+    if (logData) {
+        this._setLogData(logData);
+    }
 };
 
 tf.Regatta.prototype.getId = function() {
     return this.id;
+};
+
+tf.Regatta.prototype.getName = function() {
+    return this.name;
 };
 
 tf.Regatta.prototype.getPod = function() {
@@ -60,40 +78,49 @@ tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
     tf.serverData.getNewRegattaLog(
         this.id, teamId, lastLogUpdate,
         function(log) {
-            regatta.last_log_update = moment();
-            for (var i = 0; log != null && i < log.length; i++) {
-                id = log[i].id;
-                var teamId = log[i].team_id;
-                if (!regatta.teams[teamId]) {
-                    var teamData =
-                        tf.serverData.getTeamData(regatta.id, teamId);
-                    var race = regatta.races[teamData.race_id];
-                    if (!race) {
-                        var raceData =
-                            tf.serverData.getRaceData(teamData.race_id);
-                        race = new tf.Race(regatta, raceData);
-                        regatta.races[teamData.race_id] = race;
-                    }
-                    regatta.teams[teamId] = new tf.LogBook(teamData, race);
-                }
-                var added = regatta.teams[teamId].addLogEntryFromServer(log[i]);
-                if (added) {
-                    // mark the log as being updated
-                    regatta.log_updated = true;
-                }
-                if (regatta.last_log_entry_time == null ||
-                    log[i].updated_at.isAfter(regatta.last_log_entry_time)) {
-                    regatta.last_log_entry_time = log[i].updated_at;
-                }
-            }
+            regatta._setLogData(log);
             continueFn();
         });
 };
 
-
-tf.Regatta.prototype._timeout = function() {
+tf.Regatta.prototype._setLogData = function(log) {
+    this.last_log_update = moment();
+    for (var i = 0; log != null && i < log.length; i++) {
+        id = log[i].id;
+        var teamId = log[i].team_id;
+        if (!this.teams[teamId]) {
+            var teamData =
+                tf.serverData.getTeamData(this.id, teamId);
+            if (!teamData) {
+                continue;
+            }
+            var race = this.races[teamData.race_id];
+            if (!race) {
+                var raceData =
+                    tf.serverData.getRaceData(teamData.race_id);
+                race = new tf.Race(this, raceData);
+                this.races[teamData.race_id] = race;
+            }
+            this.teams[teamId] = new tf.LogBook(teamData, race, [], true);
+        }
+        var added = this.teams[teamId].addLogEntryFromServer(log[i]);
+        if (added) {
+            // mark the log as being updated
+            this.log_updated = true;
+        }
+        if (this.last_log_entry_time == null ||
+            log[i].updated_at.isAfter(this.last_log_entry_time)) {
+            this.last_log_entry_time = log[i].updated_at;
+        }
+    }
 };
 
+tf.Regatta.prototype.getTeamLogbook = function(teamId) {
+    return this.teams[teamId];
+};
+
+
+// FIXME: not used
 tf.Regatta.prototype.isOngoing = function() {
     // treat as ongoing up to 24 hours after last finish, in order to
     // handle late finish, but also to handle late entries
@@ -108,7 +135,7 @@ tf.Regatta.prototype.isOngoing = function() {
  */
 tf.Regatta.prototype.getLeaderBoard = function() {
     var res = [];
-    if (tf.state.curLogBook) {
+    if (tf.state.curLogBook && !this.teams[tf.state.curLogBook.teamData.id]) {
         res.push({ netdist: tf.state.curLogBook.getNetDistance(),
                    logbook: tf.state.curLogBook });
     }
@@ -117,7 +144,20 @@ tf.Regatta.prototype.getLeaderBoard = function() {
         res.push({ netdist: logbook.getNetDistance(),
                    logbook: logbook });
     }
-    res.sort(function(a, b) { return b.netdist - a.netdist; });
+    return res;
+};
+
+/*
+ * Returns: [ { 'plaquedist': <Plaque distance>
+ *              'logbook': <LogBook> } ]
+ */
+tf.Regatta.prototype.getResult = function() {
+    var res = [];
+    for (var teamId in this.teams) {
+        var logbook = this.teams[teamId];
+        res.push({ plaquedist: logbook.getPlaqueDistance(),
+                   logbook: logbook });
+    }
     return res;
 };
 

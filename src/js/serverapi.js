@@ -246,6 +246,11 @@ tf.serverAPI.getNewRegattaLog = function(regattaId, teamId,
     tf.serverAPI.getJSON(url, null, responsefn);
 };
 
+tf.serverAPI.getFullRegattaLog = function(regattaId, responsefn) {
+    var url = '/api/v1/logs?from_regatta=' + regattaId;
+    tf.serverAPI.getJSON(url, null, responsefn);
+};
+
 tf.serverAPI.postLogEntry = function(data, responsefn) {
     tf.serverAPI.postJSON('/api/v1/logs', data, responsefn);
 };

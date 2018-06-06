@@ -6,9 +6,9 @@ goog.require('tf.ui');
 goog.require('tf.ui.alert');
 
 tf.ui.boats.openPage = function(options) {
-    var race = options.race;
+    var regatta = options.regatta;
 
-    $('#boats-page-name').text(race.raceData.regatta_name);
+    $('#boats-page-name').text(regatta.getName());
 
     var fontclass = '';
     switch (tf.state.fontSize.get()) {
@@ -26,9 +26,15 @@ tf.ui.boats.openPage = function(options) {
         break;
     }
 
-    tf.ui.boats._fillStartList(race, fontclass);
+    tf.ui.boats._fillStartList(regatta, fontclass);
 
-    tf.ui.boats._fillLeaderBoard(race, fontclass);
+    tf.ui.boats._fillLeaderBoard(regatta, fontclass);
+
+    if (options.adminView) {
+        tf.ui.boats._fillResult(regatta, fontclass);
+    } else {
+        $('#boats-result-tab').hide();
+    }
 
     var page = $('#boats-page')[0];
     page.tfOptions = options || {};
@@ -37,8 +43,8 @@ tf.ui.boats.openPage = function(options) {
     document.activeElement.blur();
 };
 
-tf.ui.boats._fillStartList = function(race, fontclass) {
-    var races = tf.serverData.getRacesData(race.getRegattaId());
+tf.ui.boats._fillStartList = function(regatta, fontclass) {
+    var races = tf.serverData.getRacesData(regatta.getId());
     races.sort(function(a, b) {
         if (a.start_from.isBefore(b.start_from)) {
             return -1;
@@ -48,7 +54,7 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
             return 1;
         }
     });
-    var teams = tf.serverData.getTeamsData(race.getRegattaId());
+    var teams = tf.serverData.getTeamsData(regatta.getId());
 
     var html = '';
 
@@ -127,7 +133,7 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
             var ts = startPoints[p].sort(function(a, b) {
                 return Number(a.start_number) - Number(b.start_number);
             });
-            var point = race.getPod().getPoint(p);
+            var point = regatta.getPod().getPoint(p);
             var name = '';
             if (point) {
                 name = ' - ' + point.name;
@@ -148,30 +154,42 @@ tf.ui.boats._fillStartList = function(race, fontclass) {
     $('#boats-start').html(html);
 };
 
-tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
+tf.ui.boats._fillLeaderBoard = function(regatta, fontclass) {
     var html = '';
 
-    var lb = race.getRegatta().getLeaderBoard();
-    var updated = race.getRegatta().getLeaderBoardUpdatedTime();
+    var pod = regatta.getPod();
+    var leaderboard = regatta.getLeaderBoard();
+    leaderboard.sort(function(a, b) { return b.netdist - a.netdist; });
+    var updated = regatta.getLeaderBoardUpdatedTime();
     // clear 'updated' flag in the regatta in order to mark
     // that we've seen it.
-    race.getRegatta().log_updated = false;
+    regatta.log_updated = false;
     $('#tf-nav-boats-badge').hide(); // and immediately hide the info badge
-    for (var i = 0; i < lb.length; i++) {
-        var e = lb[i];
+    for (var i = 0; i < leaderboard.length; i++) {
+        var e = leaderboard[i];
+        var logbook = e.logbook;
 
-        var last = e.logbook.getLastPoint();
-        if (last == null) {
-            last = '';
+        var last = logbook.getLastPointAndTime();
+        var lastPoint = '';
+        var lastPointName = '';
+        var lastTime = '';
+        if (last) {
+            lastPoint = last.point;
+            var p = pod.getPoint(lastPoint);
+            if (p) {
+                lastPointName = p.name;
+            }
+            lastTime = last.time.format("HH:mm");
         }
 
-        html += '<tr><td>' + e.netdist.toFixed(1) + '</td>' +
-            '<td>' + last + '</td>' +
-            '<td>' + e.logbook.teamData.start_number + '</td>' +
-            '<td>' + e.logbook.teamData.boat_name + '</td>' +
-            '<td>' + e.logbook.teamData.boat_type_name + '</td>' +
-            '<td>' + (e.logbook.teamData.boat_sail_number || '-') +
-            '</td></tr>';
+        html += '<tr>' +
+            '<td>' + e.netdist.toFixed(1) + '</td>' +
+            '<td>' + lastPoint + ' <i>' + lastPointName + '</i></td>' +
+            '<td>' + lastTime + '</td>' +
+            '<td>' + logbook.teamData.boat_name + '</td>' +
+            '<td>' + logbook.teamData.boat_type_name + '</td>' +
+//            '<td>' + (logbook.teamData.boat_sail_number || '-') + '</td>' +
+            '</tr>';
     }
 
     if (updated) {
@@ -179,6 +197,120 @@ tf.ui.boats._fillLeaderBoard = function(race, fontclass) {
     }
     $('#boats-lb-tbody').html(html);
 };
+
+tf.ui.boats._fillResult = function(regatta, fontclass) {
+    var html = '';
+
+    var result = regatta.getResult();
+    result.sort(function(a, b) {
+        if (a.plaquedist == 0 && b.plaquedist == 0) {
+            if (a.logbook.signed && !b.logbook.signed) {
+                return -1;
+            }
+            if (!a.logbook.signed && b.logbook.signed) {
+                return 1;
+            }
+            if (a.logbook.log.length > 0 && b.logbook.log.length == 0) {
+                return -1;
+            }
+            if (a.logbook.log.length == 0 && b.logbook.log.length > 0) {
+                return 1;
+            }
+            return a.logbook.teamData.start_number -
+                b.logbook.teamData.start_number;
+        } else {
+            return b.plaquedist - a.plaquedist;
+        }
+    });
+
+    $('#tf-nav-boats-badge').hide(); // and immediately hide the info badge
+    tf.ui.boats._regatta = regatta;
+    for (var i = 0; i < result.length; i++) {
+        var e = result[i];
+        var logbook = e.logbook;
+
+        var status = '';
+        var color = '';
+
+/*
+        if (logbook.signed) {
+            color = 'bg-success'; // green
+            status = 'klar';
+        } else {
+            status = 'inte signerad';
+            color = 'bg-warning'; // yellow
+        }
+
+        switch (logbook.state) {
+        case 'finished':
+            status = '';
+            break;
+        case 'finished-early':
+        case 'retired':
+            status = 'DNF';
+            break;
+        default:
+            color = 'bg-danger';
+            status = 'ofullständig';
+        }
+*/
+        if (logbook.signed) {
+            switch (logbook.state) {
+            case 'finished':
+                status = 'OK';
+                break;
+            case 'finished-early':
+            case 'retired':
+                status = 'DNF';
+                break;
+            }
+        } else if (logbook.log.length == 0) {
+            status = 'Saknar loggbok';
+        } else {
+            switch (logbook.state) {
+            case 'finished':
+                status = 'Osignerad';
+                break;
+            case 'finished-early':
+            case 'retired':
+                status = 'DNF - osignerad';
+                break;
+            default:
+                status = 'Ofullständig';
+            }
+        }
+
+        html += '<tr onclick="tf.ui.boats.select(' + logbook.teamData.id +
+            ')">' +
+            '<td class="' + color + '">' + status + '</td>' +
+            '<td>' + e.plaquedist.toFixed(1) + '</td>' +
+            '<td>' + logbook.getNetDistance().toFixed(1) + '</td>' +
+            '<td>' + logbook.teamData.start_number + '</td>' +
+            '<td>' + logbook.teamData.boat_name + '</td>' +
+            '<td>' + logbook.teamData.boat_type_name + '</td>' +
+            '</tr>';
+    }
+
+    $('#boats-result-tbody').html(html);
+};
+
+tf.ui.boats.select = function(teamId) {
+    var logbook = tf.ui.boats._regatta.getTeamLogbook(teamId);
+    tf.state.curLogBook = logbook;
+    tf.ui.updateAll();
+    tf.ui.popPage();
+
+/*
+    tf.ui.logBook.openLogBook({
+        logBook: logbook
+    });
+*/
+    return false;
+};
+
+
+
+
 
 /* compare w/ pdf startlist
    sort on period, startpoint, startnumber

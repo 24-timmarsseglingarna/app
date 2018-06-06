@@ -30,12 +30,12 @@ tf.ui.logBook.refreshLogBook = function(options) {
     } else {
         $('#log-book-conflict').hide();
     }
-    if (logBook.state == 'signed') {
+    if (logBook.signed == 'signed') {
         $('#log-book-signed').show();
     } else {
         $('#log-book-signed').hide();
     }
-    if (logBook.state == 'signed-sync') {
+    if (logBook.signed == 'signed-sync') {
         $('#log-book-signed-sync').show();
     } else {
         $('#log-book-signed-sync').hide();
@@ -101,6 +101,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
         var boats = '';
         if (e.boats != undefined) {
             boats = e.boats.join(',');
+            // FIXME: test with boat names
         }
         var comment = e.comment || '';
 
@@ -190,7 +191,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
         $('#log-book-sign').hide();
     }
     $('#log-book-send').hide();
-    if (logBook.state == 'signed') {
+    if (logBook.signed == 'signed') {
         $('#log-book-send').show();
     }
 

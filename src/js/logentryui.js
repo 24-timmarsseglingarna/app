@@ -239,7 +239,7 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
         $('#log-entry-form-position').show();
         break;
     case 'interrupt':
-        title = 'Avbrott';
+        title = 'Avbrott i seglingen';
         tf.ui.logEntry._initGeoPosition();
         $('#log-entry-form-interrupt').show();
         $('#log-entry-form-position').show();
