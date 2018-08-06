@@ -231,6 +231,7 @@ tf.ui.boats._fillResult = function(regatta, fontclass) {
 
         var status = '';
         var color = '';
+        var dist = e.plaquedist.toFixed(1);
 
 /*
         if (logbook.signed) {
@@ -255,35 +256,30 @@ tf.ui.boats._fillResult = function(regatta, fontclass) {
         }
 */
         if (logbook.signed) {
-            switch (logbook.state) {
-            case 'finished':
-                status = 'OK';
-                break;
-            case 'finished-early':
-            case 'retired':
-                status = 'DNF';
-                break;
-            }
+            status = 'OK';
         } else if (logbook.log.length == 0) {
             status = 'Saknar loggbok';
         } else {
             switch (logbook.state) {
             case 'finished':
-                status = 'Osignerad';
-                break;
             case 'finished-early':
             case 'retired':
-                status = 'DNF - osignerad';
+                status = 'Osignerad';
                 break;
             default:
                 status = 'Ofullständig';
             }
         }
+        switch (logbook.state) {
+        case 'finished-early':
+        case 'retired':
+            dist = 'DNF';
+        }
 
         html += '<tr onclick="tf.ui.boats.select(' + logbook.teamData.id +
             ')">' +
             '<td class="' + color + '">' + status + '</td>' +
-            '<td>' + e.plaquedist.toFixed(1) + '</td>' +
+            '<td>' + dist + '</td>' +
             '<td>' + logbook.getNetDistance().toFixed(1) + '</td>' +
             '<td>' + logbook.teamData.start_number + '</td>' +
             '<td>' + logbook.teamData.boat_name + '</td>' +
