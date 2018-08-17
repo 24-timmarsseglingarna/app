@@ -337,6 +337,17 @@ tf.ui.logEntry._openLogEntry2 = function(options) {
             }
         }
 
+        if (entry.lanterns != undefined) {
+            switch (entry.lanterns) {
+            case 'on':
+                $('#log-entry-lanterns-on').prop('checked', true);
+                break;
+            case 'off':
+                $('#log-entry-lanterns-off').prop('checked', true);
+                break;
+            }
+        }
+
         if (entry.engine != undefined) {
             switch (entry.engine) {
             case 'on':

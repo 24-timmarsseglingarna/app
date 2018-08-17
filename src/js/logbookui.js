@@ -246,12 +246,12 @@ tf.ui.logBook.logBookInvalidDistClick = function(col) {
     case 'invalid-round':
         text = 'Punkt ' + e.point +
             ' har rundats mer än två gånger. ' +
-            'Sträckan räknas därför inte (se 7.3, 13.1.3 i RR-2006)';
+            'Sträckan räknas därför inte (se 7.3, 13.1.3 i RR-2018)';
         break;
     case 'invalid-leg':
         text = 'Sträckan ' + e._invalidLeg +
             ' har seglats mer än två gånger. ' +
-            'Sträckan räknas därför inte (se 7.5, 13.1.2 i RR-2006)';
+            'Sträckan räknas därför inte (se 7.5, 13.1.2 i RR-2018)';
         break;
     case 'no-leg':
         text = 'Mellan ' + e._invalidLeg + ' och ' + e.point +

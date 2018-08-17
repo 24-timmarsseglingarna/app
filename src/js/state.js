@@ -523,6 +523,7 @@ tf.state.reset = function(keepauth) {
     var password = tf.storage.getSetting('password');
     var token = tf.storage.getSetting('token');
     var personId = tf.storage.getSetting('personId');
+    var clientId = tf.storage.getSetting('clientId');
     tf.state.logout();
     localStorage.clear();
     tf.storage.init();
@@ -531,7 +532,8 @@ tf.state.reset = function(keepauth) {
             email: email,
             password: password,
             token: token,
-            personId: personId
+            personId: personId,
+            clientId: clientId
         };
     }
     tf.storage.setSettings(props, true);
