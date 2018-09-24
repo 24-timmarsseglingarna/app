@@ -95,6 +95,10 @@ export function initP(doClear) {
         'sendLogToServer': true, // boolean()
         'serverId': 1, // 1 (production) | 2 (staging)
 
+        'trackerEnabled': false,
+        'trackerDistance': 100,
+        'trackerInterval': 30,
+
         /*
          * Race data
          */

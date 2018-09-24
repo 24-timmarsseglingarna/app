@@ -193,6 +193,55 @@
               </div>
             </div>
 
+            <hr/>
+
+            <div class="form-group row align-items-center">
+              <label class="col-6 col-md-2 col-form-label
+                            text-md-right font-weight-bold"
+                     for="settings-tracker-enabled">Tracker</label>
+              <div class="col-6 col-md-4">
+                <input type="checkbox"
+                       id="settings-tracker-enabled"/>
+              </div>
+              <div class="offset-md-2 col-12 col-md-10">
+                <p class="form-text text-muted">
+                  Experimentell funktion - använd inte!
+                </p>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label class="col-md-2 col-form-label
+                            text-md-right font-weight-bold"
+                     for="settings-tracker-interval">Tracker pollintervall</label>
+              <div class="col-md-8">
+                <input type="number" min="30" max="3600" step="30"
+                       class="form-control"
+                       id="settings-tracker-interval"/>
+                <div class="invalid-feedback">30-3600 sekunder</div>
+                <p class="form-text text-muted">
+                  Hur ofta (i sekunder) enheten skall ta GPS position.
+                  (Enbart Android).
+                </p>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label class="col-md-2 col-form-label
+                            text-md-right font-weight-bold"
+                     for="settings-tracker-distance">Tracker avstånd</label>
+              <div class="col-md-8">
+                <input type="number" min="1" max="3600" step="1"
+                       class="form-control"
+                       id="settings-tracker-distance"/>
+                <div class="invalid-feedback">1-3704 meter</div>
+                <p class="form-text text-muted">
+                  Hur långt (i meter) enheten måste förflytta sig innan den
+                  rapporterar sin position. 0 slår på RAW provider.
+                </p>
+              </div>
+            </div>
+
           </div>
 
         </form>
