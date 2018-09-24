@@ -1099,14 +1099,18 @@ tf.ui.updateStatusBarTime = function() {
     function p(num) {
         return (num < 10 ? '0' : '') + num;
     }
-    var raceLeft = tf.state.curLogBook.getRaceLeftMinutes();
-    if (raceLeft < 0) {
-        sign = '-';
-        raceLeft = -raceLeft;
+    if (tf.state.curLogBook) {
+        var raceLeft = tf.state.curLogBook.getRaceLeftMinutes();
+        if (raceLeft < 0) {
+            sign = '-';
+            raceLeft = -raceLeft;
+        }
+        var hr = Math.floor(raceLeft / 60);
+        var mi = Math.floor(raceLeft % 60);
+        $('#tf-status-time').text(sign + p(hr) + ':' + p(mi));
+    } else {
+        $('#tf-status-time').text('--:--');
     }
-    var hr = Math.floor(raceLeft / 60);
-    var mi = Math.floor(raceLeft % 60);
-    $('#tf-status-time').text(sign + p(hr) + ':' + p(mi));
 };
 
 tf.ui.headerTimer = null;
