@@ -1,22 +1,27 @@
 /* -*- js -*- */
 
+import {pushPage, popPage} from './pageui.js';
+
 /**
  * HTML-based alert function.  Does not use window.alert().
  */
 
-goog.provide('tf.ui.alert');
-
-goog.require('tf.ui');
-
-tf.ui.alert = function(html) {
+export function alert(html) {
     $('#alert-body').html(html);
-    tf.ui.pushPage(function() { $('#alert-page').modal({backdrop: 'static'}); },
-                   function() { $('#alert-page').modal('hide'); });
+    pushPage(function() { $('#alert-page').modal({backdrop: 'static'}); },
+             function() { $('#alert-page').modal('hide'); });
+};
+
+export function alertUpgrade(text) {
+    alert(
+        '<p>Den här versionen av appen är inte kompatibel med servern. ' +
+            'Du behöver uppgradera appen.</p>' +
+            '<p>' + text + '</p>');
 };
 
 $(document).ready(function() {
     $('#alert-ok').on('click', function() {
-        tf.ui.popPage();
+        popPage();
         return false;
     });
 });

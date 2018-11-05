@@ -1,0 +1,34 @@
+{
+  "name": "24h",
+  "version": "2.0.2",
+  "description": "App för SXK 24-timmarsseglingar",
+  "main": "main.js",
+  "directories": {
+    "doc": "doc",
+    "test": "test"
+  },
+  "dependencies": {
+    "moment": "^2.22.2",
+    "ol": "^5.2.0",
+    "tempusdominus-bootstrap-4": "^5.1.2",
+    "tempusdominus-core": "^5.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/24-timmarsseglingarna/app.git"
+  },
+  "keywords": [
+    "sxk",
+    "24-timmars"
+  ],
+  "author": "mbj4668@gmail.com",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/24-timmarsseglingarna/app/issues"
+  },
+  "homepage": "https://github.com/24-timmarsseglingarna/app#readme"
+}

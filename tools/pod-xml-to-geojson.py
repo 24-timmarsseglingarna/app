@@ -18,7 +18,7 @@ import datetime
 if sys.version < '3':
     import codecs
 
-# points number 9000 and above are real points; they are used to mark
+# points number 9000 and above are not real points; they are used to mark
 # area borders
 MAXPOINT=8999
 

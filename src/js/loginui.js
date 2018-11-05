@@ -1,42 +1,42 @@
 /* -*- js -*- */
 
-goog.provide('tf.ui.loginPage');
+import {curState, checkServerCompatible, login} from './state.js';
+import {pushPage, popPage} from './pageui.js';
+import {alertUpgrade} from './alertui.js';
+import {URL} from './serverapi.js';
+import {isCordova} from './util.js';
+import {getSetting} from './storage.js';
 
-goog.require('tf.serverAPI');
-goog.require('tf.ui');
-
-tf.ui.loginPage.openPage = function() {
-    if (tf.state.isServerCompatible != true) {
-        tf.state.checkServerCompatible(function(response) {
+export function openPage() {
+    if (curState.isServerCompatible != true) {
+        checkServerCompatible(function(response) {
             if (response == true) {
-                tf.ui.loginPage._openPage2();
+                openPage2();
             } else {
-                tf.ui.alertUpgrade(response.errorStr);
+                alertUpgrade(response.errorStr);
             }
         });
     } else {
-        tf.ui.loginPage._openPage2();
+        openPage2();
     }
 };
 
-tf.ui.loginPage._openPage2 = function() {
+function openPage2() {
     $('#login-error-btn').hide();
     $('#login-submit').val('Login');
-    $('#login-email').val(tf.storage.getSetting('email'));
-    $('#login-password').val(tf.storage.getSetting('password'));
-    $('#login-save-password').prop('checked',
-                                   tf.storage.getSetting('savePassword'));
-
-    tf.ui.pushPage(function() { $('#login-page').modal({backdrop: 'static'}); },
-                   function() { $('#login-page').modal('hide'); });
+    $('#login-email').val(getSetting('email'));
+    $('#login-password').val(getSetting('password'));
+    $('#login-save-password').prop('checked', getSetting('savePassword'));
+    pushPage(function() { $('#login-page').modal({backdrop: 'static'}); },
+             function() { $('#login-page').modal('hide'); });
     document.activeElement.blur();
 };
 
-tf.ui.loginPage.loginResponseFn = function(response) {
+function loginResponseFn(response) {
     $('#login-submit').val('Login');
     if (response == true) {
         console.log('loginPage response == true');
-        tf.ui.popPage();
+        popPage();
     } else {
         console.log('loginPage response != true');
         $('#login-error-btn').val(response.errorStr);
@@ -44,35 +44,34 @@ tf.ui.loginPage.loginResponseFn = function(response) {
     }
 };
 
-tf.ui.loginPage._submit = function() {
+function submit() {
     $('#login-error-btn').hide();
     $('#login-submit').val('Loggar in...');
-    tf.state.login($('#login-email').val(),
-                   $('#login-password').val(),
-                   $('#login-save-password').prop('checked'),
-                   tf.ui.loginPage.loginResponseFn);
+    login($('#login-email').val(),
+          $('#login-password').val(),
+          $('#login-save-password').prop('checked'),
+          loginResponseFn);
 };
 
 $(document).ready(function() {
-    url = tf.serverAPI.URL;
-    if (tf.state.isCordova) {
+    if (isCordova) {
         $('#login-register').on('click', function() {
             SafariViewController.isAvailable(function(available) {
                 if (available) {
                     SafariViewController.show({
-                        url: url,
+                        url: URL,
                         hidden: false,
                         animated: false
                         //barColor: "#0000ff", // default is white (iOS 10 only)
                         //tintColor: "#ffffff" // default is ios blue
                     });
                 } else {
-                    window.open(url);
+                    window.open(URL);
                 }
             });
         });
     } else {
-        $('#login-register').attr('href', url);
+        $('#login-register').attr('href', URL);
     }
 
     $('#login-password').on('keyup', function(e) {
@@ -83,7 +82,7 @@ $(document).ready(function() {
         if (e.keyCode == 13) {
             if ($('#login-email').val() != '' &&
                 $('#login-password').val() != '') {
-                tf.ui.loginPage._submit();
+                submit();
             }
         }
     });
@@ -93,7 +92,7 @@ $(document).ready(function() {
     });
 
     $('#login-submit').on('click', function() {
-        tf.ui.loginPage._submit();
+        submit();
         return false;
     });
 });

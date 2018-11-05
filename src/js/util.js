@@ -1,12 +1,7 @@
 /* -*- js -*- */
 
-/**
- * Define a namespace for the "24-timmars" application.
- */
-goog.provide('tf');
-
 // Define 'observable' variables.
-tf.defineVariable = function(obj, name, val) {
+export function defineVariable(obj, name, val) {
     obj[name] = {
         'get': function() {
             return obj[name]._val;
@@ -16,7 +11,7 @@ tf.defineVariable = function(obj, name, val) {
                 return;
             }
             obj[name]._val = val;
-            fns = obj[name]._onChangeFns;
+            var fns = obj[name]._onChangeFns;
             for (var i = 0; i < fns.length; i++) {
                 fns[i](val);
             }
@@ -29,14 +24,24 @@ tf.defineVariable = function(obj, name, val) {
     };
 };
 
-tf.legName = function(pointA, pointB) {
+export function legName(pointA, pointB) {
     return [pointA, pointB].sort().join('-');
 };
 
-tf.uuid = function() {
+export function defaultClientId() {
+    var clientId;
+    if (isCordova) {
+        clientId = device.platform + '-' + device.model + '-' + device.uuid;
+    } else {
+        clientId = uuid();
+    }
+    return clientId;
+};
+
+export function uuid() {
     var dt = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
-            /[xy]/g,
+        /[xy]/g,
         function(c) {
             var r = (dt + Math.random() * 16) % 16 | 0;
             dt = Math.floor(dt / 16);
@@ -44,3 +49,9 @@ tf.uuid = function() {
         });
     return uuid;
 };
+
+export var numberToName = function(n) {
+    return String.fromCharCode(64 + n);
+};
+
+export var isCordova = 'cordova' in window;

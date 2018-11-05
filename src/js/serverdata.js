@@ -1,46 +1,53 @@
 /* -*- js -*- */
 
-goog.provide('tf.serverData');
+import {getCachedMyTeams, getCachedTeams, getCachedRaces,
+        setCachedMyTeams, setCachedTeams, setCachedRaces} from './storage.js';
+import * as serverAPI from './serverapi';
 
-goog.require('tf');
+var myTeams;
+var myTeamsETag;
+var myRegattaIds;
+var races;
+var racesETags;
+var teams;
+var teamsETags;
+var clientId;
 
 /**
  * Note that this is not an object b/c this a global property.
  */
-tf.serverData.init = function(url) {
-    tf.serverData._url = url;
+export function init(clientIdV) {
     var m;
     // My teams in the races I am participating in.
-    m = tf.storage.getCachedMyTeams() || {data: [], etags: null};
-    tf.serverData._myTeams = m.data;
-    tf.serverData._myTeamsETag = m.etag;
+    m = getCachedMyTeams() || {data: [], etags: null};
+    myTeams = m.data;
+    myTeamsETag = m.etag;
     // The regatta ids in the regattas I am participating in.
-    tf.serverData._myRegattaIds =
-        tf.serverData._getRegattaIds(tf.serverData._myTeams);
+    myRegattaIds = getRegattaIds(myTeams);
     // All races in the regattas I am participating in.
-    m = tf.storage.getCachedRaces() || {data: {}, etags: {}};
-    tf.serverData._races = m.data;
-    tf.serverData._racesETags = m.etags;
+    m = getCachedRaces() || {data: {}, etags: {}};
+    races = m.data;
+    racesETags = m.etags;
     // All teams in the regattas I am participating in.
-    m = tf.storage.getCachedTeams() || {data: {}, etags: {}};
-    tf.serverData._teams = m.data;
-    tf.serverData._teamsETags = m.etags;
-
+    m = getCachedTeams() || {data: {}, etags: {}};
+    teams = m.data;
+    teamsETags = m.etags;
+    clientId = clientIdV;
 };
 
-tf.serverData.clearCache = function() {
-    tf.serverData._myTeams = [];
-    tf.serverData._myTeamsETag = null;
-    tf.serverData._myRegattaIds = [];
+export function clearCache() {
+    myTeams = [];
+    myTeamsETag = null;
+    myRegattaIds = [];
 };
 
-tf.serverData.getNewRegattaLog = function(regattaId, teamId,
-                                          lastUpdate, responsefn) {
-    tf.serverAPI.getNewRegattaLog(
+export function getNewRegattaLog(regattaId, teamId,
+                                 lastUpdate, responsefn) {
+    serverAPI.getNewRegattaLog(
         regattaId, teamId, lastUpdate,
-        function(data, _etag) {
+        function(data) {
             if (data) {
-                var log = data.map(tf.serverData.mkLogSummaryData);
+                var log = data.map(mkLogSummaryData);
                 responsefn(log);
             } else {
                 responsefn(null);
@@ -48,12 +55,12 @@ tf.serverData.getNewRegattaLog = function(regattaId, teamId,
         });
 };
 
-tf.serverData.getRegattaLogs = function(regattaId, responsefn) {
-    tf.serverAPI.getFullRegattaLog(
+export function getRegattaLogs(regattaId, responsefn) {
+    serverAPI.getFullRegattaLog(
         regattaId,
-        function(data, _etag) {
+        function(data) {
             if (data) {
-                var log = data.map(tf.serverData.mkLogData);
+                var log = data.map(mkLogData);
                 responsefn(log);
             } else {
                 responsefn(null);
@@ -61,43 +68,43 @@ tf.serverData.getRegattaLogs = function(regattaId, responsefn) {
         });
 };
 
-tf.serverData.getRegattaTeams = function(regattaId, responsefn) {
-    tf.serverAPI.getTeamsPerRegatta(
+export function getRegattaTeams(regattaId, responsefn) {
+    serverAPI.getTeamsPerRegatta(
         [regattaId],
         [null],
-        function(r, teamsETags) {
+        function(r) {
             var teams = null;
             if (r) {
-                teams = r[regattaId].map(tf.serverData.mkTeamData);
+                teams = r[regattaId].map(mkTeamData);
             }
             responsefn(teams);
         });
 };
 
-tf.serverData.getRegattaRaces = function(regattaId, responsefn) {
-    tf.serverAPI.getRacesPerRegatta(
+export function getRegattaRaces(regattaId, responsefn) {
+    serverAPI.getRacesPerRegatta(
         [regattaId],
         [null],
-        function(r, racesETags) {
+        function(r) {
             var races = null;
             if (r) {
-                races = r[regattaId].map(tf.serverData.mkRaceData);
+                races = r[regattaId].map(mkRaceData);
             }
             responsefn(races);
         });
 };
 
 
-tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
+export function getNewMyLog(teamId, lastUpdate, responsefn) {
     var client;
     if (lastUpdate) {
-        client = tf.state.clientId.get();
+        client = clientId.get();
     }
-    tf.serverAPI.getNewMyLog(
+    serverAPI.getNewMyLog(
         teamId, client, lastUpdate,
-        function(data, _etag) {
+        function(data) {
             if (data) {
-                var log = data.map(tf.serverData.mkLogData);
+                var log = data.map(mkLogData);
                 responsefn(log);
             } else {
                 responsefn(null);
@@ -105,9 +112,9 @@ tf.serverData.getNewMyLog = function(teamId, lastUpdate, responsefn) {
         });
 };
 
-tf.serverData.postLogEntry = function(teamId, data, responsefn) {
-    tf.serverAPI.postLogEntry(
-        tf.serverData.mkServerLogData(data, teamId),
+export function postLogEntry(teamId, data, responsefn) {
+    serverAPI.postLogEntry(
+        mkServerLogData(data, teamId),
         function(res) {
             if (res && res.id) {
                 responsefn(res.id, res.gen);
@@ -117,10 +124,10 @@ tf.serverData.postLogEntry = function(teamId, data, responsefn) {
         });
 };
 
-tf.serverData.patchLogEntry = function(logId, data, responsefn) {
-    tf.serverAPI.patchLogEntry(
+export function patchLogEntry(logId, data, responsefn) {
+    serverAPI.patchLogEntry(
         logId,
-        tf.serverData.mkServerLogData(data),
+        mkServerLogData(data),
         function(res) {
             if (res == 'conflict') {
                 responsefn('conflict');
@@ -133,7 +140,7 @@ tf.serverData.patchLogEntry = function(logId, data, responsefn) {
         });
 };
 
-tf.serverData._getRegattaIds = function(myTeams) {
+function getRegattaIds(myTeams) {
     var rIds = [];
     for (var i = 0; i < myTeams.length; i++) {
         var regattaId = myTeams[i].regatta_id;
@@ -144,83 +151,83 @@ tf.serverData._getRegattaIds = function(myTeams) {
     return rIds;
 };
 
-tf.serverData.update = function(personId, continueFn) {
-    tf.serverAPI.getActiveTeams(personId, tf.serverData._myTeamsETag,
-    function(srvTeams, myTeamsETag) {
-        var myTeams = null;
-        if (srvTeams == null) {
-            // error, maybe network issues
-            continueFn();
-            return;
-        } else if (srvTeams == 'notmodified') {
-            myTeams = tf.serverData._myTeams;
-        } else {
-            myTeams = srvTeams.map(tf.serverData.mkTeamData);
-            if (myTeams) {
-                tf.serverData._myTeams = myTeams;
-                tf.serverData._myTeamsETag = myTeamsETag;
-                tf.storage.setCachedMyTeams({data: myTeams,
-                                             etag: myTeamsETag});
+export function updateServerData(personId, continueFn) {
+    serverAPI.getActiveTeams(
+        personId, myTeamsETag,
+        function(srvTeams, newMyTeamsETag) {
+            var newMyTeams = null;
+            if (srvTeams == null) {
+                // error, maybe network issues
+                continueFn();
+                return;
+            } else if (srvTeams == 'notmodified') {
+                newMyTeams = myTeams;
+            } else {
+                newMyTeams = srvTeams.map(mkTeamData);
+                if (newMyTeams) {
+                    myTeams = newMyTeams;
+                    myTeamsETag = newMyTeamsETag;
+                    setCachedMyTeams({data: newMyTeams,
+                                      etag: newMyTeamsETag});
+                }
             }
-        }
-        if (myTeams != null) {
-            var rIds = tf.serverData._getRegattaIds(myTeams);
-            tf.serverData._myRegattaIds = rIds;
-            tf.serverAPI.getRacesPerRegatta(
-                rIds,
-                tf.serverData._racesETags,
-                function(r, racesETags) {
-                    var races = null;
-                    if (r) {
-                        races = {};
-                        for (var regattaId in r) {
-                            if (r[regattaId] == 'notmodified') {
-                                races[regattaId] =
-                                    tf.serverData._races[regattaId];
-                            } else {
-                                races[regattaId] =
-                                    r[regattaId].map(
-                                        tf.serverData.mkRaceData);
+            if (newMyTeams != null) {
+                var rIds = getRegattaIds(newMyTeams);
+                myRegattaIds = rIds;
+                serverAPI.getRacesPerRegatta(
+                    rIds,
+                    racesETags,
+                    function(r, newRacesETags) {
+                        var newRaces = null;
+                        if (r) {
+                            newRaces = {};
+                            for (var regattaId in r) {
+                                if (r[regattaId] == 'notmodified') {
+                                    newRaces[regattaId] =
+                                        races[regattaId];
+                                } else {
+                                    newRaces[regattaId] =
+                                        r[regattaId].map(
+                                            mkRaceData);
+                                }
                             }
                         }
+                        if (newRaces) {
+                            races = newRaces;
+                            racesETags = newRacesETags;
+                            setCachedRaces({
+                                data: races,
+                                etags: racesETags});
+                        }
+                        updateTeams(continueFn);
                     }
-                    if (races) {
-                        tf.serverData._races = races;
-                        tf.serverData._racesETags = racesETags;
-                        tf.storage.setCachedRaces({
-                            data: races,
-                            etags: racesETags});
-                    }
-                    tf.serverData.updateTeams(continueFn);
-                }
-            );
-        }
-    });
+                );
+            }
+        });
 };
 
-tf.serverData.updateTeams = function(continueFn) {
-    tf.serverAPI.getTeamsPerRegatta(
-        tf.serverData._myRegattaIds,
-        tf.serverData._teamsETags,
-        function(r, teamsETags) {
-            var teams = null;
+function updateTeams(continueFn) {
+    serverAPI.getTeamsPerRegatta(
+        myRegattaIds,
+        teamsETags,
+        function(r, newTeamsETags) {
+            var newTeams = null;
             if (r) {
-                teams = {};
+                newTeams = {};
                 for (var regattaId in r) {
                     if (r[regattaId] == 'notmodified') {
-                        teams[regattaId] =
-                            tf.serverData._teams[regattaId];
+                        newTeams[regattaId] = teams[regattaId];
                     } else {
-                        teams[regattaId] =
+                        newTeams[regattaId] =
                             r[regattaId].map(
-                                tf.serverData.mkTeamData);
+                                mkTeamData);
                     }
                 }
             }
-            if (teams) {
-                tf.serverData._teams = teams;
-                tf.serverData._teamsETags = teamsETags;
-                tf.storage.setCachedTeams({
+            if (newTeams) {
+                teams = newTeams;
+                teamsETags = newTeamsETags;
+                setCachedTeams({
                     data: teams,
                     etags: teamsETags});
             }
@@ -234,15 +241,15 @@ tf.serverData.updateTeams = function(continueFn) {
  * Return: Race data for the active races the logged in user
  * participates in.
  */
-tf.serverData.getMyRaces = function() {
+export function getMyRaces() {
     var r = [];
-    for (var i = 0; i < tf.serverData._myTeams.length; i++) {
-        var team = tf.serverData._myTeams[i];
-        var races = tf.serverData._races[team.regatta_id];
-        for (var j = 0; j < races.length; j++) {
-            if (races[j].id == team.race_id) {
-                r.push({raceData: races[j],
-                        teamData: team});
+    for (var i = 0; i < myTeams.length; i++) {
+        var t = myTeams[i];
+        var rs = races[t.regatta_id];
+        for (var j = 0; j < rs.length; j++) {
+            if (rs[j].id == t.race_id) {
+                r.push({raceData: rs[j],
+                        teamData: t});
             }
         }
     }
@@ -252,19 +259,19 @@ tf.serverData.getMyRaces = function() {
 /**
  * Return: Race data for all races in the given regatta.
  */
-tf.serverData.getRacesData = function(regattaId) {
-    return tf.serverData._races[regattaId] || [];
+export function getRacesData(regattaId) {
+    return races[regattaId] || [];
 };
 
 /**
  * Return: Race data for the given race.
  */
-tf.serverData.getRaceData = function(raceId) {
-    for (var regattaId in tf.serverData._races) {
-        var races = tf.serverData._races[regattaId];
-        for (var i = 0; i < races.length; i++) {
-            if (races[i].id == raceId) {
-                return races[i];
+export function getRaceData(raceId) {
+    for (var regattaId in races) {
+        var rs = races[regattaId];
+        for (var i = 0; i < rs.length; i++) {
+            if (rs[i].id == raceId) {
+                return rs[i];
             }
         }
     }
@@ -275,10 +282,10 @@ tf.serverData.getRaceData = function(raceId) {
  * Return: Team data for the team that the logged in user belong to
  * in the given race.
  */
-tf.serverData.getMyTeamData = function(raceId) {
-    for (var i = 0; i < tf.serverData._myTeams.length; i++) {
-        if (tf.serverData._myTeams[i].race_id == raceId) {
-            return tf.serverData._myTeams[i];
+export function getMyTeamData(raceId) {
+    for (var i = 0; i < myTeams.length; i++) {
+        if (myTeams[i].race_id == raceId) {
+            return myTeams[i];
         }
     }
     return null;
@@ -287,18 +294,18 @@ tf.serverData.getMyTeamData = function(raceId) {
 /**
  * Return: Team data for all teams in the given regatta.
  */
-tf.serverData.getTeamsData = function(regattaId) {
-    return tf.serverData._teams[regattaId];
+export function getTeamsData(regattaId) {
+    return teams[regattaId];
 };
 
 /**
  * Return: Team data for the given team in the given regatta.
  */
-tf.serverData.getTeamData = function(regattaId, teamId) {
-    var teams = tf.serverData._teams[regattaId];
-    for (var i = 0; i < teams.length; i++) {
-        if (teams[i].id == teamId) {
-            return teams[i];
+export function getTeamData(regattaId, teamId) {
+    var ts = teams[regattaId];
+    for (var i = 0; i < ts.length; i++) {
+        if (ts[i].id == teamId) {
+            return ts[i];
         }
     }
 };
@@ -312,7 +319,7 @@ tf.serverData.getTeamData = function(regattaId, teamId) {
  * subset of the server representation.
  */
 
-tf.serverData.mkTeamData = function(s) {
+function mkTeamData(s) {
     var r = {
         id:               s.id,                // int
         start_number:     s.start_number,      // int
@@ -328,7 +335,7 @@ tf.serverData.mkTeamData = function(s) {
     return r;
 };
 
-tf.serverData.mkRaceData = function(s) {
+function mkRaceData(s) {
     var r = {
         id:             s.id,                  // int
         organizer_name: s.organizer_name,      // string
@@ -344,7 +351,7 @@ tf.serverData.mkRaceData = function(s) {
     return r;
 };
 
-tf.serverData.mkLogData = function(s) {
+function mkLogData(s) {
     var r = {
         id:               s.id,                // int
         team_id:          s.team_id,           // int
@@ -359,11 +366,11 @@ tf.serverData.mkLogData = function(s) {
     if (s.point) {
         r.point = s.point;                     // int
     }
-    tf.serverData.parseJSONLogData(r, s.data);
+    parseJSONLogData(r, s.data);
     return r;
 };
 
-tf.serverData.mkLogSummaryData = function(s) {
+function mkLogSummaryData(s) {
     var r = {
         id:               s.id,                // int
         team_id:          s.team_id,           // int
@@ -378,12 +385,12 @@ tf.serverData.mkLogSummaryData = function(s) {
 /**
  * Convert internal log data to data sent to the server.
  */
-tf.serverData.mkServerLogData = function(r, teamId) {
+function mkServerLogData(r, teamId) {
     // never include the log id in the payload
     // 'user_id' and 'updated_at' are filled in by the server
     var s = {
         // always add our client identifier to entries modified by us
-        client: tf.state.clientId.get(),
+        client: clientId.get(),
     };
     if (teamId) { // not set on patch
         s.team_id = teamId;
@@ -459,14 +466,15 @@ tf.serverData.mkServerLogData = function(r, teamId) {
     return s;
 };
 
-tf.serverData.parseJSONLogData = function(r, dataStr) {
+function parseJSONLogData(r, dataStr) {
     try {
-        data = JSON.parse(dataStr);
+        var data = JSON.parse(dataStr);
         // simply copy everything from the data field to the log entry
         for (var k in data) {
             r[k] = data[k];
         }
     } catch (err) {
+        // don't use the error
     }
 
 };

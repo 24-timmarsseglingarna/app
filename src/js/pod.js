@@ -1,55 +1,48 @@
 /* -*- js -*- */
 
-goog.provide('tf.Pod');
-
-goog.require('tf');
-
-
-tf.pod = {};
-
 /**
  * Point type start
  * @const {number}
  */
-tf.pod.START_POINT = 1;
+var START_POINT = 1;
 
 /**
  * Point type turning point
  * @const {number}
  */
-tf.pod.TURNING_POINT = 2;
+var TURNING_POINT = 2;
 
 
 /**
  * @constructor
  */
-tf.Pod = function(spec) {
+export function Pod(spec) {
     /**
-     * The `type` is one of tf.pod.START_POINT or tf.pod.TURNING_POINT
+     * The `type` is one of START_POINT or TURNING_POINT
      * The `legs` maps a point to a distance
-     * @type {{number: tf.Point,
+     * @type {{number: string,
      *         type: integer,
-     *         legs: Object<tf.Point, {dist: string}>
+     *         legs: Object<string, {dist: string}>
      *         }}
      */
     this.points = {};
     this.spec = spec;
 
-    this._addPoints(spec.startPoints, tf.pod.START_POINT);
-    this._addPoints(spec.turningPoints, tf.pod.TURNING_POINT);
+    this._addPoints(spec.startPoints, START_POINT);
+    this._addPoints(spec.turningPoints, TURNING_POINT);
     this._addLegs(spec.inshoreLegs);
     this._addLegs(spec.offshoreLegs);
 };
 
-tf.Pod.prototype.getSpec = function() {
+Pod.prototype.getSpec = function() {
     return this.spec;
 };
 
-tf.Pod.prototype.getPoint = function(a) {
+Pod.prototype.getPoint = function(a) {
     return this.points[a];
 };
 
-tf.Pod.prototype.getDistance = function(a, b) {
+Pod.prototype.getDistance = function(a, b) {
     var x = this.points[a];
     if (x) {
         x = x.legs[b];
@@ -60,7 +53,7 @@ tf.Pod.prototype.getDistance = function(a, b) {
     return -1; // invalid leg
 };
 
-tf.Pod.prototype.getAddTime = function(a, b) {
+Pod.prototype.getAddTime = function(a, b) {
     var x = this.points[a];
     if (x) {
         x = x.legs[b];
@@ -71,7 +64,7 @@ tf.Pod.prototype.getAddTime = function(a, b) {
     return -1; // invalid leg
 };
 
-tf.Pod.prototype.getNeighbors = function(a) {
+Pod.prototype.getNeighbors = function(a) {
     var x = this.points[a];
     if (x) {
         return x.legs;
@@ -89,7 +82,7 @@ tf.Pod.prototype.getNeighbors = function(a) {
  * less than `maxSteps` legs, but there is a shorter path with more
  * steps.
  */
-tf.Pod.prototype.getShortestPath = function(a, b, maxSteps) {
+Pod.prototype.getShortestPath = function(a, b, maxSteps) {
     var visited = {};
     var candidates = {};
     candidates[a] = {dist: 0, points: []};
@@ -110,16 +103,17 @@ tf.Pod.prototype.getShortestPath = function(a, b, maxSteps) {
                     }
                     var n = curNeighbors[nkey];
                     var dist = cur.dist + n.dist;
+                    var p;
                     if (nkey in candidates) { // we've been here before
-                        old = candidates[nkey];
+                        var old = candidates[nkey];
                         if (dist < old.dist) { // shorter path
-                            var p = cur.points.slice(0); // copy points array
+                            p = cur.points.slice(0); // copy points array
                             p.push(curidx);
                             candidates[nkey] = {dist: dist, points: p};
                         }
                     } else if (shortestPath == null ||
                                dist < shortestPath.dist) {
-                        var p = cur.points.slice(0); // copy points array
+                        p = cur.points.slice(0); // copy points array
                         p.push(curidx);
                         candidates[nkey] = {dist: dist, points: p};
                     }
@@ -138,7 +132,7 @@ tf.Pod.prototype.getShortestPath = function(a, b, maxSteps) {
 };
 
 
-tf.Pod.prototype._addPoints = function(points, type) {
+Pod.prototype._addPoints = function(points, type) {
     for (var i = 0; i < points.features.length; i++) {
         var feature = points.features[i];
         var p = feature.properties;
@@ -149,7 +143,7 @@ tf.Pod.prototype._addPoints = function(points, type) {
     }
 };
 
-tf.Pod.prototype._addLegs = function(legs) {
+Pod.prototype._addLegs = function(legs) {
     for (var i = 0; i < legs.features.length; i++) {
         var p = legs.features[i].properties;
         var v = {dist: p.dist};

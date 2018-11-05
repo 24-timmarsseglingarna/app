@@ -1,19 +1,17 @@
 /* -*- js -*- */
 
-goog.provide('tf.Regatta');
-
-goog.require('tf');
-goog.require('tf.LogBook');
+import {Race} from './race.js';
+import {LogBook} from './logbook.js';
+import {getNewRegattaLog, getTeamData, getRaceData} from './serverdata.js';
 
 /**
  * Regatta data
  */
 
-
 /**
  * @constructor
  */
-tf.Regatta = function(id, name, racesData, pod, teamsData, logData) {
+export function Regatta(id, name, racesData, pod, teamsData, logData) {
     this.id = id;
     this.name = name;
     this.racesData = racesData;
@@ -21,7 +19,8 @@ tf.Regatta = function(id, name, racesData, pod, teamsData, logData) {
     this.plans = {};
     this.first_start = null;
     this.last_finish = null;
-    for (var i = 0; i < racesData.length; i++) {
+    var i;
+    for (i = 0; i < racesData.length; i++) {
         if (this.first_start == null ||
             racesData[i].start_from.isBefore(this.first_start)) {
             this.first_start = racesData[i].start_from;
@@ -35,14 +34,14 @@ tf.Regatta = function(id, name, racesData, pod, teamsData, logData) {
     }
     this.races = {}; // { raceId => Race() }
     this.teams = {}; // { teamId => LogBook() }
-    for (var i = 0; i < racesData.length; i++) {
-        this.races[racesData[i].id] = new tf.Race(this, racesData[i]);
+    for (i = 0; i < racesData.length; i++) {
+        this.races[racesData[i].id] = new Race(this, racesData[i]);
     }
     if (teamsData) {
-        for (var i = 0; i < teamsData.length; i++) {
+        for (i = 0; i < teamsData.length; i++) {
             var teamData = teamsData[i];
-            var race = this.races[teamData.race_id]
-            this.teams[teamData.id] = new tf.LogBook(teamData, race, [], true);
+            var race = this.races[teamData.race_id];
+            this.teams[teamData.id] = new LogBook(teamData, race, [], true);
         }
     }
     this.last_log_entry_time = null;
@@ -53,29 +52,29 @@ tf.Regatta = function(id, name, racesData, pod, teamsData, logData) {
     }
 };
 
-tf.Regatta.prototype.getId = function() {
+Regatta.prototype.getId = function() {
     return this.id;
 };
 
-tf.Regatta.prototype.getName = function() {
+Regatta.prototype.getName = function() {
     return this.name;
 };
 
-tf.Regatta.prototype.getPod = function() {
+Regatta.prototype.getPod = function() {
     return this.pod;
 };
 
-tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
+Regatta.prototype.updateLogFromServer = function(continueFn, curLogBook) {
     var regatta = this;
     var lastLogUpdate = null;
     if (this.last_log_entry_time) {
         lastLogUpdate = this.last_log_entry_time.toISOString();
     }
     var teamId = null;
-    if (tf.state.curLogBook) {
-        teamId = tf.state.curLogBook.teamData.id;
+    if (curLogBook) {
+        teamId = curLogBook.teamData.id;
     }
-    tf.serverData.getNewRegattaLog(
+    getNewRegattaLog(
         this.id, teamId, lastLogUpdate,
         function(log) {
             regatta._setLogData(log);
@@ -83,25 +82,22 @@ tf.Regatta.prototype.updateLogFromServer = function(continueFn) {
         });
 };
 
-tf.Regatta.prototype._setLogData = function(log) {
+Regatta.prototype._setLogData = function(log) {
     this.last_log_update = moment();
     for (var i = 0; log != null && i < log.length; i++) {
-        id = log[i].id;
         var teamId = log[i].team_id;
         if (!this.teams[teamId]) {
-            var teamData =
-                tf.serverData.getTeamData(this.id, teamId);
+            var teamData = getTeamData(this.id, teamId);
             if (!teamData) {
                 continue;
             }
             var race = this.races[teamData.race_id];
             if (!race) {
-                var raceData =
-                    tf.serverData.getRaceData(teamData.race_id);
-                race = new tf.Race(this, raceData);
+                var raceData = getRaceData(teamData.race_id);
+                race = new Race(this, raceData);
                 this.races[teamData.race_id] = race;
             }
-            this.teams[teamId] = new tf.LogBook(teamData, race, [], true);
+            this.teams[teamId] = new LogBook(teamData, race, [], true);
         }
         var added = this.teams[teamId].addLogEntryFromServer(log[i]);
         if (added) {
@@ -115,13 +111,13 @@ tf.Regatta.prototype._setLogData = function(log) {
     }
 };
 
-tf.Regatta.prototype.getTeamLogbook = function(teamId) {
+Regatta.prototype.getTeamLogbook = function(teamId) {
     return this.teams[teamId];
 };
 
 
 // FIXME: not used
-tf.Regatta.prototype.isOngoing = function() {
+Regatta.prototype.isOngoing = function() {
     // treat as ongoing up to 24 hours after last finish, in order to
     // handle late finish, but also to handle late entries
     // FIXME: > first_start and isActive
@@ -133,11 +129,11 @@ tf.Regatta.prototype.isOngoing = function() {
  * Returns: [ { 'netdist': <Net distance logged>
  *              'logbook': <LogBook> } ]
  */
-tf.Regatta.prototype.getLeaderBoard = function() {
+Regatta.prototype.getLeaderBoard = function(curLogBook) {
     var res = [];
-    if (tf.state.curLogBook && !this.teams[tf.state.curLogBook.teamData.id]) {
-        res.push({ netdist: tf.state.curLogBook.getNetDistance(),
-                   logbook: tf.state.curLogBook });
+    if (curLogBook && !this.teams[curLogBook.teamData.id]) {
+        res.push({ netdist: curLogBook.getNetDistance(),
+                   logbook: curLogBook });
     }
     for (var teamId in this.teams) {
         var logbook = this.teams[teamId];
@@ -151,7 +147,7 @@ tf.Regatta.prototype.getLeaderBoard = function() {
  * Returns: [ { 'plaquedist': <Plaque distance>
  *              'logbook': <LogBook> } ]
  */
-tf.Regatta.prototype.getResult = function() {
+Regatta.prototype.getResult = function() {
     var res = [];
     for (var teamId in this.teams) {
         var logbook = this.teams[teamId];
@@ -161,6 +157,6 @@ tf.Regatta.prototype.getResult = function() {
     return res;
 };
 
-tf.Regatta.prototype.getLeaderBoardUpdatedTime = function() {
+Regatta.prototype.getLeaderBoardUpdatedTime = function() {
     return this.last_log_update;
 };

@@ -1,9 +1,7 @@
 /* -*- js -*- */
 
-goog.provide('tf.LogBook');
-
-goog.require('tf');
-goog.require('tf.Pod');
+import {uuid, legName} from './util.js';
+import {getNewMyLog, postLogEntry, patchLogEntry} from './serverdata.js';
 
 /**
  * Log Entry states, local property, not sent to server.
@@ -16,7 +14,7 @@ goog.require('tf.Pod');
 /**
  * @constructor
  */
-tf.LogBook = function(teamData, race, log, readOnly) {
+export function LogBook(teamData, race, log, readOnly) {
     this.onLogUpdateFns = [];
     this.teamData = teamData,
     this.log = log || [];
@@ -55,11 +53,11 @@ tf.LogBook = function(teamData, race, log, readOnly) {
     this._updateLog('init');
 };
 
-tf.LogBook.prototype.getLog = function() {
+LogBook.prototype.getLog = function() {
     return this.log;
 };
 
-tf.LogBook.prototype.getLogEntry = function(id) {
+LogBook.prototype.getLogEntry = function(id) {
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].id == id) {
             return this.log[i];
@@ -68,7 +66,7 @@ tf.LogBook.prototype.getLogEntry = function(id) {
     return null;
 };
 
-tf.LogBook.prototype.getNextLogEntry = function(id) {
+LogBook.prototype.getNextLogEntry = function(id) {
     for (var i = 0; (i + 1) < this.log.length; i++) {
         if (this.log[i].id == id) {
             return this.log[i + 1];
@@ -77,11 +75,11 @@ tf.LogBook.prototype.getNextLogEntry = function(id) {
     return null;
 };
 
-tf.LogBook.prototype.getRace = function() {
+LogBook.prototype.getRace = function() {
     return this.race;
 };
 
-tf.LogBook.prototype.hasConflict = function() {
+LogBook.prototype.hasConflict = function() {
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].state == 'conflict') {
             return true;
@@ -90,7 +88,7 @@ tf.LogBook.prototype.hasConflict = function() {
     return false;
 };
 
-tf.LogBook.prototype.saveToLog = function(logEntry, id) {
+LogBook.prototype.saveToLog = function(logEntry, id) {
     if (id != undefined) {
         // update of an existing entry, find it
         var index = undefined;
@@ -109,7 +107,7 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
         // delete the old entry; the new entry might have different time
         this._delLogEntryByIndex(index);
     } else {
-        logEntry.id = tf.uuid();
+        logEntry.id = uuid();
     }
     logEntry.state = 'dirty';
     logEntry.deleted = false;
@@ -118,7 +116,7 @@ tf.LogBook.prototype.saveToLog = function(logEntry, id) {
     this._updateLog('save');
 };
 
-tf.LogBook.prototype.sign = function() {
+LogBook.prototype.sign = function() {
     if (this.state == 'finished' ||
         this.state == 'finished-early' ||
         this.state == 'retired') {
@@ -133,7 +131,7 @@ tf.LogBook.prototype.sign = function() {
     }
 };
 
-tf.LogBook.prototype._addLogEntry = function(logEntry) {
+LogBook.prototype._addLogEntry = function(logEntry) {
     var low = 0;
     var high = this.log.length;
     while (low < high) {
@@ -147,11 +145,11 @@ tf.LogBook.prototype._addLogEntry = function(logEntry) {
     this.log.splice(low, 0, logEntry);
 };
 
-tf.LogBook.prototype._delLogEntryByIndex = function(index) {
+LogBook.prototype._delLogEntryByIndex = function(index) {
     this.log.splice(index, 1);
 };
 
-tf.LogBook.prototype._delLogEntryById = function(id) {
+LogBook.prototype._delLogEntryById = function(id) {
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].id == id) {
             this._delLogEntryByIndex(i);
@@ -166,7 +164,7 @@ tf.LogBook.prototype._delLogEntryById = function(id) {
  *   status of legs in the log
  *   time offset due to interruption for helping others
 */
-tf.LogBook.prototype._updateLog = function(reason) {
+LogBook.prototype._updateLog = function(reason) {
     // distance is given with one decimal.  in order to work around
     // rounding errors, we multiply by 10 so that we can use round()
     // at the end.
@@ -190,13 +188,14 @@ tf.LogBook.prototype._updateLog = function(reason) {
     var curDist;
     var pod = this.race.getPod();
     var retired = false;
+    var i, e;
 
     // find startpoint - the first log entry that has a point.
     // we currently allow _any_ point (including points not marked as
     // start points in the PoD.  If/when the PoD has correct info about
     // start points, we can validate it here.
-    for (var i = 0; i < this.log.length && !startPoint; i++) {
-        var e = this.log[i];
+    for (i = 0; i < this.log.length && !startPoint; i++) {
+        e = this.log[i];
         if (e.deleted) continue;
         if (e.point) {
             var p = pod.getPoint(e.point);
@@ -211,7 +210,7 @@ tf.LogBook.prototype._updateLog = function(reason) {
     }
 
     if (startTime) {
-        startTimes = this.race.getStartTimes();
+        var startTimes = this.race.getStartTimes();
         if (startTime.isAfter(startTimes.start_to)) {
             // too late start; count start_to as starttime (RR 6.3)
             startTime = startTimes.start_to;
@@ -226,8 +225,8 @@ tf.LogBook.prototype._updateLog = function(reason) {
     // code below
 
     // ignore any log items before the start point
-    for (var i = (startIdx + 1); startPoint && i < this.log.length; i++) {
-        var e = this.log[i];
+    for (i = (startIdx + 1); startPoint && i < this.log.length; i++) {
+        e = this.log[i];
         if (e.deleted) continue;
 
         e._legStatus = null;
@@ -245,13 +244,13 @@ tf.LogBook.prototype._updateLog = function(reason) {
             if (e.finish) {
                 finishTime = e.time;
             }
-            var leg = tf.legName(e.point, prev.point);
+            var leg = legName(e.point, prev.point);
             if (!nlegs[leg]) {
                 nlegs[leg] = 1;
             } else {
                 nlegs[leg] = nlegs[leg] + 1;
             }
-            var curDist = pod.getDistance(prev.point, e.point);
+            curDist = pod.getDistance(prev.point, e.point);
             if (npoints[e.point] > 2) {
                 // invalid (7.3, 13.1.3) don't count this distance
                 e._legStatus = 'invalid-round';
@@ -357,31 +356,31 @@ tf.LogBook.prototype._updateLog = function(reason) {
     this.npoints = npoints;
     this.nlegs = nlegs;
     this.points = points;
-    for (var i = 0; i < this.onLogUpdateFns.length; i++) {
+    for (i = 0; i < this.onLogUpdateFns.length; i++) {
         this.onLogUpdateFns[i].fn(this, reason);
     }
 };
 
-tf.LogBook.prototype.onLogUpdate = function(fn, prio) {
+LogBook.prototype.onLogUpdate = function(fn, prio) {
     this.onLogUpdateFns.push({fn: fn, prio: prio});
-    this.onLogUpdateFns.sort(function(a, b) { return a.prio - b.prio });
+    this.onLogUpdateFns.sort(function(a, b) { return a.prio - b.prio; });
 };
 
 /**
  * Get number of times a point has been rounded (logged).
  *
- * @param {tf.Point} point - the name of a point
+ * @param {string} point - the name of a point
  * @return {?number}
  */
-tf.LogBook.prototype.getPointRounds = function(point) {
+LogBook.prototype.getPointRounds = function(point) {
     return this.npoints[point];
 };
 
-tf.LogBook.prototype.getPoints = function() {
+LogBook.prototype.getPoints = function() {
     return this.points;
 };
 
-tf.LogBook.prototype.getLastPoint = function() {
+LogBook.prototype.getLastPoint = function() {
     if (this.points.length > 0) {
         return this.points[this.points.length - 1].point;
     } else {
@@ -389,7 +388,7 @@ tf.LogBook.prototype.getLastPoint = function() {
     }
 };
 
-tf.LogBook.prototype.getLastPointAndTime = function() {
+LogBook.prototype.getLastPointAndTime = function() {
     if (this.points.length > 0) {
         return this.points[this.points.length - 1];
     } else {
@@ -397,11 +396,11 @@ tf.LogBook.prototype.getLastPointAndTime = function() {
     }
 };
 
-tf.LogBook.prototype.getStartPoint = function() {
+LogBook.prototype.getStartPoint = function() {
     return this.teamData.start_point;
 };
 
-tf.LogBook.prototype.isReadOnly = function() {
+LogBook.prototype.isReadOnly = function() {
     if (this.readOnly || this.signed != false) {
         return true;
     }
@@ -411,19 +410,19 @@ tf.LogBook.prototype.isReadOnly = function() {
 /**
  * Get number of times a leg has been sailed (logged).
  *
- * @param {tf.Point} pointA - the name of a point
- * @param {tf.Point} pointB - the name of a point
+ * @param {string} pointA - the name of a point
+ * @param {string} pointB - the name of a point
  * @return {?number}
  */
-tf.LogBook.prototype.getLegSailed = function(pointA, pointB) {
-    return this.nlegs[tf.legName(pointA, pointB)];
+LogBook.prototype.getLegSailed = function(pointA, pointB) {
+    return this.nlegs[legName(pointA, pointB)];
 };
 
-tf.LogBook.prototype.getStartTime = function() {
+LogBook.prototype.getStartTime = function() {
     return this.startTime;
 };
 
-tf.LogBook.prototype.hasFinished = function() {
+LogBook.prototype.hasFinished = function() {
     if (this.state == 'finished' ||
         this.state == 'finished-early' ||
         this.state == 'retired') {
@@ -433,7 +432,7 @@ tf.LogBook.prototype.hasFinished = function() {
 };
 
 // includes any compensation time due to rescue interrupts
-tf.LogBook.prototype.getRaceLeftMinutes = function() {
+LogBook.prototype.getRaceLeftMinutes = function() {
     var raceMinutes = this.getRaceLengthMinutes();
     if (this.startTime == null) {
         return raceMinutes;
@@ -445,21 +444,21 @@ tf.LogBook.prototype.getRaceLeftMinutes = function() {
 };
 
 // includes any compensation time due to rescue interrupts
-tf.LogBook.prototype.getRaceLengthMinutes = function() {
+LogBook.prototype.getRaceLengthMinutes = function() {
     return this.race.getRaceLengthHours() * 60 + this.compensationTime;
 };
 
-tf.LogBook.prototype.getSailedDistance = function() {
+LogBook.prototype.getSailedDistance = function() {
     return this.sailedDist;
 };
 
-tf.LogBook.prototype.getNetDistance = function() {
+LogBook.prototype.getNetDistance = function() {
     // Net distance is sailed distance / sxk-handicap
     return this.sailedDist / this.teamData.sxk_handicap;
 };
 
 // net time
-tf.LogBook.prototype.getEarlyStartDistance = function() {
+LogBook.prototype.getEarlyStartDistance = function() {
     // we can't calculate this properly until the race has finished
     if (this.finishTime) {
         return (2 * this.getNetDistance() * this.earlyStartTime) /
@@ -470,7 +469,7 @@ tf.LogBook.prototype.getEarlyStartDistance = function() {
 };
 
 // net time
-tf.LogBook.prototype.getLateFinishDistance = function() {
+LogBook.prototype.getLateFinishDistance = function() {
     // we can't calculate this properly until the race has finished
     if (this.finishTime) {
         return (2 * this.getNetDistance() * this.lateFinishTime) /
@@ -480,7 +479,7 @@ tf.LogBook.prototype.getLateFinishDistance = function() {
     }
 };
 
-tf.LogBook.prototype.getCompensationDistance = function() {
+LogBook.prototype.getCompensationDistance = function() {
     // we can't calculate this properly until the race has finished
     if (this.finishTime) {
         return (this.getAverageSpeed() * this.compensationDistTime) / 60;
@@ -489,7 +488,7 @@ tf.LogBook.prototype.getCompensationDistance = function() {
     }
 };
 
-tf.LogBook.prototype.getPlaqueDistance = function() {
+LogBook.prototype.getPlaqueDistance = function() {
     if (this.state == 'finished-early' || this.state == 'retired') {
         return 0;
     }
@@ -497,7 +496,7 @@ tf.LogBook.prototype.getPlaqueDistance = function() {
         (this.getEarlyStartDistance() + this.getLateFinishDistance());
 };
 
-tf.LogBook.prototype.getAverageSpeed = function() {
+LogBook.prototype.getAverageSpeed = function() {
     var speed = 0;
     var time = this.sailedTime -
         (this.compensationTime + this.compensationDistTime);
@@ -507,11 +506,11 @@ tf.LogBook.prototype.getAverageSpeed = function() {
     return speed;
 };
 
-tf.LogBook.prototype.getSailedTime = function() {
+LogBook.prototype.getSailedTime = function() {
     return this.sailedTime;
 };
 
-tf.LogBook.prototype.getEngine = function() {
+LogBook.prototype.getEngine = function() {
     var res = false;
     for (var i = 0; i < this.log.length; i++) {
         var e = this.log[i];
@@ -525,7 +524,7 @@ tf.LogBook.prototype.getEngine = function() {
     return res;
 };
 
-tf.LogBook.prototype.getLanterns = function() {
+LogBook.prototype.getLanterns = function() {
     var res = false;
     for (var i = 0; i < this.log.length; i++) {
         var e = this.log[i];
@@ -539,7 +538,7 @@ tf.LogBook.prototype.getLanterns = function() {
     return res;
 };
 
-tf.LogBook.prototype.getInterrupt = function() {
+LogBook.prototype.getInterrupt = function() {
     var res = false;
     for (var i = 0; i < this.log.length; i++) {
         var e = this.log[i];
@@ -556,7 +555,7 @@ tf.LogBook.prototype.getInterrupt = function() {
 };
 
 
-tf.LogBook.prototype.deleteLogEntry = function(id) {
+LogBook.prototype.deleteLogEntry = function(id) {
     var index = undefined;
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].id == id) {
@@ -577,7 +576,7 @@ tf.LogBook.prototype.deleteLogEntry = function(id) {
     this._updateLog('delete');
 };
 
-tf.LogBook.prototype.deleteAllLogEntries = function() {
+LogBook.prototype.deleteAllLogEntries = function() {
     var newLog = [];
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].id) { // exists on server, keep it
@@ -590,24 +589,24 @@ tf.LogBook.prototype.deleteAllLogEntries = function() {
     this._updateLog('delete');
 };
 
-tf.LogBook.prototype.updateFromServer = function(continueFn) {
+LogBook.prototype.updateFromServer = function(continueFn) {
     var logBook = this;
     var lastUpdate = null;
     if (this.lastServerUpdate) {
         lastUpdate = this.lastServerUpdate.toISOString();
     }
-    tf.serverData.getNewMyLog(this.teamData.id,
-                              lastUpdate,
-                              function(res) {
-                                  if (res) {
-                                      logBook._addLogFromServer(res);
-                                  }
-                                  continueFn();
-                              });
+    getNewMyLog(this.teamData.id,
+                lastUpdate,
+                function(res) {
+                    if (res) {
+                        logBook._addLogFromServer(res);
+                    }
+                    continueFn();
+                });
 };
 
 // returns false if the logentry already exists
-tf.LogBook.prototype.addLogEntryFromServer = function(logEntry) {
+LogBook.prototype.addLogEntryFromServer = function(logEntry) {
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].id == logEntry.id) {
             if (this.log[i].updated_at &&
@@ -622,10 +621,11 @@ tf.LogBook.prototype.addLogEntryFromServer = function(logEntry) {
 };
 
 
-tf.LogBook.prototype._addLogFromServer = function(log) {
+LogBook.prototype._addLogFromServer = function(log) {
     var del = [];
     var add = [];
-    for (var i = 0; i < log.length; i++) {
+    var i;
+    for (i = 0; i < log.length; i++) {
         var new_ = log[i];
         if (this.lastServerUpdate == null ||
             new_.updated_at.isAfter(this.lastServerUpdate)) {
@@ -676,12 +676,12 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
     }
     var updated = false;
     // now delete all that should be deleted
-    for (var i = 0; i < del.length; i++) {
+    for (i = 0; i < del.length; i++) {
         this._delLogEntryById(del[i]);
         updated = true;
     }
     // now add all that should be added
-    for (var i = 0; i < add.length; i++) {
+    for (i = 0; i < add.length; i++) {
         this._addLogEntry(add[i]);
         updated = true;
     }
@@ -690,14 +690,14 @@ tf.LogBook.prototype._addLogFromServer = function(log) {
     }
 };
 
-tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
+LogBook.prototype.sendToServer = function(continueFn, updated) {
     var logBook = this;
     for (var i = 0; i < this.log.length; i++) {
         var e = this.log[i];
         if (e.state == 'dirty' && !e.gen) {
             // new log entry
             e.state = 'syncing';
-            tf.serverData.postLogEntry(
+            postLogEntry(
                 this.teamData.id, e,
                 function(id, gen) {
                     if (id == null) {
@@ -730,7 +730,7 @@ tf.LogBook.prototype.sendToServer = function(continueFn, updated) {
                 data = e;
             }
             e.state = 'syncing';
-            tf.serverData.patchLogEntry(
+            patchLogEntry(
                 e.id, data,
                 function(res) {
                     if (res == null) {

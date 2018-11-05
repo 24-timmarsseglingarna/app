@@ -1,20 +1,22 @@
 /* -*- js -*- */
 
-goog.provide('tf.ui.logBook');
+import {alert} from './alertui.js';
+import {confirm} from './confirmui.js';
+import {curState} from './state.js';
+import {pushPage, popPage} from './pageui.js';
+import {fmtInterrupt, fmtProtest, fmtSails, fmtOther,
+        openLogEntry} from './logentryui.js';
+import {openPage as openAddLogEntryPage} from './addlogentryui.js';
 
-goog.require('tf.ui');
-goog.require('tf.ui.alert');
-goog.require('tf.ui.logEntry');
-
-tf.ui.logBook.openLogBook = function(options) {
-    tf.ui.logBook.refreshLogBook(options);
-    tf.ui.pushPage(
+export function openLogBook(options) {
+    refreshLogBook(options);
+    pushPage(
         function() { $('#log-book-page').modal({backdrop: 'static'}); },
         function() { $('#log-book-page').modal('hide'); });
     document.activeElement.blur();
 };
 
-tf.ui.logBook.refreshLogBook = function(options) {
+function refreshLogBook(options) {
     var logBook = options.logBook;
     var isReadOnly = logBook.isReadOnly();
     var boatName = logBook.teamData.boat_name;
@@ -45,9 +47,9 @@ tf.ui.logBook.refreshLogBook = function(options) {
     $('#log-book-comp-elem').hide();
 
     // no header and no arrow in the popup
-    var popover_template = "<div class='popover log-book-edit-popover'" +
-        " role='tooltip'>" +
-        "<div class='popover-body'></div></div>";
+    var popover_template = '<div class="popover log-book-edit-popover"' +
+        ' role="tooltip">' +
+        '<div class="popover-body"></div></div>';
 
     for (var i = 0; i < log.length; i++) {
         var e = log[i];
@@ -75,13 +77,13 @@ tf.ui.logBook.refreshLogBook = function(options) {
             intTD = '<td class="log-book-invalid-interrupt text-danger">';
             intPost = '<span class="pl-1 icon-exclamation-circle"></span>';
         }
-        var edit_button_html = "<div class='row log-book-edit-buttons'" +
-            " data-logid='" + e.id + "'>" +
-            "<button class='btn btn-secondary' id='log-book-btn-edit'>" +
+        var edit_button_html = '<div class="row log-book-edit-buttons"' +
+            ' data-logid="' + e.id + '">' +
+            '<button class="btn btn-secondary" id="log-book-btn-edit">' +
             'Ändra</button>' +
-            "<button class='btn btn-secondary' id='log-book-btn-add'>" +
+            '<button class="btn btn-secondary" id="log-book-btn-add">' +
             'Infoga</button>' +
-            "<button class='btn btn-warning' id='log-book-btn-del'>" +
+            '<button class="btn btn-warning" id="log-book-btn-del">' +
             'Radera</button>' +
             '</div>';
 
@@ -132,18 +134,18 @@ tf.ui.logBook.refreshLogBook = function(options) {
                 '><span class="icon-pencil">' + conflict + '</span></a></td>';
         }
         rows +=
-            '<td>' + e.time.format('HH:mm DD MMM')
-                       .replace(/\s/g, '&nbsp;') + '</td>' +
+            '<td>' + e.time.format(
+                'HH:mm DD MMM').replace(/\s/g, '&nbsp;') + '</td>' +
             '<td>' + point + '</td>' +
             '<td class="d-none d-sm-table-cell">' + pointName + '</td>' +
             distTD + distance + distPost + '</td>' +
             '<td>' + wind + '</td>' +
-            intTD + tf.ui.logEntry.fmtInterrupt(e.interrupt) +
+            intTD + fmtInterrupt(e.interrupt) +
             intPost + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtProtest(e.protest) + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtSails(e.sails) + '</td>' +
+            '<td>' + fmtProtest(e.protest) + '</td>' +
+            '<td>' + fmtSails(e.sails) + '</td>' +
             '<td>' + boats + '</td>' +
-            '<td>' + tf.ui.logEntry.fmtOther(e) + '</td>' +
+            '<td>' + fmtOther(e) + '</td>' +
             '<td>' + comment + '</td>' +
             '</tr>';
     }
@@ -151,7 +153,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
         rows += '<tr>' +
             '<td><a tabindex="0" class="log-book-add-entry"' +
             ' role="button"' +
-            ' onclick="tf.ui.logBook.addEntryClick();"' +
+            ' onclick="tfUiLogBookAddEntryClick();"' +
             '><span class="icon-plus"></span></a></td>' +
             '</tr>';
     }
@@ -173,7 +175,7 @@ tf.ui.logBook.refreshLogBook = function(options) {
         $('#log-book-comp-elem').show();
     }
 
-    if (tf.state.personId == logBook.teamData.skipper_id) {
+    if (curState.personId == logBook.teamData.skipper_id) {
         $('#log-book-sign').show();
     } else {
         $('#log-book-sign').hide();
@@ -218,26 +220,26 @@ tf.ui.logBook.refreshLogBook = function(options) {
     $('#log-book-entries').html(rows);
     $('.log-book-edit').popover();
     $('.log-book-invalid-dist').on('click', function(event) {
-        tf.ui.logBook.logBookInvalidDistClick(event.currentTarget);
+        logBookInvalidDistClick(event.currentTarget);
     });
     $('.log-book-invalid-interrupt').on('click', function(event) {
-        tf.ui.logBook.logBookInvalidInterruptClick(event.currentTarget);
+        logBookInvalidInterruptClick(event.currentTarget);
     });
     var logBookPage = $('#log-book-page')[0];
     // save the current logBook in the page
     logBookPage.logBook = logBook;
 };
 
-tf.ui.logBook.addEntryClick = function(col) {
+window.tfUiLogBookAddEntryClick = function() {
     var logBookPage = $('#log-book-page')[0];
-    tf.ui.addLogEntry.openPage({
+    openAddLogEntryPage({
         onclose: function() {
-            tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
+            refreshLogBook({logBook: logBookPage.logBook});
         }
     });
 };
 
-tf.ui.logBook.logBookInvalidDistClick = function(col) {
+function logBookInvalidDistClick(col) {
     var logBookPage = $('#log-book-page')[0];
     var text = '';
     var logBook = logBookPage.logBook;
@@ -258,10 +260,10 @@ tf.ui.logBook.logBookInvalidDistClick = function(col) {
             ' finns ingen giltig sträcka.';
         break;
     }
-    tf.ui.alert('<p>' + text + '</p>');
+    alert('<p>' + text + '</p>');
 };
 
-tf.ui.logBook.logBookInvalidInterruptClick = function(col) {
+function logBookInvalidInterruptClick(col) {
     var logBookPage = $('#log-book-page')[0];
     var logBook = logBookPage.logBook;
     var e = logBook.getLogEntry(col.parentElement.dataset.logid);
@@ -272,16 +274,16 @@ tf.ui.logBook.logBookInvalidInterruptClick = function(col) {
             'återupptagits.';
         break;
     }
-    tf.ui.alert('<p>' + text + '</p>');
+    alert('<p>' + text + '</p>');
 };
 
-tf.ui.logBook.openLogEntry = function(options) {
+function openLogEntryFromPage(options) {
     var logBookPage = $('#log-book-page')[0];
     options.logBook = logBookPage.logBook;
     options.onclose = function() {
-        tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
+        refreshLogBook({logBook: logBookPage.logBook});
     };
-    tf.ui.logEntry.openLogEntry(options);
+    openLogEntry(options);
 };
 
 /**
@@ -290,60 +292,60 @@ tf.ui.logBook.openLogEntry = function(options) {
 $(document).ready(function() {
     $('[data-toggle="popover"]').popover();
     $('#log-book-cancel').on('click', function() {
-        tf.ui.popPage();
+        popPage();
         return false;
     });
 
     $('#log-book-delete-all').on('click', function() {
-        tf.ui.confirm('<p>Är du säker att du vill radera hela loggboken?' +
-                      '</p>',
-                      'Nej',
-                      'Ja',
-                      function() {
-                          var logBookPage = $('#log-book-page')[0];
-                          var logBook = logBookPage.logBook;
-                          logBook.deleteAllLogEntries();
-                          tf.ui.logBook.refreshLogBook({
-                              logBook: logBookPage.logBook});
-                      });
+        confirm('<p>Är du säker att du vill radera hela loggboken?' +
+                '</p>',
+                'Nej',
+                'Ja',
+                function() {
+                    var logBookPage = $('#log-book-page')[0];
+                    var logBook = logBookPage.logBook;
+                    logBook.deleteAllLogEntries();
+                    refreshLogBook({
+                        logBook: logBookPage.logBook});
+                });
         return false;
     });
-    $('#log-book-sign').on('click', function(event) {
+    $('#log-book-sign').on('click', function() {
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
         if (!(logBook.state == 'finished' ||
               logBook.state == 'finished-early' ||
               logBook.state == 'retired')) {
-            tf.ui.alert('<p>För att kunna signera loggboken måste du ha' +
-                        ' loggat målgång eller brutit seglingen.</p>');
+            alert('<p>För att kunna signera loggboken måste du ha' +
+                  ' loggat målgång eller brutit seglingen.</p>');
         } else if (logBook.hasConflict()) {
-            tf.ui.alert('<p>Loggboken har ändringar gjorda av någon annan.' +
-                        ' Dessa måste lösas genom att klicka på pennan' +
-                        ' vid den markerade raden och välja Ändra.</p>');
+            alert('<p>Loggboken har ändringar gjorda av någon annan.' +
+                  ' Dessa måste lösas genom att klicka på pennan' +
+                  ' vid den markerade raden och välja Ändra.</p>');
         } else {
-            tf.ui.confirm('<p>Kontrollera noggrant att loggboken är korrekt' +
-                          ' ifylld.</p>' +
-                          '<p>När loggboken är signerad går det inte att' +
-                          ' göra fler ändringar.</p>' +
-                          '<p>Är du säker på att du vill signera' +
-                          ' loggboken?</p>',
-                          'Avbryt',
-                          'Signera',
-                          function() {
-                              logBook.sign();
-                              logBook.sendToServer(function() {
-                                  tf.ui.logBook.refreshLogBook({
-                                      logBook: logBookPage.logBook
-                                  });
-                              });
-                          });
+            confirm('<p>Kontrollera noggrant att loggboken är korrekt' +
+                    ' ifylld.</p>' +
+                    '<p>När loggboken är signerad går det inte att' +
+                    ' göra fler ändringar.</p>' +
+                    '<p>Är du säker på att du vill signera' +
+                    ' loggboken?</p>',
+                    'Avbryt',
+                    'Signera',
+                    function() {
+                        logBook.sign();
+                        logBook.sendToServer(function() {
+                            refreshLogBook({
+                                logBook: logBookPage.logBook
+                            });
+                        });
+                    });
         }
     });
-    $('#log-book-send').on('click', function(event) {
+    $('#log-book-send').on('click', function() {
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
         logBook.sendToServer(function() {
-            tf.ui.logBook.refreshLogBook({
+            refreshLogBook({
                 logBook: logBook
             });
         });
@@ -351,7 +353,7 @@ $(document).ready(function() {
     $(document).on('click', '#log-book-btn-edit', function(event) {
         var id = $(event.currentTarget.parentElement).data('logid');
         $('.log-book-edit').popover('hide');
-        tf.ui.logBook.openLogEntry({id: id});
+        openLogEntryFromPage({id: id});
     });
     $(document).on('click', '#log-book-btn-add', function(event) {
         var id = $(event.currentTarget.parentElement).data('logid');
@@ -367,10 +369,10 @@ $(document).ready(function() {
         }
         var new_ = moment(cur.time).add(addSeconds, 'seconds');
         $('.log-book-edit').popover('hide');
-        tf.ui.addLogEntry.openPage({
+        openAddLogEntryPage({
             time: new_,
             onclose: function() {
-                tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
+                refreshLogBook({logBook: logBookPage.logBook});
             }
         });
     });
@@ -381,7 +383,7 @@ $(document).ready(function() {
         logBookPage.logBook.deleteLogEntry(id);
         // re-open the log book
         $('.log-book-edit').popover('hide');
-        tf.ui.logBook.refreshLogBook({logBook: logBookPage.logBook});
+        refreshLogBook({logBook: logBookPage.logBook});
     });
 });
 

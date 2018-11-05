@@ -1,0 +1,3 @@
+/* -*- js -*- */
+
+export var debugInfo = {};

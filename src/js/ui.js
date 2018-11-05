@@ -1,227 +1,165 @@
 /* -*- js -*- */
 
-goog.provide('tf.ui');
+import {pushPage, popPage} from './pageui.js';
+import {Map, View} from 'ol';
+import {defaults as defaultControls} from 'ol/control.js';
+import {defaults as defaultInteractions, Pointer} from 'ol/interaction.js';
+import {XYZ, Vector as VectorSource} from 'ol/source.js';
+import {Tile, Vector as VectorLayer} from 'ol/layer.js';
+import {Style,Circle,Fill,Text,Stroke} from 'ol/style.js';
+import {GeoJSON} from 'ol/format.js';
+import {transform} from 'ol/proj.js';
 
-goog.require('tf');
-goog.require('tf.LogBook');
-goog.require('tf.Plan');
-goog.require('tf.Pod');
-goog.require('tf.Race');
-goog.require('tf.serverData');
-goog.require('tf.state');
-goog.require('tf.storage');
+import {Popup} from './ol-popup.js';
 
-/*
-goog.require('ol.Map');
-goog.require('ol.control');
-goog.require('ol.format.GeoJSON');
-goog.require('ol.interaction');
-goog.require('ol.layer.Tile');
-goog.require('ol.layer.Vector');
-goog.require('ol.source.Vector');
-goog.require('ol.source.XYZ');
-goog.require('ol.style.Circle');
-goog.require('ol.style.Fill');
-goog.require('ol.style.Stroke');
-goog.require('ol.style.Style');
-goog.require('ol.style.Text');
-*/
+import {Plan} from './plan.js';
+import {Pod} from './pod.js';
+import {Regatta} from './regatta.js';
+import {alert, alertUpgrade} from './alertui.js';
+import {init as initState, curState, setupLogin } from './state.js';
+import {isCordova} from './util.js';
+import {getRegattaLogs, getRegattaTeams,
+        getRegattaRaces} from './serverdata.js';
+import {openLogEntry} from './logentryui.js';
+import {openLogBook} from './logbookui.js';
+import {openPage as openAddLogEntryPage} from './addlogentryui.js';
+import {openPage as openBoatsPage} from './boatsui.js';
+import {openPage as openPlanMenuPage} from './planmenuui.js';
+import {openPage as openActivateRacePage} from './activateraceui.js';
+import {openPage as openSettingsPage} from './settingsui.js';
+import {openPage as openLoginPage} from './loginui.js';
 
 
 /**
  * Font for point labels on zoom levels 1-3
  * @const {string}
  */
-tf.ui.POINT_LABEL_FONT_ZOOM_MIN = 'bold 13px sans-serif';
+var POINT_LABEL_FONT_ZOOM_MIN = 'bold 13px sans-serif';
 
 /**
  * Font for point labels on zoom levels 4-5.
  * @const {string}
  */
-tf.ui.POINT_LABEL_FONT_ZOOM_MED = 'bold 15px sans-serif';
+var POINT_LABEL_FONT_ZOOM_MED = 'bold 15px sans-serif';
 
 /**
  * Font for leg labels on zoom levels 1-4.
  * @const {string}
  */
-tf.ui.LEG_LABEL_FONT_ZOOM_MED = 'bold 13px sans-serif';
+var LEG_LABEL_FONT_ZOOM_MED = 'bold 13px sans-serif';
 
 /**
  * Font for leg labels on zoom level 5.
  * @const {string}
  */
-tf.ui.LEG_LABEL_FONT_ZOOM_MAX = 'bold 15px sans-serif';
+var LEG_LABEL_FONT_ZOOM_MAX = 'bold 15px sans-serif';
 
 /**
  * Radius of visible circle around point
  * @const {number}
  */
-tf.ui.POINT_RADUIS = 5;
-tf.ui.POINT_RADUIS_ZOOM_MIN = 4;
+var POINT_RADUIS = 5;
+var POINT_RADUIS_ZOOM_MIN = 4;
 
 /**
  * Radius of circle that accepts taps around point
  * @const {number}
  */
-tf.ui.TAP_RADUIS = 16;
+var TAP_RADUIS = 16;
 
 /**
  * Width of leg line on MIN zoom levels.
  * @const {number}
  */
-tf.ui.LEG_WIDTH_MIN = 1;
+var LEG_WIDTH_MIN = 1;
 
 /**
  * Width of next possible leg line on MIN zoom levels.
  * @const {number}
  */
-tf.ui.NEXT_LEG_WIDTH_MIN = tf.ui.LEG_WIDTH_MIN + 2;
+var NEXT_LEG_WIDTH_MIN = LEG_WIDTH_MIN + 2;
 
 /**
  * Width of leg line on MED and MAX zoom levels.
  * @const {number}
  */
-tf.ui.LEG_WIDTH_MED = 2;
+var LEG_WIDTH_MED = 2;
 
 /**
  * Width of next possible leg line on MED and MAX zoom levels.
  * @const {number}
  */
-tf.ui.NEXT_LEG_WIDTH_MED = tf.ui.LEG_WIDTH_MED + 2;
+var NEXT_LEG_WIDTH_MED = LEG_WIDTH_MED + 2;
 
 /**
  * Width of leg line that has been logged once.
  * @const {number}
  */
-tf.ui.LOGGED_1_LEG_WIDTH = 3;
+var LOGGED_1_LEG_WIDTH = 3;
 
 /**
  * Width of leg line that has been logged twice.
  * @const {number}
  */
-tf.ui.LOGGED_2_LEG_WIDTH = 5;
+var LOGGED_2_LEG_WIDTH = 5;
 
 /**
  * Color of leg line that has been logged.
  * @const {string}
  */
-tf.ui.LOGGED_LEG_COLOR = '#000000';
+var LOGGED_LEG_COLOR = '#000000';
 
 /**
  * Color of start point
  * @const {string}
  */
-tf.ui.START_POINT_COLOR = '#e31a1c'; // red
+var START_POINT_COLOR = '#e31a1c'; // red
 
 /**
  * Color of turning point
  * @const {string}
  */
-tf.ui.TURN_POINT_COLOR = '#000000';
+var TURN_POINT_COLOR = '#000000';
 
 /**
  * Color of inshore leg
  * @const {string}
  */
-tf.ui.INSHORE_LEG_COLOR = '#0113e6'; // blue
+var INSHORE_LEG_COLOR = '#0113e6'; // blue
 
 /**
  * Color of offshore leg
  * @const {string}
  */
-tf.ui.OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
+var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
 
 /**
  * Detect environment
  */
 
-tf.ui.isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints > 0;
-
-/**
- * Handle the browser/phone back button.
- */
-
-tf.ui.pageStack = [];
+var isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints > 0;
 
 /**
  * Initialize ui ephemeral state variables
  */
 
-tf.ui.showLegs = true;
-tf.ui.planMode = false;
-tf.ui.dragState = null;
-tf.ui.initialCenterChanged = false;
+var showLegs = true;
+var planMode = false;
+var dragState = null;
+var initialCenterChanged = false;
 
-/*
- * When we open a new page/modal, the code calls
- * pushPage(openfn, closefn).  The close function should close the window.
- * It MUST NOT call popPage().
- *
- * It order to go back to the previous page, the code must call
- * popPage(), e.g., when a 'cancel', 'save', or 'ok' button is clicked.
- * popPage() is set up to be the same as hitting the 'back' button.
- * In this case, the sentinel function is called to actually close the
- * open page.
- */
-tf.ui.pushPage = function(openfn, closefn) {
-    // close current page, if there is one
-    if (tf.ui.pageStack.length > 0) {
-        var cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
-        cur.closefn();
-    }
-    tf.ui.pageStack.push({openfn: openfn,
-                          closefn: closefn});
-    history.pushState(tf.ui.pageStack.length, document.title, location.href);
-    openfn();
-};
+var inshoreLegsLayer;
+var offshoreLegsLayer;
+var turningPointsLayer;
+var startPointsLayer;
 
-/*
- * Note that this is an asynchronous function (on chrome), which means
- * that if you need to do more work after the page has closed (e.g.,
- * open a new page), it must be done in the continueFn.
- */
-tf.ui.popPage = function(continueFn) {
-    if (continueFn) {
-        // ensure that we run both the original closefn, and the
-        // continueFn when the history.back's popstate event actually
-        // triggers.
-        prev = tf.ui.pageStack.pop();
-        tf.ui.pageStack.push({openfn: prev.openfn,
-                              closefn: function() {
-                                  prev.closefn();
-                                  continueFn();
-                              }});
-    }
-    history.back();
-};
-
-history.replaceState(0, document.title, location.href);
-
-window.addEventListener('popstate', function(event) {
-    // event.state is the state of the state we're going to
-    if (tf.ui.pageStack.length > 0) {
-        if (event.state + 1 > tf.ui.pageStack.length) {
-            // user is trying to move forward; ignore
-        } else {
-            var steps = tf.ui.pageStack.length - event.state;
-            for (var i = 0; i < steps; i++) {
-                var prev = tf.ui.pageStack.pop();
-                prev.closefn();
-            }
-            // re-open last page
-            if (tf.ui.pageStack.length > 0) {
-                var cur = tf.ui.pageStack[tf.ui.pageStack.length - 1];
-                cur.openfn();
-            }
-        }
-    }
-});
+var view;
 
 /**
  * We define 5 zoom levels; 5 is max zoomed in (small area)
  * and 1 is max zoomed out (large area).
  */
-tf.ui.getZoomLevel = function(resolution) {
+function getZoomLevel(resolution) {
     if (resolution > 650) {
         return 1;
     } else if (resolution > 300) {
@@ -239,7 +177,7 @@ tf.ui.getZoomLevel = function(resolution) {
  * Define the Map
  */
 
-tf.ui.map = new ol.Map({
+var map = new Map({
     target: 'map',
     /*
      * Increase moveTolerance in order to detect taps correctly on
@@ -248,27 +186,26 @@ tf.ui.map = new ol.Map({
     moveTolerance: 1.5,
     loadTilesWhileInteracting: true,
     //loadTilesWhileAnimating: true,
-    controls: ol.control.defaults({
+    controls: defaultControls({
         attribution: false,
         rotate: false,
-        zoom: !(tf.ui.isTouch) // no zoom on touch screen
+        zoom: !(isTouch) // no zoom on touch screen
     }),
-    interactions: ol.interaction.defaults({
+    interactions: defaultInteractions({
         altShiftDragRotate: false,
         pinchRotate: false,
         doubleClickZoom: false
-    }).extend([new ol.interaction.Pointer({
+    }).extend([new Pointer({
         handleDownEvent: function(event) {
-            return tf.ui.handleMapPointerDown(event);
+            return handleMapPointerDown(event);
         },
         handleUpEvent: function(event) {
-            return tf.ui.handleMapPointerUp(event);
+            return handleMapPointerUp(event);
         }
     })])
 });
 
-tf.ui.mapURL =
-    'tiles/{z}/{x}/{y}.png';
+var mapURL = 'tiles/{z}/{x}/{y}.png';
 
 /**
  * Our map has *lots* of plain yellow tiles (representing land) and
@@ -293,12 +230,12 @@ tf.ui.mapURL =
  * This is taken care of by patchTileUrls below.
  */
 
-tf.ui.mkMapLayer = function() {
-    tf.ui.mapSource = new ol.source.XYZ({
-        url: tf.ui.mapURL
+function mkMapLayer() {
+    var mapSource = new XYZ({
+        url: mapURL
     });
-    tf.ui.mapLayer = new ol.layer.Tile({
-        source: tf.ui.mapSource,
+    return new Tile({
+        source: mapSource,
         preload: 7
     });
 };
@@ -307,13 +244,16 @@ tf.ui.mkMapLayer = function() {
  * A cache for all ol.style.Styles we create, so that we don't create
  * unnecessary garbage.
  */
-tf.ui.styleCache = {};
+var styleCache = {};
 
 /**
  * Point Popup handling
  */
 
-tf.ui.mkPointPopupHTML = function(number, name, descr, footnote, eta) {
+var pointPopup;
+var plannedPointPopup;
+
+function mkPointPopupHTML(number, name, descr, footnote, eta) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p>' + descr + '</p>';
     if (footnote) {
@@ -322,54 +262,54 @@ tf.ui.mkPointPopupHTML = function(number, name, descr, footnote, eta) {
     for (var i = 0; i < eta.length; i++) {
         s += '<p>Planerad rundningstid: ' + eta[i] + '</p>';
     }
-    if (tf.state.curLogBook && !tf.state.curLogBook.isReadOnly()) {
+    if (curState.curLogBook && !curState.curLogBook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
         // and w/o href in a bad way
         s += '<p><a class="log-point-button" tabindex="0"' +
-            ' onclick="tf.ui.logPoint(\'' + number + '\')">' +
+            ' onclick="window.tfUiLogPoint(\'' + number + '\')">' +
             'Logga denna punkt</a></p>';
     }
     return s;
 };
 
-tf.ui.logPoint = function(number) {
-    tf.ui.pointPopup.hide();
-    tf.ui.logEntry.openLogEntry({point: number,
-                                 type: 'round',
-                                 logBook: tf.state.curLogBook});
+window.tfUiLogPoint = function(number) {
+    pointPopup.hide();
+    openLogEntry({point: number,
+                  type: 'round',
+                  logBook: curState.curLogBook});
 };
 
-tf.ui.mkPlannedPointPopupHTML = function(number, name) {
+function mkPlannedPointPopupHTML(number, name) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p><a class="log-point-button" tabindex="0"' +
-        ' onclick="tf.ui.delPlannedPoint(\'' + number + '\')">' +
+        ' onclick="window.tfUiDelPlannedPoint(\'' + number + '\')">' +
         'Tag bort denna punkt</a></p>' +
         '<p><a class="log-point-button" tabindex="0"' +
-        ' onclick="tf.ui.delTailPlan(\'' + number + '\')">' +
+        ' onclick="window.tfUiDelTailPlan(\'' + number + '\')">' +
         'Tag bort resten av planen</a></p>' +
         '<p><a class="log-point-button" tabindex="0"' +
-        ' onclick="tf.ui.delPlan()">' +
+        ' onclick="window.tfUiDelPlan()">' +
         'Tag bort hela planen</a></p>';
     return s;
 };
 
-tf.ui.delPlannedPoint = function(number) {
-    tf.ui.plannedPointPopup.hide();
-    tf.state.curPlan.get().delPoint(number);
+window.tfUiDelPlannedPoint = function(number) {
+    plannedPointPopup.hide();
+    curState.curPlan.get().delPoint(number);
 };
 
-tf.ui.delTailPlan = function(number) {
-    tf.ui.plannedPointPopup.hide();
-    tf.state.curPlan.get().delTail(number);
+window.tfUiDelTailPlan = function(number) {
+    plannedPointPopup.hide();
+    curState.curPlan.get().delTail(number);
 };
 
-tf.ui.delPlan = function() {
-    tf.ui.plannedPointPopup.hide();
-    tf.state.curPlan.get().delAllPoints();
+window.tfUiDelPlan = function() {
+    plannedPointPopup.hide();
+    curState.curPlan.get().delAllPoints();
 };
 
-tf.ui.handleMapClick = function(event) {
-    tf.ui.map.forEachFeatureAtPixel(
+function handleMapClick(event) {
+    map.forEachFeatureAtPixel(
         event.pixel,
         function(feature) {
             var geom = feature.getGeometry();
@@ -378,8 +318,9 @@ tf.ui.handleMapClick = function(event) {
                 var number = feature.get('number');
                 var name = feature.get('name');
                 var descr = feature.get('descr');
+                var coord;
                 if (descr) {
-                    if (tf.ui.planMode) {
+                    if (planMode) {
                         /*
                          * In plan mode:
                          *   single click - add to plan
@@ -393,19 +334,18 @@ tf.ui.handleMapClick = function(event) {
                             // for the other event (single/dbl).
                             return;
                         }
-                        if (tf.state.curPlan.get().isPointPlanned(number)) {
+                        if (curState.curPlan.get().isPointPlanned(number)) {
                             if (event.type === 'singleclick') {
-                                tf.state.curPlan.get().addPoint(number);
+                                curState.curPlan.get().addPoint(number);
                             } else if (event.type === 'dblclick') {
-                                var coord = geom.getCoordinates();
-                                tf.ui.plannedPointPopup.show(
+                                coord = geom.getCoordinates();
+                                plannedPointPopup.show(
                                     coord,
-                                    tf.ui.mkPlannedPointPopupHTML(number,
-                                                                  name));
+                                    mkPlannedPointPopupHTML(number, name));
                             }
                         } else {
                             if (event.type === 'singleclick') {
-                                tf.state.curPlan.get().addPoint(number);
+                                curState.curPlan.get().addPoint(number);
                             }
                         }
                     } else {
@@ -418,36 +358,36 @@ tf.ui.handleMapClick = function(event) {
                             return;
                         }
                         var eta = [];
-                        if (tf.state.curPlan.get()) {
-                            eta = tf.state.curPlan.get().getETA(number);
+                        if (curState.curPlan.get()) {
+                            eta = curState.curPlan.get().getETA(number);
                         }
                         // show the popup from the center of the point
-                        var coord = geom.getCoordinates();
+                        coord = geom.getCoordinates();
                         var footnote = feature.get('footnote');
-                        tf.ui.pointPopup.show(
+                        pointPopup.show(
                             coord,
-                            tf.ui.mkPointPopupHTML(number, name, descr,
-                                                   footnote, eta));
+                            mkPointPopupHTML(number, name, descr,
+                                             footnote, eta));
                     }
                 }
             }
         });
 };
 
-tf.ui.handleMapPointerDown = function(event) {
-    if (!tf.ui.planMode || tf.ui.dragState != null) {
+function handleMapPointerDown(event) {
+    if (!planMode || dragState != null) {
         return false;
     }
-    return tf.ui.map.forEachFeatureAtPixel(
+    return map.forEachFeatureAtPixel(
         event.pixel,
         function(feature) {
             var geom = feature.getGeometry();
             // Only popup when Points are clicked
             if (geom.getType() == 'Point') {
                 var number = feature.get('number');
-                var p = tf.state.curPlan;
+                var p = curState.curPlan;
                 if (p && p.get().isPointPlanned(number)) {
-                    tf.ui.dragState = number;
+                    dragState = number;
                     return true;
                 }
             }
@@ -455,37 +395,37 @@ tf.ui.handleMapPointerDown = function(event) {
     );
 };
 
-tf.ui.handleMapPointerUp = function(event) {
-    if (tf.ui.dragState != null) {
-        tf.ui.map.forEachFeatureAtPixel(
+function handleMapPointerUp (event) {
+    if (dragState != null) {
+        map.forEachFeatureAtPixel(
             event.pixel,
             function(feature) {
                 var geom = feature.getGeometry();
                 // Only popup when Points are clicked
                 if (geom.getType() == 'Point') {
                     var number = feature.get('number');
-                    if (number != tf.ui.dragState) {
-                        tf.state.curPlan.get().rePlan(tf.ui.dragState, number);
+                    if (number != dragState) {
+                        curState.curPlan.get().rePlan(dragState, number);
                     }
                 }
             }
         );
-        tf.ui.dragState = null;
+        dragState = null;
     }
     return false;
 };
 
 $(document).ready(function() {
-    tf.ui.pointPopup = new ol.Overlay.Popup();
-    tf.ui.plannedPointPopup = new ol.Overlay.Popup();
+    pointPopup = new Popup();
+    plannedPointPopup = new Popup();
 
-    tf.ui.map.on('click', tf.ui.handleMapClick);
-    tf.ui.map.on('singleclick', tf.ui.handleMapClick);
-    tf.ui.map.on('dblclick', tf.ui.handleMapClick);
+    map.on('click', handleMapClick);
+    map.on('singleclick', handleMapClick);
+    map.on('dblclick', handleMapClick);
 /*
-    tf.ui.map.addInteraction(
+    map.addInteraction(
         new ol.interaction.LongTouch({
-            handleLongTouchEvent: tf.ui.handleMapClick
+            handleLongTouchEvent: handleMapClick
         })
     );
 */
@@ -495,76 +435,75 @@ $(document).ready(function() {
  * Points handling
  */
 
-tf.ui.mkPointStyleFunc = function(color) {
-    var basicPointStyle = tf.ui.styleCache['basicPoint' + color];
-    var zoomMinPointStyle = tf.ui.styleCache['zoomMinPoint' + color];
+function mkPointStyleFunc(color) {
+    var basicPointStyle = styleCache['basicPoint' + color];
+    var zoomMinPointStyle = styleCache['zoomMinPoint' + color];
     // The tapPointStyle is a larger, invisible circle, that makes
     // it easier to tap on the point on a touch screen.
-    var tapPointStyle = tf.ui.styleCache['tapPoint'];
+    var tapPointStyle = styleCache['tapPoint'];
     if (!basicPointStyle) {
         basicPointStyle =
-            new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: tf.ui.POINT_RADUIS,
-                    fill: new ol.style.Fill({
+            new Style({
+                image: new Circle({
+                    radius: POINT_RADUIS,
+                    fill: new Fill({
                         color: color,
                         opacity: 1
                     })
                 })
             });
-        tf.ui.styleCache['basicPoint' + color] = basicPointStyle;
+        styleCache['basicPoint' + color] = basicPointStyle;
     }
     if (!zoomMinPointStyle) {
         zoomMinPointStyle =
-            new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: tf.ui.POINT_RADUIS_ZOOM_MIN,
-                    fill: new ol.style.Fill({
+            new Style({
+                image: new Circle({
+                    radius: POINT_RADUIS_ZOOM_MIN,
+                    fill: new Fill({
                         color: color,
                         opacity: 1
                     })
                 })
             });
-        tf.ui.styleCache['zoomMinPoint' + color] = zoomMinPointStyle;
+        styleCache['zoomMinPoint' + color] = zoomMinPointStyle;
     }
     if (!tapPointStyle) {
         tapPointStyle =
-            new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: tf.ui.TAP_RADUIS
+            new Style({
+                image: new Circle({
+                    radius: TAP_RADUIS
                 })
             });
-        tf.ui.styleCache['tapPoint'] = tapPointStyle;
+        styleCache['tapPoint'] = tapPointStyle;
     }
 
-    pointStyleFunction =
+    var pointStyleFunction =
         function(feature, resolution) {
-            tf.ui.resolution = resolution;
             var number = feature.get('number');
             var label = number + ' ' + feature.get('name');
             var styleName = number + '1';
-            var font = tf.ui.POINT_LABEL_FONT_ZOOM_MIN;
+            var font = POINT_LABEL_FONT_ZOOM_MIN;
             var pointStyle = zoomMinPointStyle;
-            if (tf.ui.getZoomLevel(resolution) > 3) {
-                font = tf.ui.POINT_LABEL_FONT_ZOOM_MED;
+            if (getZoomLevel(resolution) > 3) {
+                font = POINT_LABEL_FONT_ZOOM_MED;
                 styleName = number + '2';
                 pointStyle = basicPointStyle;
-            } else if (tf.ui.getZoomLevel(resolution) < 3) {
+            } else if (getZoomLevel(resolution) < 3) {
                 styleName = number + '3';
                 label = number;
             }
-            var labelStyle = tf.ui.styleCache[styleName];
+            var labelStyle = styleCache[styleName];
             if (!labelStyle) {
-                labelStyle = new ol.style.Style({
-                    text: new ol.style.Text({
+                labelStyle = new Style({
+                    text: new Text({
                         font: font,
                         text: label,
                         offsetY: -10
                     })
                 });
-                tf.ui.styleCache[styleName] = labelStyle;
+                styleCache[styleName] = labelStyle;
             }
-            if (tf.ui.getZoomLevel(resolution) < 2) {
+            if (getZoomLevel(resolution) < 2) {
                 return [pointStyle, tapPointStyle];
             }
             return [pointStyle, tapPointStyle, labelStyle];
@@ -572,17 +511,17 @@ tf.ui.mkPointStyleFunc = function(color) {
     return pointStyleFunction;
 };
 
-tf.ui.mkPointsLayer = function(points, title, color) {
-    var format = new ol.format.GeoJSON();
+function mkPointsLayer(points, title, color) {
+    var format = new GeoJSON();
     var features = format.readFeatures(points,
                                        {dataProjection: 'EPSG:4326',
                                         featureProjection: 'EPSG:3857'});
-    var source = new ol.source.Vector();
+    var source = new VectorSource();
     source.addFeatures(features);
 
-    return new ol.layer.Vector({
+    return new VectorLayer({
         source: source,
-        style: tf.ui.mkPointStyleFunc(color),
+        style: mkPointStyleFunc(color),
         title: title,
         //updateWhileAnimating: true,
         updateWhileInteracting: true,
@@ -600,93 +539,93 @@ tf.ui.mkPointsLayer = function(points, title, color) {
     0: show if resolution permits
     -1: never show leg distance
  */
-tf.ui.forceLegDistances = 0;
+var forceLegDistances = 0;
 
-tf.ui.getLegStyle = function(name, strokeOpts) {
-    var style = tf.ui.styleCache[name];
+function getLegStyle(name, strokeOpts) {
+    var style = styleCache[name];
     if (!style) {
         style =
-            new ol.style.Style({
-                stroke: new ol.style.Stroke(strokeOpts)
+            new Style({
+                stroke: new Stroke(strokeOpts)
             });
-        tf.ui.styleCache[name] = style;
+        styleCache[name] = style;
     }
     return style;
 };
 
-tf.ui.mkLegStyleFunc = function(color) {
+function mkLegStyleFunc(color) {
     // used for zoomed out maps
     var basicLegStyle0 =
-        tf.ui.getLegStyle('basicLeg0' + color,
-                         {width: tf.ui.LEG_WIDTH_MIN,
-                          color: color});
+        getLegStyle('basicLeg0' + color,
+                    {width: LEG_WIDTH_MIN,
+                     color: color});
     // used for next possible leg in zoomed out maps
     var nextLegStyle0 =
-        tf.ui.getLegStyle('nextLeg0' + color,
-                         {width: tf.ui.NEXT_LEG_WIDTH_MIN,
-                          color: color});
+        getLegStyle('nextLeg0' + color,
+                    {width: NEXT_LEG_WIDTH_MIN,
+                     color: color});
     // used for zoom min and med maps
     var basicLegStyle1 =
-        tf.ui.getLegStyle('basicLeg1' + color,
-                         {width: tf.ui.LEG_WIDTH_MED,
-                          color: color});
+        getLegStyle('basicLeg1' + color,
+                    {width: LEG_WIDTH_MED,
+                     color: color});
     // used for next possible leg in zoom min and med maps
     var nextLegStyle1 =
-        tf.ui.getLegStyle('nextLeg1' + color,
-                         {width: tf.ui.NEXT_LEG_WIDTH_MED,
-                          color: color});
+        getLegStyle('nextLeg1' + color,
+                    {width: NEXT_LEG_WIDTH_MED,
+                     color: color});
     // used when a leg is logged once
     var loggedLeg1Style =
-        tf.ui.getLegStyle('loggedLeg1Style',
-                         {width: tf.ui.LOGGED_1_LEG_WIDTH,
-                          color: tf.ui.LOGGED_LEG_COLOR});
+        getLegStyle('loggedLeg1Style',
+                    {width: LOGGED_1_LEG_WIDTH,
+                     color: LOGGED_LEG_COLOR});
     // used when a leg is logged twice
     var loggedLeg2Style =
-        tf.ui.getLegStyle('loggedLeg2Style',
-                         {width: tf.ui.LOGGED_2_LEG_WIDTH,
-                          color: tf.ui.LOGGED_LEG_COLOR});
+        getLegStyle('loggedLeg2Style',
+                    {width: LOGGED_2_LEG_WIDTH,
+                     color: LOGGED_LEG_COLOR});
     // used when a leg is planned once
     var plannedLeg1Style =
-        tf.ui.getLegStyle('plannedLeg1Style',
-                         {width: 4,
-                          lineDash: [4, 10],
-                          color: tf.ui.LOGGED_LEG_COLOR});
+        getLegStyle('plannedLeg1Style',
+                    {width: 4,
+                     lineDash: [4, 10],
+                     color: LOGGED_LEG_COLOR});
     // used when a leg is planned twice
     var plannedLeg2Style =
-        tf.ui.getLegStyle('plannedLeg2Style',
-                         {width: 7,
-                          lineDash: [4, 15],
-                          color: tf.ui.LOGGED_LEG_COLOR});
+        getLegStyle('plannedLeg2Style',
+                    {width: 7,
+                     lineDash: [4, 15],
+                     color: LOGGED_LEG_COLOR});
     // used when a leg is logged once and planned
     // FIXME: in order to do this, we need to keep track of the leg's
     // direction ('580-581' vs '581-580') in the logbook and in the plan,
     // and use this style iff one direction is logged, and the other planned.
 /*
     var plannedAndloggedLegStyle =
-        tf.ui.getLegStyle('plannedAndloggedLegStyle',
+        getLegStyle('plannedAndloggedLegStyle',
                          {width: 8,
                           lineDash: [2, 15],
-                          color: tf.ui.LOGGED_LEG_COLOR});
+                          color: LOGGED_LEG_COLOR});
 */
-    legStyleFunction =
+    var legStyleFunction =
         function(feature, resolution) {
             var legStyle = basicLegStyle1;
             var nextLegStyle = nextLegStyle1;
             var labelNo = '1';
-            if (tf.ui.getZoomLevel(resolution) > 4) {
+            if (getZoomLevel(resolution) > 4) {
                 labelNo = '2';
-            } else if (tf.ui.getZoomLevel(resolution) < 4) {
+            } else if (getZoomLevel(resolution) < 4) {
                 legStyle = basicLegStyle0;
                 nextLegStyle = nextLegStyle0;
             }
             var src = feature.get('src');
             var dst = feature.get('dst');
             var logged = 0;
-            if (tf.state.curLogBook) {
-                logged = tf.state.curLogBook.getLegSailed(src, dst);
+            if (curState.curLogBook) {
+                logged = curState.curLogBook.getLegSailed(src, dst);
             }
             var planned = 0;
-            var curPlan = tf.state.curPlan.get();
+            var curPlan = curState.curPlan.get();
             if (curPlan) {
                 planned = curPlan.isLegPlanned(src, dst);
             }
@@ -711,36 +650,37 @@ tf.ui.mkLegStyleFunc = function(color) {
                 }
             } else {
                 // neither logged nor planned
-                if (tf.ui.planMode && curPlan) {
-                    var p = curPlan.getLastPoint();
+                var p;
+                if (planMode && curPlan) {
+                    p = curPlan.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
-                } else if (tf.state.curLogBook &&
-                           !(tf.state.curLogBook.hasFinished() ||
-                             tf.state.curLogBook.isReadOnly())) {
-                    var p = tf.state.curLogBook.getLastPoint();
+                } else if (curState.curLogBook &&
+                           !(curState.curLogBook.hasFinished() ||
+                             curState.curLogBook.isReadOnly())) {
+                    p = curState.curLogBook.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
                 }
             }
-            if (tf.ui.showLegs &&
-                (tf.ui.forceLegDistances == 1 ||
-                 (tf.ui.forceLegDistances == 0 &&
-                  tf.ui.getZoomLevel(resolution) > 3))) {
+            if (showLegs &&
+                (forceLegDistances == 1 ||
+                 (forceLegDistances == 0 &&
+                  getZoomLevel(resolution) > 3))) {
                 // If zoomed in - show the distance as a text string
                 var label = src + '-' + dst + labelNo;
-                var labelStyle = tf.ui.styleCache[label];
+                var labelStyle = styleCache[label];
                 if (!labelStyle) {
                     var descr = feature.get('dist') + ' M';
                     var geometry = feature.getGeometry();
                     var rotation;
                     var offsetX;
                     var offsetY;
-                    var font = tf.ui.LEG_LABEL_FONT_ZOOM_MED;
-                    if (tf.ui.getZoomLevel(resolution) > 4) {
-                        font = tf.ui.LEG_LABEL_FONT_ZOOM_MAX;
+                    var font = LEG_LABEL_FONT_ZOOM_MED;
+                    if (getZoomLevel(resolution) > 4) {
+                        font = LEG_LABEL_FONT_ZOOM_MAX;
                     }
                     geometry.forEachSegment(function(start, end) {
                         var dx;
@@ -757,8 +697,8 @@ tf.ui.mkLegStyleFunc = function(color) {
                         offsetX = 0;
                         offsetY = -10;
                     });
-                    labelStyle = new ol.style.Style({
-                        text: new ol.style.Text({
+                    labelStyle = new Style({
+                        text: new Text({
                             font: font,
                             text: descr,
                             rotation: -rotation,
@@ -766,10 +706,10 @@ tf.ui.mkLegStyleFunc = function(color) {
                             offsetX: offsetX
                         })
                     });
-                    tf.ui.styleCache[label] = labelStyle;
+                    styleCache[label] = labelStyle;
                 }
                 return [legStyle, labelStyle];
-            } else if (tf.ui.showLegs || logged || planned) {
+            } else if (showLegs || logged || planned) {
                 return [legStyle];
             } else {
                 return [];
@@ -778,17 +718,17 @@ tf.ui.mkLegStyleFunc = function(color) {
     return legStyleFunction;
 };
 
-tf.ui.mkLegsLayer = function(legs, title, color) {
-    var format = new ol.format.GeoJSON();
+function mkLegsLayer(legs, title, color) {
+    var format = new GeoJSON();
     var features = format.readFeatures(legs,
                                        {dataProjection: 'EPSG:4326',
                                         featureProjection: 'EPSG:3857'});
-    var source = new ol.source.Vector();
+    var source = new VectorSource();
     source.addFeatures(features);
 
-    return new ol.layer.Vector({
+    return new VectorLayer({
         source: source,
-        style: tf.ui.mkLegStyleFunc(color),
+        style: mkLegStyleFunc(color),
         title: title,
         //updateWhileAnimating: true,
         updateWhileInteracting: true,
@@ -800,138 +740,138 @@ tf.ui.mkLegsLayer = function(legs, title, color) {
  * Buttonbar handling
  */
 
-tf.ui.planModeActivate = function(active) {
+export function planModeActivate(active) {
     if (active) {
-        tf.ui.planMode = true;
+        planMode = true;
         $('#tf-nav-plan-mode').addClass('tf-plan-active');
     } else {
-        tf.ui.planMode = false;
+        planMode = false;
         $('#tf-nav-plan-mode').removeClass('tf-plan-active');
     }
-    tf.ui.inshoreLegsLayer.changed();
-    tf.ui.offshoreLegsLayer.changed();
-    tf.ui.updateStatusBar();
+    inshoreLegsLayer.changed();
+    offshoreLegsLayer.changed();
+    updateStatusBar();
 };
 
-tf.ui.showLegsActivate = function(active) {
+function showLegsActivate(active) {
     // We don't call the layer's setVisible() function, since
     // the logged and planned legs are just styles in these layers;
     // if we made the layer invisible, we wouldn't see the plan.
-    tf.ui.showLegs = active;
-    tf.ui.inshoreLegsLayer.changed();
-    tf.ui.offshoreLegsLayer.changed();
+    showLegs = active;
+    inshoreLegsLayer.changed();
+    offshoreLegsLayer.changed();
 };
 
 $(document).ready(function() {
     // initiate the checkboxes according to default state
-    $('#tf-nav-show-legs').prop('checked', tf.ui.showLegs);
+    $('#tf-nav-show-legs').prop('checked', showLegs);
 
-    $('#tf-status-interrupt').on('click', function(event) {
-        tf.ui.alert('<p>Du har ett pågående avbrott</p>');
+    $('#tf-status-interrupt').on('click', function() {
+        alert('<p>Du har ett pågående avbrott</p>');
         return false;
     });
 
     $('#tf-nav-show-legs').change(function(event) {
-        tf.ui.showLegsActivate(event.target.checked);
+        showLegsActivate(event.target.checked);
     });
 
     $('.tf-nav-distances').change(function(event) {
         switch (event.target.value) {
         case 'auto':
-            tf.ui.forceLegDistances = 0;
+            forceLegDistances = 0;
             break;
         case 'show':
-            tf.ui.forceLegDistances = 1;
+            forceLegDistances = 1;
             break;
         case 'hide':
-            tf.ui.forceLegDistances = -1;
+            forceLegDistances = -1;
             break;
         }
-        tf.ui.inshoreLegsLayer.changed();
-        tf.ui.offshoreLegsLayer.changed();
+        inshoreLegsLayer.changed();
+        offshoreLegsLayer.changed();
     });
 
-    $('#tf-nav-boats').on('click', function(event) {
-        if (!tf.state.curRegatta) {
-            tf.ui._alert_no_race('se deltagande båtar');
+    $('#tf-nav-boats').on('click', function() {
+        if (!curState.curRegatta) {
+            alertNoRace('se deltagande båtar');
             return false;
         }
-        var opts = {regatta: tf.state.curRegatta};
-        if (tf.ui.showRegattaId) {
+        var opts = {regatta: curState.curRegatta};
+        if (curState.mode.get() == 'showRegatta') {
             opts['adminView'] = true;
         }
-        tf.ui.boats.openPage(opts);
+        openBoatsPage(opts);
         return false;
     });
 
-    $('#tf-nav-log').on('click', function(event) {
-        if (!tf.state.curLogBook) {
-            tf.ui._alert_no_race('göra en loggboksanteckning');
+    $('#tf-nav-log').on('click', function() {
+        if (!curState.curLogBook) {
+            alertNoRace('göra en loggboksanteckning');
             return false;
-        } else if (tf.state.curLogBook.isReadOnly()) {
-            tf.ui.alert('<p>När loggboken är signerad går det inte att' +
-                        ' göra en loggboksanteckning.</p>');
+        } else if (curState.curLogBook.isReadOnly()) {
+            alert('<p>När loggboken är signerad går det inte att' +
+                  ' göra en loggboksanteckning.</p>');
             return false;
         }
-        tf.ui.addLogEntry.openPage();
+        openAddLogEntryPage();
         return false;
     });
 
-    $('#tf-nav-logbook').on('click', function(event) {
-        if (!tf.state.curLogBook) {
-            tf.ui._alert_no_race('öppna loggboken');
+    $('#tf-nav-logbook').on('click', function() {
+        if (!curState.curLogBook) {
+            alertNoRace('öppna loggboken');
         } else {
-            tf.ui.logBook.openLogBook({
-                logBook: tf.state.curLogBook
+            openLogBook({
+                logBook: curState.curLogBook
             });
         }
         return false;
     });
 
-    $('#tf-nav-plan-mode').on('click', function(event) {
+    $('#tf-nav-plan-mode').on('click', function() {
         /*
-        if (!tf.state.curRace) {
-            tf.ui._alert_no_race('planera en rutt');
+        if (!curState.curRace) {
+            alertNoRace('planera en rutt');
             return false;
         }
         */
-        tf.ui.planMenu.openPage();
+        openPlanMenuPage();
         return false;
     });
 
-    $('#tf-nav-show-activate-race').on('click', function(event) {
+    $('#tf-nav-show-activate-race').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        if (!tf.state.isLoggedIn) {
-            tf.ui.alert('<p>Du behöver logga in för att kunna ' +
-                        'aktivera en segling.</p>');
+        if (!curState.isLoggedIn) {
+            alert('<p>Du behöver logga in för att kunna ' +
+                  'aktivera en segling.</p>');
             return false;
         }
-        tf.ui.activateRace.openPage();
+        openActivateRacePage();
         return false;
     });
 
-    $('#tf-nav-show-settings').on('click', function(event) {
+    $('#tf-nav-show-settings').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        tf.ui.settings.openPage();
+        openSettingsPage();
         return false;
     });
 
-    $('#tf-nav-show-help').on('click', function(event) {
+    $('#tf-nav-show-help').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        tf.ui.pushPage(
+        pushPage(
             function() { $('#help-page').modal({backdrop: 'static'}); },
             function() { $('#help-page').modal('hide'); });
         document.activeElement.blur();
         return false;
     });
 
-    $('#tf-nav-show-info').on('click', function(event) {
+    $('#tf-nav-show-info').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        tf.ui.pushPage(
+        pushPage(
             function() { $('#info-page').modal({backdrop: 'static'}); },
             function() { $('#info-page').modal('hide'); });
         document.activeElement.blur();
@@ -939,18 +879,18 @@ $(document).ready(function() {
     });
 
     $('.dialog-close').on('click', function() {
-        tf.ui.popPage();
+        popPage();
         return false;
     });
 });
 
-tf.ui._alert_no_race = function(w) {
+function alertNoRace(w) {
     var s = '<p>Du behöver ';
-    if (!tf.state.isLoggedIn) {
+    if (!curState.isLoggedIn) {
         s += 'logga in och ';
     }
     s += 'aktivera en segling för att kunna ' + w + '.</p>';
-    tf.ui.alert(s);
+    alert(s);
 };
 
 /**
@@ -978,7 +918,7 @@ ol.inherits(tf.ui.ButtonControl, ol.control.Control);
 /*
 tf.ui.patchTileUrls = function() {
 
-    tf.ui.mapSource.setTileUrlFunction(function(tileCoord, pixelRation, proj) {
+    mapSource.setTileUrlFunction(function(tileCoord, pixelRation, proj) {
         var key = tileCoord[0].toString() + '/' +
             tileCoord[1].toString() + '/' +
             (-tileCoord[2] - 1).toString();
@@ -999,60 +939,60 @@ tf.ui.patchTileUrls = function() {
  * Status bar handling
  */
 
-tf.ui.updateStatusBar = function() {
-    if (!tf.state.curRace) {
+function updateStatusBar() {
+    if (!curState.curRace) {
         $('#tf-status-time').text('--:--');
     }
 
-    if (tf.state.boatState.lanterns) {
+    if (curState.boatState.lanterns) {
         $('#tf-status-lanterns-on').show();
     } else {
         $('#tf-status-lanterns-on').hide();
     }
-    if (tf.state.boatState.engine) {
+    if (curState.boatState.engine) {
         $('#tf-status-engine-on').show();
     } else {
         $('#tf-status-engine-on').hide();
     }
-    if (tf.state.activeInterrupt) {
+    if (curState.activeInterrupt) {
         $('#tf-status-interrupt').show();
     } else {
         $('#tf-status-interrupt').hide();
     }
 
     var dist = 0;
-    if (tf.state.curLogBook) {
-        var start = tf.state.curLogBook.getStartTime();
-        var speed = tf.state.curLogBook.getAverageSpeed();
-        var finished = tf.state.curLogBook.hasFinished();
-        dist = tf.state.curLogBook.getSailedDistance();
-        var netDist = tf.state.curLogBook.getNetDistance();
+    if (curState.curLogBook) {
+        var start = curState.curLogBook.getStartTime();
+        var speed = curState.curLogBook.getAverageSpeed();
+        var finished = curState.curLogBook.hasFinished();
+        dist = curState.curLogBook.getSailedDistance();
+        var netDist = curState.curLogBook.getNetDistance();
 
-        $('#tf-status-boat').text(tf.state.curLogBook.teamData.boat_name);
+        $('#tf-status-boat').text(curState.curLogBook.teamData.boat_name);
 
         if (start) {
-            if (!tf.ui.headerTimer && !finished) {
-                tf.ui.updateStatusBarTime();
-                tf.ui.headerTimer =
-                    window.setInterval(tf.ui.updateStatusBarTime, 60000);
-            } else if (finished && tf.ui.headerTimer) {
-                window.clearInterval(tf.ui.headerTimer);
-                tf.ui.headerTimer = null;
+            if (!headerTimer && !finished) {
+                updateStatusBarTime();
+                headerTimer =
+                    window.setInterval(updateStatusBarTime, 60000);
+            } else if (finished && headerTimer) {
+                window.clearInterval(headerTimer);
+                headerTimer = null;
             }
             if (finished) {
                 $('#tf-status-time').text('--:--');
             }
         } else {
             $('#tf-status-time').text('--:--');
-            if (tf.ui.headerTimer) {
-                window.clearInterval(tf.ui.headerTimer);
-                tf.ui.headerTimer = null;
+            if (headerTimer) {
+                window.clearInterval(headerTimer);
+                headerTimer = null;
             }
         }
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
         $('#tf-status-net-distance').text(netDist.toFixed(1) + ' M');
-        if (tf.state.curLogBook.hasConflict()) {
+        if (curState.curLogBook.hasConflict()) {
             $('#tf-nav-logbook-badge').show();
         } else {
             $('#tf-nav-logbook-badge').hide();
@@ -1063,14 +1003,14 @@ tf.ui.updateStatusBar = function() {
         $('#tf-status-speed').text('-.- kn');
         $('#tf-status-boat').text('');
         $('.tf-status-plan').hide();
-        if (tf.ui.headerTimer) {
-            window.clearInterval(tf.ui.headerTimer);
-            tf.ui.headerTimer = null;
+        if (headerTimer) {
+            window.clearInterval(headerTimer);
+            headerTimer = null;
         }
         $('#tf-nav-logbook-badge').hide();
     }
 
-    var curPlan = tf.state.curPlan.get();
+    var curPlan = curState.curPlan.get();
     if (curPlan) {
         var planDist = curPlan.getPlannedDistance();
         var planSpeed = curPlan.getPlannedSpeed();
@@ -1086,7 +1026,7 @@ tf.ui.updateStatusBar = function() {
         $('.tf-status-plan').hide();
     }
 
-    if (tf.state.curRegatta && tf.state.curRegatta.log_updated) {
+    if (curState.curRegatta && curState.curRegatta.log_updated) {
         $('#tf-nav-boats-badge').show();
     } else {
         $('#tf-nav-boats-badge').hide();
@@ -1094,13 +1034,13 @@ tf.ui.updateStatusBar = function() {
 
 };
 
-tf.ui.updateStatusBarTime = function() {
+function updateStatusBarTime() {
     var sign = '';
     function p(num) {
         return (num < 10 ? '0' : '') + num;
     }
-    if (tf.state.curLogBook) {
-        var raceLeft = tf.state.curLogBook.getRaceLeftMinutes();
+    if (curState.curLogBook) {
+        var raceLeft = curState.curLogBook.getRaceLeftMinutes();
         if (raceLeft < 0) {
             sign = '-';
             raceLeft = -raceLeft;
@@ -1113,15 +1053,15 @@ tf.ui.updateStatusBarTime = function() {
     }
 };
 
-tf.ui.headerTimer = null;
+var headerTimer = null;
 
-tf.ui.updateAll = function() {
-    tf.ui.updateStatusBar();
-    tf.ui.inshoreLegsLayer.changed();
-    tf.ui.offshoreLegsLayer.changed();
+export function updateAll() {
+    updateStatusBar();
+    inshoreLegsLayer.changed();
+    offshoreLegsLayer.changed();
 };
 
-tf.ui._setFontSize = function(val) {
+function setFontSize(val) {
     $('#tf-html').removeClass('tf-small');
     $('#tf-html').removeClass('tf-normal');
     $('#tf-html').removeClass('tf-large');
@@ -1154,45 +1094,34 @@ tf.ui._setFontSize = function(val) {
 
 $(document).ready(function() {
     var podSpec = basePodSpec;
-    tf.ui.turningPointsLayer =
-        tf.ui.mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
-                            tf.ui.TURN_POINT_COLOR);
-    tf.ui.startPointsLayer =
-        tf.ui.mkPointsLayer(podSpec.startPoints, 'StartPoints',
-                            tf.ui.START_POINT_COLOR);
+    turningPointsLayer =
+        mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
+                      TURN_POINT_COLOR);
+    startPointsLayer =
+        mkPointsLayer(podSpec.startPoints, 'StartPoints',
+                      START_POINT_COLOR);
 
-    tf.ui.inshoreLegsLayer =
-        tf.ui.mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs',
-                          tf.ui.INSHORE_LEG_COLOR);
-    tf.ui.offshoreLegsLayer =
-        tf.ui.mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
-                          tf.ui.OFFSHORE_LEG_COLOR);
+    inshoreLegsLayer =
+        mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs',
+                    INSHORE_LEG_COLOR);
+    offshoreLegsLayer =
+        mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
+                    OFFSHORE_LEG_COLOR);
 
-    if (tf.state.isCordova) {
-        document.addEventListener('deviceready', tf.ui.onDeviceReady, false);
+    if (isCordova) {
+        document.addEventListener('deviceready', onDeviceReady, false);
     } else {
-        tf.ui.onDeviceReady();
+        onDeviceReady();
     }
 });
 
-tf.ui.centerChanged = function(event) {
-    tf.ui.initialCenterChanged = true;
-};
-
-tf.ui.alertUpgrade = function(text) {
-    tf.ui.alert(
-        '<p>Den här versionen av appen är inte kompatibel med servern. ' +
-            'Du behöver uppgradera appen.</p>' +
-            '<p>' + text + '</p>');
-};
-
-tf.ui.stateSetupDone = function(response) {
+function stateSetupDone(response) {
     if (response && response != true) {
-        tf.ui.alertUpgrade(response.errorStr);
+        alertUpgrade(response.errorStr);
     }
 
-    if (tf.ui.showRegattaId) {
-        tf.ui.showRegatta(tf.ui.showRegattaId);
+    if (curState.mode.get() == 'showRegatta') {
+        showRegatta(curState.showRegattaId.get());
         return;
     }
 
@@ -1206,18 +1135,18 @@ tf.ui.stateSetupDone = function(response) {
     // center.
 
     var centerSet = false;
-    if (tf.state.curLogBook) {
-        var p = tf.state.curLogBook.getLastPoint();
+    if (curState.curLogBook) {
+        var p = curState.curLogBook.getLastPoint();
         if (!p) {
-            p = tf.state.curLogBook.getStartPoint();
+            p = curState.curLogBook.getStartPoint();
         }
         if (p) {
-            var pod = tf.state.curRace.getPod();
+            var pod = curState.curRace.getPod();
             var point = pod.getPoint(p);
-            if (point && !tf.ui.initialCenterChanged) {
-                var center = ol.proj.transform(point.coords,
-                                               'EPSG:4326', 'EPSG:3857');
-                tf.ui.view.setCenter(center);
+            if (point && !initialCenterChanged) {
+                var center = transform(point.coords,
+                                       'EPSG:4326', 'EPSG:3857');
+                view.setCenter(center);
                 centerSet = true;
             }
         }
@@ -1225,15 +1154,15 @@ tf.ui.stateSetupDone = function(response) {
     if (!centerSet && navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             function(pos) {
-                if (!tf.ui.initialCenterChanged) {
-                    var center = ol.proj.transform([pos.coords.longitude,
-                                                    pos.coords.latitude],
-                                                   'EPSG:4326',
-                                                   'EPSG:3857');
-                    tf.ui.view.setCenter(center);
+                if (!initialCenterChanged) {
+                    var center = transform([pos.coords.longitude,
+                                            pos.coords.latitude],
+                                           'EPSG:4326',
+                                           'EPSG:3857');
+                    view.setCenter(center);
                 }
             },
-            function(error) {
+            function() {
                 //alert('geo-error: ' + error.code);
             },
             {
@@ -1241,45 +1170,45 @@ tf.ui.stateSetupDone = function(response) {
                 maximumAge: 2 * 60 * 1000 // 2 minutes old is ok
             });
     }
-    tf.ui.updateAll();
+    updateAll();
 };
 
-tf.ui.onDeviceReady = function() {
+function onDeviceReady() {
     // must be called after device ready since it accesses local files
-    tf.ui.mkMapLayer();
+    var mapLayer = mkMapLayer();
 
     //tf.ui.patchTileUrls();
 
-    tf.ui.map.addLayer(tf.ui.mapLayer);
+    map.addLayer(mapLayer);
 
-    tf.ui.map.addLayer(tf.ui.inshoreLegsLayer);
-    tf.ui.map.addLayer(tf.ui.offshoreLegsLayer);
+    map.addLayer(inshoreLegsLayer);
+    map.addLayer(offshoreLegsLayer);
 
-    tf.ui.map.addLayer(tf.ui.turningPointsLayer);
-    tf.ui.map.addLayer(tf.ui.startPointsLayer);
+    map.addLayer(turningPointsLayer);
+    map.addLayer(startPointsLayer);
 
-    tf.ui.map.addOverlay(tf.ui.pointPopup);
-    tf.ui.map.addOverlay(tf.ui.plannedPointPopup);
+    map.addOverlay(pointPopup);
+    map.addOverlay(plannedPointPopup);
 
     var coords = [18.387, 59.44]; // 580 is the initial center
 
-    var center = ol.proj.transform(coords, 'EPSG:4326', 'EPSG:3857');
+    var center = transform(coords, 'EPSG:4326', 'EPSG:3857');
 
-    tf.ui.view = new ol.View({
+    view = new View({
         center: center,
         minZoom: 7,
         maxZoom: 13,
         zoom: 10
     });
 
-    tf.ui.view.once('change:center', function(event) {
-        tf.ui.initialCenterChanged = true;
+    view.once('change:center', function() {
+        initialCenterChanged = true;
     });
 
-    tf.state.curPlan.onChange(function(val) {
+    curState.curPlan.onChange(function(val) {
         if (!val) {
             $('#tf-nav-plan-name').html('');
-            tf.ui.planModeActivate(false);
+            planModeActivate(false);
         } else {
             $('#tf-nav-plan-name').html(val.name);
         }
@@ -1287,108 +1216,116 @@ tf.ui.onDeviceReady = function() {
 
     $('#tf-nav-boats-badge').hide();
 
-    tf.state.init();
+    initState(updateAll);
 
-    tf.state.fontSize.onChange(function(val) {
-        tf.ui._setFontSize(val);
+    curState.fontSize.onChange(function(val) {
+        setFontSize(val);
     });
-    var fs = tf.state.fontSize.get();
+    var fs = curState.fontSize.get();
     if (fs == null) {
         // initial value; try to detect high dpi large screens,
         // and set font size large on these
         if (window.devicePixelRatio > 1.5 &&
             $('#tf-media').css('content') == '"md"') {
-            tf.state.fontSize.set('large');
+            curState.fontSize.set('large');
         } else {
-            tf.state.fontSize.set('normal');
+            curState.fontSize.set('normal');
         }
     }
 
-    tf.ui.updateStatusBar();
+    updateStatusBar();
 
-    document.addEventListener('resume', tf.ui.updateStatusBarTime, false);
+    document.addEventListener('resume', updateStatusBarTime, false);
 
-    tf.ui.map.setView(tf.ui.view);
+    map.setView(view);
 
     $('.tf-default-hidden').removeClass('tf-default-hidden');
 
-    if (tf.state.isCordova) {
+    if (isCordova) {
         navigator.splashscreen.hide();
     } else {
         // This is the web version.  We can assume we have network.
         // Parse query parameters
         var query = window.location.search.slice(1);
-        var params = {}
+        var params = {};
+        var i;
         if (query) {
             var arr = query.split('&');
-            for (var i = 0; i < arr.length; i++) {
+            for (i = 0; i < arr.length; i++) {
                 var a = arr[i].split('=');
                 var val = typeof(a[1])==='undefined' ? true : a[1];
-                params[a[0]] = val
+                params[a[0]] = val;
             }
         }
         // Experimental and undocumented feature - show a given plan
-        var plan = params['plan']
+        var plan = params['plan'];
         // create a plan from the given string
         if (plan) {
-            points = plan.split(',');
-            var planX = new tf.Plan('Plan X', new tf.Pod(basePodSpec),
-                                    undefined);
-            for (var i = 0; i < points.length; i++) {
+            var points = plan.split(',');
+            var planX = new Plan('Plan X', new Pod(basePodSpec),
+                                 undefined);
+            for (i = 0; i < points.length; i++) {
                 planX.addPoint(points[i]);
             }
-            tf.state.curPlan.set(planX);
-            tf.ui.showPlan = true;
-            tf.ui.inshoreLegsLayer.changed();
-            tf.ui.offshoreLegsLayer.changed();
+            curState.curPlan.set(planX);
+            inshoreLegsLayer.changed();
+            offshoreLegsLayer.changed();
         }
         // Experimental and undocumented feature - show all logs in
         // a given regatta
-        var regatta = params['regatta']
+        var regatta = params['regatta'];
         if (regatta) {
-            tf.ui.showRegattaId = regatta;
+            curState.mode.set('showRegatta');
+            curState.showRegattaId.set(regatta);
         }
     }
 
 /* I don't know if this is a good idea or not...
 
     // if no client id has been set, ask the user to provide one
-    if (tf.state.clientId.get() == null) {
+    if (curState.clientId.get() == null) {
         tf.ui.addclientid.open(function() {
-            tf.state.setupLogin(tf.ui.stateSetupDone);
+            setupLogin(stateSetupDone, openLoginPage);
         });
     } else {
-        tf.state.setupLogin(tf.ui.stateSetupDone);
+        setupLogin(stateSetupDone, openLoginPage);
     }
 */
 
-    tf.state.setupLogin(tf.ui.stateSetupDone);
+    setupLogin(stateSetupDone, openLoginPage);
 };
 
-tf.ui.showRegatta = function(regattaId) {
+var showTeams;
+var showRaces;
+
+function showRegatta(regattaId) {
     var cfn2 = function(logs) {
-        var regatta = new tf.Regatta(regattaId, tf.ui.showRaces[0].regatta_name,
-                                     tf.ui.showRaces,
-                                     new tf.Pod(basePodSpec),
-                                     tf.ui.showTeams, logs);
+        var regatta = new Regatta(regattaId, showRaces[0].regatta_name,
+                                  showRaces,
+                                  new Pod(basePodSpec),
+                                  showTeams, logs);
         $('#tf-nav-boats-badge').show();
-        tf.state.curRegatta = regatta;
-    }
+        curState.curRegatta = regatta;
+    };
     var cfn1 = function(teams) {
-        tf.ui.showTeams = teams;
-        tf.serverData.getRegattaLogs(regattaId, cfn2);
-    }
+        showTeams = teams;
+        getRegattaLogs(regattaId, cfn2);
+    };
     var cfn0 = function(races) {
-        tf.ui.showRaces = races;
-        tf.serverData.getRegattaTeams(regattaId, cfn1);
-    }
+        showRaces = races;
+        getRegattaTeams(regattaId, cfn1);
+    };
     // tmp hack - don't set cur* and boat state when we show the regatta
-    tf.state.curRegatta = null;
-    tf.state.curRace = null;
-    tf.state.curLogBook = null;
-    tf.state.boatState.engine = false;
-    tf.state.boatState.lanterns = false;
-    tf.state.activeInterrupt = false;
+    curState.curRegatta = null;
+    curState.curRace = null;
+    curState.curLogBook = null;
+    curState.boatState.engine = false;
+    curState.boatState.lanterns = false;
+    curState.activeInterrupt = false;
 
-    tf.serverData.getRegattaRaces(regattaId, cfn0);
-};
+    getRegattaRaces(regattaId, cfn0);
+}
+
+export function run() {
+    // empty
+}

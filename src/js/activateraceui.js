@@ -1,38 +1,38 @@
 /* -*- js -*- */
 
-goog.provide('tf.ui.activateRace');
+import {curState, activateRace} from './state.js';
+import {pushPage} from './pageui.js';
+import {getSetting} from './storage.js';
+import {getMyRaces, updateServerData} from './serverdata.js';
+import {URL} from './serverapi.js';
 
-goog.require('tf.serverAPI');
-goog.require('tf.ui');
-goog.require('tf.ui.alert');
-
-tf.ui.activateRace.openPage = function() {
+export function openPage() {
 
     // fill the list of races in which the user participates
-    tf.ui.activateRace._populateRaces();
-    tf.ui.pushPage(
+    populateRaces();
+    pushPage(
         function() { $('#activate-race-page').modal({backdrop: 'static'}); },
         function() { $('#activate-race-page').modal('hide'); });
     document.activeElement.blur();
 };
 
-tf.ui.activateRace._populateRaces = function() {
-    var races = tf.serverData.getMyRaces();
+function populateRaces() {
+    var races = getMyRaces();
     var curActiveRaceId = 0;
-    if (tf.state.curRace) {
-        curActiveRaceId = tf.state.curRace.getId();
+    if (curState.curRace) {
+        curActiveRaceId = curState.curRace.getId();
     }
     if (races.length == 0) {
         $('#activate-race-list').hide();
         $('#activate-race-no-races').show();
-        $('#activate-race-register-link').attr('href', tf.serverAPI.URL);
+        $('#activate-race-register-link').attr('href', URL);
     } else {
         $('#activate-race-list').show();
         $('#activate-race-no-races').hide();
         var s = '';
         s += '<button type="button" autocomplete="off"' +
              ' id="activate-race-button-0"' +
-             ' onclick="tf.ui.activateRace.buttonClick(0)"' +
+             ' onclick="window.tfUiActivateRaceButtonClick(0)"' +
             ' class="list-group-item list-group-item-action' +
             ' align-items-start';
         if (curActiveRaceId == 0) {
@@ -43,15 +43,16 @@ tf.ui.activateRace._populateRaces = function() {
             '</button>';
 
         // FIXME: read pod from server
-        var pod = tf.state.defaultPod;
+        var pod = curState.defaultPod;
 
         for (var i = 0; i < races.length; i++) {
             var r = races[i].raceData;
             var t = races[i].teamData;
             var isActive = (r.id == curActiveRaceId);
+            var p;
             s += '<button type="button" autocomplete="off"' +
                 ' id="activate-race-button-' + r.id + '"' +
-                ' onclick="tf.ui.activateRace.buttonClick(' + r.id + ')"' +
+                ' onclick="window.tfUiActivateRaceButtonClick(' + r.id + ')"' +
                 ' class="list-group-item list-group-item-action' +
                 ' align-items-start';
             if (isActive) {
@@ -67,7 +68,7 @@ tf.ui.activateRace._populateRaces = function() {
             }
             if (r.common_finish) {
                 s += ', gemensamt mål ' + r.common_finish;
-                var p = pod.getPoint(r.common_finish);
+                p = pod.getPoint(r.common_finish);
                 if (p) {
                     s += ' ' + p.name;
                 }
@@ -86,7 +87,7 @@ tf.ui.activateRace._populateRaces = function() {
                 }
             }
             s += ' från ' + t.start_point;
-            var p = pod.getPoint(t.start_point);
+            p = pod.getPoint(t.start_point);
             if (p) {
                 s += ' ' + p.name;
             }
@@ -99,13 +100,13 @@ tf.ui.activateRace._populateRaces = function() {
     }
 };
 
-tf.ui.activateRace.buttonClick = function(raceId) {
+window.tfUiActivateRaceButtonClick = function(raceId) {
     var id = '#activate-race-button-' + raceId;
     var btn = $(id);
     btn.parent().find('button').removeClass('active');
     btn.addClass('active');
 
-    tf.state.activateRace(raceId);
+    activateRace(raceId);
 };
 
 /**
@@ -113,9 +114,7 @@ tf.ui.activateRace.buttonClick = function(raceId) {
  */
 $(document).ready(function() {
     $('#activate-update-btn').on('click', function() {
-        tf.serverData.update(tf.storage.getSetting('personId'),
-                             function() {
-                                 tf.ui.activateRace._populateRaces();
-                             });
+        updateServerData(getSetting('personId'),
+                         populateRaces);
     });
 });

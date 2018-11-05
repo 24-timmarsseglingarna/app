@@ -1,19 +1,21 @@
 /* -*- js -*- */
 
-goog.provide('tf.ui.planMenu');
+import {curState} from './state.js';
+import {pushPage, popPage} from './pageui.js';
+import {planModeActivate, updateAll} from './ui.js';
+import {alert} from './alertui.js';
+import {Plan} from './plan.js';
+import {numberToName} from './util.js';
 
-goog.require('tf.plan');
-goog.require('tf.ui');
-
-tf.ui.planMenu.openPage = function() {
+export function openPage() {
     // create the plan buttons
     var btns = '<button type="button" autocomplete="off"' +
         ' class="list-group-item list-group-item-action' +
         '   align-items-start tf-plan-item"' +
         ' id="tf-plan-item-none"' +
         ' data-name="none">Ingen plan</button>';
-    for (var i = 1; i <= tf.state.numberOfPlans.get(); i++) {
-        var ch = tf.plan.numberToName(i);
+    for (var i = 1; i <= curState.numberOfPlans.get(); i++) {
+        var ch = numberToName(i);
         btns += '<button type="button" autocomplete="off"' +
         ' class="list-group-item list-group-item-action' +
         '   align-items-start tf-plan-item"' +
@@ -21,13 +23,13 @@ tf.ui.planMenu.openPage = function() {
         ' data-name="' + ch + '">Plan ' + ch + '</button>';
     }
     $('#plan-btns').html(btns);
-    $('.tf-plan-item').on('click', tf.ui.planMenu._itemClick);
+    $('.tf-plan-item').on('click', itemClick);
 
     // mark the active plan
     $('.tf-plan-item').removeClass('active');
     $('#tf-plan-plan').removeClass('disabled');
     var activeId;
-    var curPlan = tf.state.curPlan.get();
+    var curPlan = curState.curPlan.get();
     if (!curPlan) {
         $('#tf-plan-plan').addClass('disabled');
         activeId = '#tf-plan-item-none';
@@ -36,43 +38,44 @@ tf.ui.planMenu.openPage = function() {
     }
     $(activeId).addClass('active');
 
-    tf.ui.pushPage(
+    pushPage(
         function() { $('#plan-menu-page').modal({backdrop: 'static'}); },
         function() { $('#plan-menu-page').modal('hide'); });
     document.activeElement.blur();
 };
 
-tf.ui.planMenu._itemClick = function(event) {
+function itemClick(event) {
     var name = $(event.target).data('name'); // html5 data-name attribute
     var plan = null;
     if (name == 'none') {
         $('#tf-plan-plan').addClass('disabled');
-        tf.state.curPlan.set(null);
-    } else if (tf.state.curRace) {
+        curState.curPlan.set(null);
+    } else if (curState.curRace) {
         $('#tf-plan-plan').removeClass('disabled');
-        plan = tf.state.curRace.getPlan(name);
-        tf.state.curPlan.set(plan);
+        plan = curState.curRace.getPlan(name);
+        curState.curPlan.set(plan);
         if (!plan.logbook) {
-            plan.attachLogBook(tf.state.curLogBook);
+            plan.attachLogBook(curState.curLogBook);
             // add a function that checks if the plan no longer matches
             // the logbook, and the plan is current, then we no longer
             // use the plan as current.
             plan.onPlanUpdate(function(plan, how) {
                 if (how == 'nomatch') {
-                    if (tf.state.curPlan.get().name == plan.name) {
-                        tf.state.curPlan.set(null);
+                    if (curState.curPlan.get().name == plan.name) {
+                        curState.curPlan.set(null);
                     }
                 }
             });
-            plan.onPlanUpdate(tf.ui.updateAll);
+            plan.onPlanUpdate(updateAll);
         }
     } else {
         $('#tf-plan-plan').removeClass('disabled');
-        plan = new tf.Plan(name, tf.state.defaultPod, undefined);
-        tf.state.curPlan.set(plan);
-        plan.onPlanUpdate(tf.ui.updateAll);
+        plan = new Plan(name, curState.defaultPod, undefined);
+        curState.curPlan.set(plan);
+        plan.onPlanUpdate(updateAll);
     }
     $('.tf-plan-item').removeClass('active');
+    var activeId;
     if (!plan) {
         activeId = '#tf-plan-item-none';
     } else {
@@ -80,7 +83,7 @@ tf.ui.planMenu._itemClick = function(event) {
     }
     $(activeId).addClass('active');
 
-    tf.ui.planModeActivate();
+    planModeActivate(false);
     return false;
 };
 
@@ -89,20 +92,20 @@ tf.ui.planMenu._itemClick = function(event) {
  */
 $(document).ready(function() {
 
-    $('#tf-plan-normal').on('click', function(event) {
-        tf.ui.planModeActivate(false);
-        tf.ui.popPage();
+    $('#tf-plan-normal').on('click', function() {
+        planModeActivate(false);
+        popPage();
         return false;
     });
 
-    $('#tf-plan-plan').on('click', function(event) {
-        if (!tf.state.curPlan.get()) {
-            tf.ui.alert('<p>Du måste välja en plan innan du kan ' +
-                        'gå in i planeringsläget.</p>');
+    $('#tf-plan-plan').on('click', function() {
+        if (!curState.curPlan.get()) {
+            alert('<p>Du måste välja en plan innan du kan ' +
+                  'gå in i planeringsläget.</p>');
             return false;
         }
-        tf.ui.planModeActivate(true);
-        tf.ui.popPage();
+        planModeActivate(true);
+        popPage();
         return false;
     });
 

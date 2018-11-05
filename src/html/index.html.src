@@ -79,7 +79,9 @@ m4_include(planmenu.html)
     </script>
 
     <!-- open layers -->
+<!--
     <script type="text/javascript" src="deps/ol.js"></script>
+-->
 
     <script type="text/javascript" src="pod.js"></script>
 

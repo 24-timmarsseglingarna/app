@@ -1,11 +1,23 @@
 /* -*- js -*- */
 
-goog.provide('tf.state');
+import {tfAppVsn} from '../../deps/vsn.js';
+import {Pod} from './pod.js';
+import {Regatta} from './regatta.js';
+import {Race} from './race.js';
+import {LogBook} from './logbook.js';
+import {defineVariable, numberToName, isCordova} from './util.js';
+import {init as initStorage,
+        getSetting, setSettings, getRaceLog, setRaceLog} from './storage.js';
+import {login as serverAPILogin, logout as serverAPILogout,
+        setStagingServer, setProductionServer,
+        getAPIVersion, validateToken} from './serverapi';
+import {alert} from './alertui.js';
+import {init as initServerData, updateServerData,
+        getMyRaces, getRaceData, getMyTeamData, getRacesData,
+        clearCache as clearServerDataCache} from './serverdata.js';
+import {debugInfo} from './debug.js';
 
-goog.require('tf');
-goog.require('tf.plan');
-goog.require('tf.serverData');
-goog.require('tf.storage');
+export var curState = {};
 
 /**
  * This module handles the application state and control, such as:
@@ -18,200 +30,204 @@ goog.require('tf.storage');
  */
 
 
-//tf.defineVariable('curRace', null);
-//tf.defineVariable('curLogBook', null);
-tf.defineVariable(tf.state, 'curPlan', null);
-tf.defineVariable(tf.state, 'numberOfPlans', null);
-tf.defineVariable(tf.state, 'clientId', null);
-tf.defineVariable(tf.state, 'fontSize', null);
-tf.defineVariable(tf.state, 'pollInterval', null);
-tf.defineVariable(tf.state, 'sendLogToServer', null);
-tf.defineVariable(tf.state, 'immediateSendToServer', null);
-tf.defineVariable(tf.state, 'serverId', null);
+// mode :: 'race'
+//       | 'showRegatta'  // experimental
+//       | 'logbook'      // NYI
+defineVariable(curState, 'mode', 'race');
+defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
+//defineVariable('curRace', null);
+//defineVariable('curLogBook', null);
+defineVariable(curState, 'curPlan', null);
+defineVariable(curState, 'numberOfPlans', null);
+defineVariable(curState, 'clientId', null);
+defineVariable(curState, 'fontSize', null);
+defineVariable(curState, 'pollInterval', null);
+defineVariable(curState, 'sendLogToServer', null);
+defineVariable(curState, 'immediateSendToServer', null);
+defineVariable(curState, 'serverId', null);
 
 /**
  * Initialize ephemeral state variables.
  */
 
-tf.state.isServerCompatible = null;
-tf.state.curRace = null;
-tf.state.curRegatta = null;
-tf.state.curLogBook = null;
+curState.isServerCompatible = null;
+curState.curRace = null;
+curState.curRegatta = null;
+curState.curLogBook = null;
 
 // this is initialized at startup by analyzing the log book, if there is one
-tf.state.boatState = {
+curState.boatState = {
     'engine': false,
     'lanterns': false
 };
 
 // this is initialized at startup by analyzing the log book, if there is one
-tf.state.activeInterrupt = false;
+curState.activeInterrupt = false;
 
-tf.state.defaultPod = new tf.Pod(basePodSpec);
+curState.defaultPod = new Pod(basePodSpec);
 
-tf.state.isLoggedIn = false;
-tf.state.personId = null;
+curState.isLoggedIn = false;
+curState.personId = null;
 
-tf.state.isCordova = 'cordova' in window;
-tf.state.platform = null;
+var platform = null;
 
 // internal timer
-tf.state._timer = null;
+var timer = null;
 
-tf.state.debugInfo = {};
-tf.state.debugInfo['timer'] = function() {
+debugInfo['timer'] = function() {
     var val = false;
-    if (tf.state._timer != null) {
+    if (timer != null) {
         val = true;
     }
     return [{key: 'timer', val: val}];
 };
 
+var updateAll;
 
-tf.state.init = function() {
+export function init(updatef) {
+    updateAll = updatef;
     // initialize local storage handler
-    tf.storage.init();
+    initStorage(false);
 
-    if (tf.state.isCordova) {
-        tf.state.platform = device.platform;
+    if (isCordova) {
+        platform = device.platform;
     } else {
-        tf.state.platform = 'web';
+        platform = 'web';
     }
-
-    tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
-    tf.state.numberOfPlans.onChange(function(val) {
-        tf.storage.setSettings({numberOfPlans: val});
+    curState.numberOfPlans.set(getSetting('numberOfPlans'));
+    curState.numberOfPlans.onChange(function(val) {
+        setSettings({numberOfPlans: val});
         // if the current plan is no longer used; remove it.
-        var p = tf.state.curPlan.get();
-        if (p && p.name > tf.plan.numberToName(val)) {
-            tf.state.curPlan.set(null);
+        var p = curState.curPlan.get();
+        if (p && p.name > numberToName(val)) {
+            curState.curPlan.set(null);
         }
     });
 
-    tf.state.clientId.set(tf.storage.getSetting('clientId'));
-    tf.state.clientId.onChange(function(val) {
-        tf.storage.setSettings({clientId: val});
+    curState.clientId.set(getSetting('clientId'));
+    curState.clientId.onChange(function(val) {
+        setSettings({clientId: val});
     });
 
-    tf.state.fontSize.set(tf.storage.getSetting('fontSize'));
-    tf.state.fontSize.onChange(function(val) {
-        tf.storage.setSettings({fontSize: val});
+    curState.fontSize.set(getSetting('fontSize'));
+    curState.fontSize.onChange(function(val) {
+        setSettings({fontSize: val});
     });
 
-    tf.state.pollInterval.set(tf.storage.getSetting('pollInterval'));
-    tf.state.pollInterval.onChange(function(val) {
-        tf.storage.setSettings({pollInterval: val});
-        tf.state.forceTimeout();
+    curState.pollInterval.set(getSetting('pollInterval'));
+    curState.pollInterval.onChange(function(val) {
+        setSettings({pollInterval: val});
+        forceTimeout();
     });
 
-    tf.state.sendLogToServer.set(tf.storage.getSetting('sendLogToServer'));
-    tf.state.sendLogToServer.onChange(function(val) {
-        tf.storage.setSettings({sendLogToServer: val});
+    curState.sendLogToServer.set(getSetting('sendLogToServer'));
+    curState.sendLogToServer.onChange(function(val) {
+        setSettings({sendLogToServer: val});
     });
 
-    tf.state.immediateSendToServer.set(
-        tf.storage.getSetting('immediateSendToServer'));
-    tf.state.immediateSendToServer.onChange(function(val) {
-        tf.storage.setSettings({immediateSendToServer: val});
+    curState.immediateSendToServer.set(
+        getSetting('immediateSendToServer'));
+    curState.immediateSendToServer.onChange(function(val) {
+        setSettings({immediateSendToServer: val});
     });
 
-    var serverId = tf.storage.getSetting('serverId');
-    tf.state.serverId.set(serverId);
-    tf.state.serverId.onChange(function(val) {
+    var serverId = getSetting('serverId');
+    curState.serverId.set(serverId);
+    curState.serverId.onChange(function(val) {
         if (val == 2) {
-            tf.serverAPI.setStagingServer();
+            setStagingServer();
         } else {
-            tf.serverAPI.setProductionServer();
+            setProductionServer();
         }
-        tf.storage.setSettings({serverId: val});
-        tf.state.logout();
+        setSettings({serverId: val});
+        logout();
     });
     if (serverId == 2) {
-        tf.serverAPI.setStagingServer();
+        setStagingServer();
     } else {
-        tf.serverAPI.setProductionServer();
+        setProductionServer();
     }
 
-    document.addEventListener('resume', tf.state.onResume, false);
+    document.addEventListener('resume', onResume, false);
 
     // initialize server data; doesn't read from the server, but will
     // read cached data from local storage.
-    tf.serverData.init();
+    initServerData(curState.clientId);
 };
 
-tf.state.hasNetwork = function() {
-    return (!tf.state.isCordova ||
+function hasNetwork() {
+    return (!isCordova ||
             navigator.connection.type != Connection.NONE);
 };
 
-tf.state.onResume = function() {
-    tf.state.forceTimeout();
+function onResume() {
+    forceTimeout();
 };
 
-tf.state.setTimer = function() {
-    tf.state.clearTimer();
-    var interval = tf.state.pollInterval.get();
+function setTimer() {
+    clearTimer();
+    var interval = curState.pollInterval.get();
     if (interval > 0) {
-        tf.state._timer = window.setTimeout(tf.state._timeout,
-                                            interval * 1000);
+        timer = window.setTimeout(timeout,
+                                  interval * 1000);
     }
 };
 
-tf.state.clearTimer = function() {
-    if (tf.state._timer) {
-        window.clearTimeout(tf.state._timer);
-        tf.state._timer = null;
+function clearTimer() {
+    if (timer) {
+        window.clearTimeout(timer);
+        timer = null;
     }
 };
 
-tf.state.forceTimeout = function() {
-    tf.state.clearTimer();
-    tf.state._timeout();
+function forceTimeout() {
+    clearTimer();
+    timeout();
 };
 
-tf.state._timeout = function() {
-    tf.state._timer = null;
+function timeout() {
+    timer = null;
 
-    tf.state.debugInfo['poll-timer-fired'] = moment().format();
-    var n = tf.state.debugInfo['poll-timer-n'];
+    debugInfo['poll-timer-fired'] = moment().format();
+    var n = debugInfo['poll-timer-n'];
     if (n) {
         n = n + 1;
     } else {
         n = 1;
     }
-    tf.state.debugInfo['poll-timer-n'] = n;
+    debugInfo['poll-timer-n'] = n;
 
     var cfn3 = function() {
-        tf.state.setTimer();
+        setTimer();
     };
 
     var cfn2 = function() {
-        if (tf.state.curLogBook) {
-            tf.state.curLogBook.updateFromServer(cfn3);
+        if (curState.curLogBook) {
+            curState.curLogBook.updateFromServer(cfn3);
         } else {
             cfn3();
         }
     };
 
     var cfn1 = function() {
-        if (tf.state.curLogBook && tf.state.sendLogToServer.get()) {
-            tf.state.curLogBook.sendToServer(cfn2);
+        if (curState.curLogBook && curState.sendLogToServer.get()) {
+            curState.curLogBook.sendToServer(cfn2);
         } else {
             cfn2();
         }
     };
 
     var cfn0 = function() {
-        tf.state.serverDataUpdateDone();
-        tf.ui.updateAll();
-        if (tf.state.curRegatta) {
-            tf.state.curRegatta.updateLogFromServer(cfn1);
+        serverDataUpdateDone();
+        updateAll();
+        if (curState.curRegatta) {
+            curState.curRegatta.updateLogFromServer(cfn1, curState.curLogBook);
         } else {
             cfn1();
         }
     };
 
-    tf.serverData.update(tf.storage.getSetting('personId'), cfn0);
+    updateServerData(getSetting('personId'), cfn0);
 };
 
 /**
@@ -230,20 +246,20 @@ tf.state._timeout = function() {
  *
  * This function calls responseFn(true | { errorStr: <string> })
  */
-tf.state.checkServerCompatible = function(responseFn) {
-    if (tf.state.isServerCompatible == true) {
+export function checkServerCompatible(responseFn) {
+    if (curState.isServerCompatible == true) {
         responseFn(true);
     } else {
-        tf.serverAPI.getAPIVersion(function(data) {
+        getAPIVersion(function(data) {
             // check for platform / upgrade match
             if (data.app_info && data.app_info.require_upgrade) {
                 var r = data.app_info.require_upgrade;
                 for (var i = 0; i < r.length; i++) {
                     if (r[i].platform == '*' ||
-                        r[i].platform == tf.state.platform) {
+                        r[i].platform == platform) {
                         var re = new RegExp(r[i].app_version);
-                        if (re.test(tf.appVsn)) {
-                            tf.state.isServerCompatible = false;
+                        if (re.test(tfAppVsn)) {
+                            curState.isServerCompatible = false;
                             responseFn({ errorStr: r[i].upgrade_text });
                             return;
                         }
@@ -254,224 +270,212 @@ tf.state.checkServerCompatible = function(responseFn) {
                 var x = data.api_version.split('.');
                 var major = parseInt(x[0]) || 0;
                 if (major == 1) {
-                    tf.state.isServerCompatible = true;
+                    curState.isServerCompatible = true;
                     responseFn(true);
                 } else {
                     // new major version on server
-                    tf.state.isServerCompatible = false;
+                    curState.isServerCompatible = false;
                     responseFn({ errorStr: '' });
                 }
             } else if (data.errorCode == 0) {
                 // connection error, keep going
-                tf.state.isServerCompatible = null;
+                curState.isServerCompatible = null;
                 responseFn(true);
             } else if (data.errorStr) {
                 // some other error, treat as non-compatible
-                tf.state.isServerCompatible = false;
+                curState.isServerCompatible = false;
                 responseFn(data);
             } else {
-                tf.state.isServerCompatible = false;
+                curState.isServerCompatible = false;
                 responseFn({ errorStr: '' });
             }
         });
     }
 };
 
-tf.state.setupLogin = function(continueFn) {
-    if (tf.state.hasNetwork() && tf.state.isServerCompatible == null) {
-        tf.state.checkServerCompatible(function(response) {
+export function setupLogin(continueFn, doLoginFn) {
+    if (hasNetwork() && curState.isServerCompatible == null) {
+        checkServerCompatible(function(response) {
             if (response == true) {
-                tf.state._setupLogin2(continueFn);
+                setupLogin2(continueFn, doLoginFn);
             } else {
                 continueFn(response);
             }
         });
     } else {
-        tf.state._setupLogin2(continueFn);
+        setupLogin2(continueFn, doLoginFn);
     }
 };
 
-tf.state._setupLogin2 = function(continueFn) {
+function setupLogin2(continueFn, doLoginFn) {
     // check if we're authenticated and possibly login
-    var hasNetwork = tf.state.hasNetwork();
-    var token = tf.storage.getSetting('token');
-    var email = tf.storage.getSetting('email');
-    var personId = tf.storage.getSetting('personId');
-    if (hasNetwork && !tf.storage.getSetting('token')) {
+    var hasNetworkP = hasNetwork();
+    var token = getSetting('token');
+    var email = getSetting('email');
+    var personId = getSetting('personId');
+    if (hasNetworkP && !getSetting('token')) {
         //console.log('has network, no stored token');
         // we haven't logged in
-        tf.ui.loginPage.openPage();
+        doLoginFn();
         continueFn();
-    } else if (hasNetwork) {
+    } else if (hasNetworkP) {
         //console.log('has network and stored token, validate it');
         // validate the token
-        if (!tf.serverAPI.validateToken(email, token)) {
+        if (!validateToken(email, token)) {
             //console.log('has network, invalid token');
             // token invalid, check if the password is stored
-            var password = tf.storage.getSetting('password');
+            var password = getSetting('password');
             if (password) {
                 //console.log('has stored passwd, login');
-                tf.serverAPI.login(email, password, function(response) {
+                serverAPILogin(email, password, function(response) {
                     if (response) {
                         //console.log('login ok');
-                        props = {
+                        var props = {
                             token: response.token,
                             personId: response.personId
                         };
-                        tf.storage.setSettings(props);
-                        tf.state.onAuthenticatedOnline(props.personId,
-                                                       continueFn);
+                        setSettings(props);
+                        onAuthenticatedOnline(props.personId, continueFn);
                     } else {
                         // saved login not ok
-                        tf.ui.loginPage.openPage();
+                        doLoginFn();
                         continueFn();
                     }
                 });
             } else {
                 // invalid token and no stored password.  try to login
-                tf.ui.loginPage.openPage();
+                doLoginFn();
                 continueFn();
             }
         } else {
             // token is valid
             //console.log('has network, valid token');
-            tf.state.onAuthenticatedOnline(personId, continueFn);
+            onAuthenticatedOnline(personId, continueFn);
         }
-    } else if (tf.storage.getSetting('token')) {
+    } else if (getSetting('token')) {
         //console.log('no network, token');
         // we have a token but no network; continue with the data we have
-        tf.state._setupContinue(continueFn);
+        setupContinue(continueFn);
     } else {
         //console.log('no network, no token');
         // no network, no token; not much to do
-        tf.ui.alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
-                    'du har nätverk.</p>');
+        alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
+              'du har nätverk.</p>');
         continueFn();
     }
 };
 
-tf.state.onAuthenticatedOnline = function(personId, continueFn) {
-    tf.state.isLoggedIn = true;
-    tf.state.personId = personId;
-    tf.state.forceTimeout();
+function onAuthenticatedOnline(personId, continueFn) {
+    curState.isLoggedIn = true;
+    curState.personId = personId;
+    forceTimeout();
     // we'll first start from cached data; if things have been updated on
     // the server, we might change active race when we get the reply.
-    tf.state._setupContinue(continueFn);
+    setupContinue(continueFn);
 };
 
-tf.state.serverDataUpdateDone = function() {
-    var curActiveRaceId = tf.storage.getSetting('activeRaceId');
-    var races = tf.serverData.getMyRaces();
+function serverDataUpdateDone() {
+    var curActiveRaceId = getSetting('activeRaceId');
+    var races = getMyRaces();
 
     if (races.length == 1 && races[0].raceData.id != curActiveRaceId) {
         // the user is registered for a single race,
         // make it active
-        tf.state.activateRace(races[0].raceData.id);
-    } else if (tf.serverData.getRaceData(curActiveRaceId) == null) {
+        activateRace(races[0].raceData.id);
+    } else if (getRaceData(curActiveRaceId) == null) {
         // current activeRaceId is not valid
-        tf.state._setActiveRace2(null);
+        setActiveRace2(null);
     }
 };
 
-tf.state._setupContinue = function(continueFn) {
+function setupContinue(continueFn) {
 
-    var activeRaceId = tf.storage.getSetting('activeRaceId');
+    var activeRaceId = getSetting('activeRaceId');
 
-    tf.state._setActiveRace2(activeRaceId, continueFn);
+    setActiveRace2(activeRaceId, continueFn);
 };
 
-tf.state.activateRace = function(raceId) {
-    if (raceId == tf.storage.getSetting('activeRaceId')) {
+export function activateRace(raceId) {
+    if (raceId == getSetting('activeRaceId')) {
         return;
     }
-    tf.state._setActiveRace2(raceId, function() {
+    setActiveRace2(raceId, function() {
         // force an update of serverdata when a new race is activated
-        tf.state.forceTimeout();
+        forceTimeout();
     });
 };
 
-tf.state._setActiveRace2 = function(raceId, continueFn) {
+function setActiveRace2(raceId, continueFn) {
 
-    tf.storage.setSettings({activeRaceId: raceId});
+    setSettings({activeRaceId: raceId});
 
     // we need to initialize a new Race object, and swap our
-    // tf.state.cur* variables.
+    // curState.cur* variables.
     // if we have data stored for this race, use that when we initialize
     // the Race object.
-    // if raceId is 0, reset the tf.state.cur* variables.
+    // if raceId is 0, reset the curState.cur* variables.
 
-    var raceData = tf.serverData.getRaceData(raceId);
-    var teamData = tf.serverData.getMyTeamData(raceId);
+    var raceData = getRaceData(raceId);
+    var teamData = getMyTeamData(raceId);
     if (raceData && teamData) {
         // FIXME: the pod should be more dynamic; it can change on the server
-        var tmpPod = tf.state.defaultPod;
-        var racesData = tf.serverData.getRacesData(raceData.regatta_id);
-        tf.state.curRegatta = new tf.Regatta(raceData.regatta_id,
-                                             raceData.regatta_name,
-                                             racesData, tmpPod);
-        tf.state.curRace = new tf.Race(tf.state.curRegatta, raceData);
+        var tmpPod = curState.defaultPod;
+        var racesData = getRacesData(raceData.regatta_id);
+        curState.curRegatta = new Regatta(raceData.regatta_id,
+                                          raceData.regatta_name,
+                                          racesData, tmpPod);
+        curState.curRace = new Race(curState.curRegatta, raceData);
         // get the stored log from the app storage
-        var raceLog = tf.storage.getRaceLog(raceId) || {};
+        var raceLog = getRaceLog(raceId) || {};
         var log = raceLog.log || [];
-        tf.state.curLogBook =
-            new tf.LogBook(teamData, tf.state.curRace, log, false);
+        curState.curLogBook =
+            new LogBook(teamData, curState.curRace, log, false);
 
-        tf.state.boatState.engine = tf.state.curLogBook.getEngine();
-        tf.state.boatState.lanterns = tf.state.curLogBook.getLanterns();
-        tf.state.activeInterrupt = tf.state.curLogBook.getInterrupt();
-        tf.state.curLogBook.onLogUpdate(function(logBook) {
-            tf.state.boatState.engine = logBook.getEngine();
-            tf.state.boatState.lanterns = logBook.getLanterns();
-            tf.state.activeInterrupt = logBook.getInterrupt();
+        curState.boatState.engine = curState.curLogBook.getEngine();
+        curState.boatState.lanterns = curState.curLogBook.getLanterns();
+        curState.activeInterrupt = curState.curLogBook.getInterrupt();
+        curState.curLogBook.onLogUpdate(function(logBook) {
+            curState.boatState.engine = logBook.getEngine();
+            curState.boatState.lanterns = logBook.getLanterns();
+            curState.activeInterrupt = logBook.getInterrupt();
         }, 90);
-        tf.state.curLogBook.onLogUpdate(tf.ui.updateAll, 100);
-        tf.state.curLogBook.onLogUpdate(function(logBook) {
-            tf.storage.setRaceLog(logBook.race.getId(), logBook.getLog());
+        curState.curLogBook.onLogUpdate(updateAll, 100);
+        curState.curLogBook.onLogUpdate(function(logBook) {
+            setRaceLog(logBook.race.getId(), logBook.getLog());
         }, 110);
-        tf.state.curLogBook.onLogUpdate(function(logBook, reason) {
+        curState.curLogBook.onLogUpdate(function(logBook, reason) {
             // communicate with server if the logBook has changed,
             // but not if the update was triggered by server communication!
             if (reason != 'syncError' && reason != 'syncDone' &&
-                tf.state.immediateSendToServer.get()) {
-                tf.state.forceTimeout();
+                curState.immediateSendToServer.get()) {
+                forceTimeout();
             }
         }, 120);
         if (continueFn) {
             continueFn();
         }
     } else {
-        console.log('** state set null');
-        if (!tf.ui.regattaId) {
+        if (curState.mode.get() != 'showRegatta') {
             // FIXME: tmp code
-            tf.state.curRegatta = null;
+            curState.curRegatta = null;
         }
-        tf.state.curRace = null;
-        tf.state.curLogBook = null;
-        tf.state.boatState.engine = false;
-        tf.state.boatState.lanterns = false;
-        tf.state.activeInterrupt = false;
+        curState.curRace = null;
+        curState.curLogBook = null;
+        curState.boatState.engine = false;
+        curState.boatState.lanterns = false;
+        curState.activeInterrupt = false;
         if (continueFn) {
             continueFn();
         }
     }
 };
 
-tf.state.defaultClientId = function() {
-    var clientId;
-    if (tf.state.isCordova) {
-        clientId = device.platform + '-' + device.model + '-' + device.uuid;
-    } else {
-        clientId = tf.uuid();
-    }
-    return clientId;
-};
-
-tf.state.login = function(email, password, savepassword, responsefn) {
-    tf.serverAPI.login(
+export function login(email, password, savepassword, responsefn) {
+    serverAPILogin(
         email, password,
         function(response) {
             if (response.token) {
-                props = {
+                var props = {
                     email: response.email,
                     password: response.password,
                     token: response.token,
@@ -481,11 +485,11 @@ tf.state.login = function(email, password, savepassword, responsefn) {
                 if (!savepassword) {
                     props.password = null;
                 }
-                tf.storage.setSettings(props);
-                tf.state.onAuthenticatedOnline(props.personId,
-                                               function() {
-                                                   tf.ui.updateAll();
-                                               });
+                setSettings(props);
+                onAuthenticatedOnline(props.personId,
+                                      function() {
+                                          updateAll();
+                                      });
                 responsefn(true);
             } else {
                 responsefn(response);
@@ -493,42 +497,41 @@ tf.state.login = function(email, password, savepassword, responsefn) {
         });
 };
 
-tf.state.logout = function() {
-    tf.serverAPI.logout();
-    props = {
+export function logout() {
+    serverAPILogout();
+    var props = {
         email: null,
         password: null,
         token: null,
         personId: null,
         activeRaceId: null
     };
-    tf.storage.setSettings(props);
-    tf.state.isLoggedIn = false;
-    tf.state.personId = null;
-    tf.state.curRace = null;
-    tf.state.curRegatta = null;
-    tf.state.curLogBook = null;
-    tf.state.curPlan.set(null);
-    tf.state.boatState.engine = false;
-    tf.state.boatState.lanterns = false;
-    tf.state.activeInterrupt = false;
-    tf.state.clearTimer();
-    tf.serverData.clearCache();
+    setSettings(props);
+    curState.isLoggedIn = false;
+    curState.personId = null;
+    curState.curRace = null;
+    curState.curRegatta = null;
+    curState.curLogBook = null;
+    curState.curPlan.set(null);
+    curState.boatState.engine = false;
+    curState.boatState.lanterns = false;
+    curState.activeInterrupt = false;
+    clearTimer();
+    clearServerDataCache();
 
-    tf.ui.updateAll();
+    updateAll();
 };
 
-tf.state.reset = function(keepauth) {
-    var email = tf.storage.getSetting('email');
-    var password = tf.storage.getSetting('password');
-    var token = tf.storage.getSetting('token');
-    var personId = tf.storage.getSetting('personId');
-    var clientId = tf.storage.getSetting('clientId');
-    tf.state.logout();
-    localStorage.clear();
-    tf.storage.init();
+export function reset(keepauth, doLoginFn) {
+    var email = getSetting('email');
+    var password = getSetting('password');
+    var token = getSetting('token');
+    var personId = getSetting('personId');
+    var clientId = getSetting('clientId');
+    logout();
+    initStorage(true);
     if (keepauth) {
-        props = {
+        var props = {
             email: email,
             password: password,
             token: token,
@@ -536,16 +539,15 @@ tf.state.reset = function(keepauth) {
             clientId: clientId
         };
     }
-    tf.storage.setSettings(props, true);
+    setSettings(props, true);
 
-    tf.state.numberOfPlans.set(tf.storage.getSetting('numberOfPlans'));
-    tf.state.clientId.set(tf.storage.getSetting('clientId'));
-    tf.state.fontSize.set(tf.storage.getSetting('fontSize'));
-    tf.state.pollInterval.set(tf.storage.getSetting('pollInterval'));
-    tf.state.sendLogToServer.set(tf.storage.getSetting('sendLogToServer'));
-    tf.state.immediateSendToServer.set(
-        tf.storage.getSetting('immediateSendToServer'));
-    tf.state.serverId.set(tf.storage.getSetting('serverId'));
+    curState.numberOfPlans.set(getSetting('numberOfPlans'));
+    curState.clientId.set(getSetting('clientId'));
+    curState.fontSize.set(getSetting('fontSize'));
+    curState.pollInterval.set(getSetting('pollInterval'));
+    curState.sendLogToServer.set(getSetting('sendLogToServer'));
+    curState.immediateSendToServer.set(getSetting('immediateSendToServer'));
+    curState.serverId.set(getSetting('serverId'));
 
-    tf.state.setupLogin(function() {});
+    setupLogin(function() {}, doLoginFn);
 };

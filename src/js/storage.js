@@ -1,8 +1,7 @@
 /* -*- js -*- */
 
-goog.provide('tf.storage');
-
-goog.require('tf');
+import {defaultClientId} from './util.js';
+import {debugInfo} from './debug.js';
 
 /**
  * This module handles all configuration parameters, state data, and
@@ -12,18 +11,32 @@ goog.require('tf');
  */
 
 // version 1: app <= 1.0.3
-tf.storage._curVersion = 2;
+var curVersion = 2;
 
-tf.storage.init = function() {
-    tf.state.debugInfo['storage'] = function() {
+var raceIds = {};
+var raceLogs = {};
+var settings = {};
+var keys = [];
+var cachedRaces = null;
+var cachedMyTeams = null;
+var cachedTeams = null;
+
+export function init(doClear) {
+    var i, key, raceId;
+
+    if (doClear) {
+        window.localStorage.clear();
+    };
+
+    debugInfo['storage'] = function() {
         var keys = [];
-        for (var i = 0; i < localStorage.length; i++) {
-            keys.push(localStorage.key(i));
+        for (var i = 0; i < window.localStorage.length; i++) {
+            keys.push(window.localStorage.key(i));
         }
         return [{key: 'storagekeys', val: keys.join(', ')}];
     };
 
-    tf.storage._keys = [
+    keys = [
         'settings',      // configuration parameters and state data
         'raceIds',       // for each id, there is state data 'racelog-<id>'
         'cachedRaces',   // cached data from server
@@ -35,15 +48,15 @@ tf.storage.init = function() {
      * Initialize settings from local storage.
      */
     try {
-        tf.storage._settings = JSON.parse(localStorage.getItem('settings'));
+        settings = JSON.parse(window.localStorage.getItem('settings'));
     } catch (err) {
-        tf.storage._settings = null;
+        settings = null;
     }
     var defaultSettings = {
         /*
          * Meta data
          */
-        'version': tf.storage._curVersion, // integer()
+        'version': curVersion, // integer()
 
         /*
          * Identification data
@@ -75,11 +88,11 @@ tf.storage.init = function() {
         'activeRaceId': null // integer()
     };
     var setDefaultSettings = function() {
-        tf.storage._settings = defaultSettings;
-        tf.storage._settings.clientId = tf.state.defaultClientId();
-        tf.storage.setSettings({});
+        settings = defaultSettings;
+        settings.clientId = defaultClientId();
+        setSettings({});
     };
-    if (!tf.storage._settings) {
+    if (!settings) {
         setDefaultSettings();
     } else {
         /*
@@ -93,28 +106,28 @@ tf.storage.init = function() {
          * First of all, if the stored data is not backwards compatible,
          * delete all stored data.
          */
-        if (tf.storage._settings.version != tf.storage._curVersion) {
+        if (settings.version != curVersion) {
             // we do this during development only
             console.log('incompatible storage found; removing all data');
-            localStorage.clear();
+            window.localStorage.clear();
             setDefaultSettings();
         } else {
-            for (var key in tf.storage._settings) {
+            for (key in settings) {
                 if (!(key in defaultSettings)) {
-                    delete tf.storage._settings[key];
+                    delete settings[key];
                 }
             }
-            for (var key in defaultSettings) {
-                if (!(key in tf.storage._settings)) {
-                    tf.storage._settings[key] = defaultSettings[key];
+            for (key in defaultSettings) {
+                if (!(key in settings)) {
+                    settings[key] = defaultSettings[key];
                 }
             }
             // handle the case that we don't have a client id
             // we shouldn't end up here except during development
-            if (tf.storage._settings['clientId'] == null) {
-                tf.storage._settings.clientId = tf.state.defaultClientId();
+            if (settings['clientId'] == null) {
+                settings.clientId = defaultClientId();
             }
-            tf.storage.setSettings({});
+            setSettings({});
         }
     }
 
@@ -122,78 +135,77 @@ tf.storage.init = function() {
      * Initialize races from local storage.
      */
     try {
-        tf.storage._raceIds = JSON.parse(localStorage.getItem('raceIds')) || {};
+        raceIds = JSON.parse(window.localStorage.getItem('raceIds')) || {};
     } catch (err) {
-        tf.storage._raceIds = {};
+        // don't use the error
     }
-    tf.storage._raceLogs = {};
-    for (var raceId in tf.storage._raceIds) {
-        var key = 'racelog-' + raceId;
+    for (raceId in raceIds) {
+        key = 'racelog-' + raceId;
         try {
-            var raceLog = JSON.parse(localStorage.getItem(key));
-            raceLog.log = raceLog.log.map(tf.storage._mkLog);
-            tf.storage._raceLogs[raceId] = raceLog;
+            var raceLog = JSON.parse(window.localStorage.getItem(key));
+            raceLog.log = raceLog.log.map(mkLog);
+            raceLogs[raceId] = raceLog;
         } catch (err) {
             // bad data, remove from storage
-            localStorage.removeItem(key);
+            window.localStorage.removeItem(key);
         }
     }
 
     /*
      * Initialize cached data from local storage.
      */
-    tf.storage._cachedRaces = null;
     try {
-        tf.storage._cachedRaces =
-            JSON.parse(localStorage.getItem('cachedRaces'));
-        for (var r in tf.storage._cachedRaces.data) {
-            tf.storage._cachedRaces.data[r] =
-                tf.storage._cachedRaces.data[r].map(tf.storage._mkRace);
+        cachedRaces =
+            JSON.parse(window.localStorage.getItem('cachedRaces'));
+        for (var r in cachedRaces.data) {
+            cachedRaces.data[r] =
+                cachedRaces.data[r].map(mkRace);
         }
     } catch (err) {
+        // don't use the error
     }
-    tf.storage._cachedMyTeams = null;
     try {
-        tf.storage._cachedMyTeams =
-            JSON.parse(localStorage.getItem('cachedMyTeams'));
+        cachedMyTeams =
+            JSON.parse(window.localStorage.getItem('cachedMyTeams'));
     } catch (err) {
+        // don't use the error
     }
-    tf.storage._cachedTeams = null;
     try {
-        tf.storage._cachedTeams =
-            JSON.parse(localStorage.getItem('cachedTeams'));
+        cachedTeams =
+            JSON.parse(window.localStorage.getItem('cachedTeams'));
     } catch (err) {
+        // don't use the error
     }
 
     /*
      * Remove any old stored key; from an older version of the code.
      */
-    var allKeys = tf.storage._keys;
-    for (var raceId in tf.storage._raceIds) {
+    var allKeys = keys;
+    for (raceId in raceIds) {
         allKeys.push('racelog-' + raceId);
     }
     var removedKeys = [];
-    for (var i = 0; i < localStorage.length; i++) {
-        var key = localStorage.key(i);
+    for (i = 0; i < window.localStorage.length; i++) {
+        key = window.localStorage.key(i);
         if (allKeys.indexOf(key) == -1) {
             removedKeys.push(key);
         }
     }
-    for (var i = 0; i < removedKeys.length; i++) {
+    for (i = 0; i < removedKeys.length; i++) {
         //console.log('removing old stored key ' + key);
-        localStorage.removeItem(removedKeys[i]);
+        window.localStorage.removeItem(removedKeys[i]);
     }
 };
 
-tf.storage.getSetting = function(key) {
-    return tf.storage._settings[key];
+export function getSetting(key) {
+    return settings[key];
 };
 
-tf.storage.setSettings = function(props) {
+export function setSettings(props) {
     for (var key in props) {
-        tf.storage._settings[key] = props[key];
+        settings[key] = props[key];
     }
-    localStorage.setItem('settings', JSON.stringify(tf.storage._settings));
+    window.localStorage.setItem('settings', JSON.stringify(settings));
 };
 
 /*
@@ -202,71 +214,73 @@ tf.storage.setSettings = function(props) {
  *   'log'      // LogBook().log
  */
 
-tf.storage.getRaceLog = function(raceId) {
-    return tf.storage._raceLogs[raceId];
+export function getRaceLog(raceId) {
+    return raceLogs[raceId];
 };
 
-tf.storage.setRaceLog = function(raceId, log) {
+export function setRaceLog(raceId, log) {
     var key = 'racelog-' + raceId;
     var raceLog = {
         raceId: raceId,
         log: log
     };
-    localStorage.setItem(key, JSON.stringify(raceLog));
-    if (!(raceId in tf.storage._raceIds)) {
-        tf.storage._raceIds[raceId] = true;
-        localStorage.setItem('raceIds', JSON.stringify(tf.storage._raceIds));
+    window.localStorage.setItem(key, JSON.stringify(raceLog));
+    if (!(raceId in raceIds)) {
+        raceIds[raceId] = true;
+        window.localStorage.setItem('raceIds', JSON.stringify(raceIds));
     }
-    tf.storage._raceLogs[raceId] = raceLog;
+    raceLogs[raceId] = raceLog;
 };
 
 // right now unclear when this function is called.  maybe automatic gc, or
 // explicit cleanup of old races by the user
-tf.storage.delRaceLog = function(raceId) {
+/*
+function delRaceLog(raceId) {
     var key = 'racelog-' + raceId;
-    if (raceId == tf.storage._settings['activeRaceId']) {
+    if (raceId == settings['activeRaceId']) {
         console.log('assertion failure - cannot delete active race');
         return false;
     }
-    localStorage.removeItem(key);
-    if (raceId in tf.storage._raceIds) {
-        delete tf.storage._raceIds[raceId];
-        localStorage.setItem('raceIds', JSON.stringify(tf.storage._raceIds));
+    window.localStorage.removeItem(key);
+    if (raceId in raceIds) {
+        delete raceIds[raceId];
+        window.localStorage.setItem('raceIds', JSON.stringify(raceIds));
     }
-    delete tf.storage._raceLogs[raceId];
+    delete raceLogs[raceId];
+};
+*/
+
+export function getCachedRaces() {
+    return cachedRaces;
+};
+export function setCachedRaces(races) {
+    cachedRaces = races;
+    window.localStorage.setItem('cachedRaces', JSON.stringify(races));
 };
 
-tf.storage.getCachedRaces = function() {
-    return tf.storage._cachedRaces;
+export function getCachedMyTeams() {
+    return cachedMyTeams;
 };
-tf.storage.setCachedRaces = function(races) {
-    tf.storage._cachedRaces = races;
-    localStorage.setItem('cachedRaces', JSON.stringify(races));
-};
-
-tf.storage.getCachedMyTeams = function() {
-    return tf.storage._cachedMyTeams;
-};
-tf.storage.setCachedMyTeams = function(teams) {
-    tf.storage._cachedMyTeams = teams;
-    localStorage.setItem('cachedMyTeams', JSON.stringify(teams));
+export function setCachedMyTeams(teams) {
+    cachedMyTeams = teams;
+    window.localStorage.setItem('cachedMyTeams', JSON.stringify(teams));
 };
 
-tf.storage.getCachedTeams = function() {
-    return tf.storage._cachedTeams;
+export function getCachedTeams() {
+    return cachedTeams;
 };
-tf.storage.setCachedTeams = function(teams) {
-    tf.storage._cachedTeams = teams;
-    localStorage.setItem('cachedTeams', JSON.stringify(teams));
+export function setCachedTeams(teams) {
+    cachedTeams = teams;
+    window.localStorage.setItem('cachedTeams', JSON.stringify(teams));
 };
 
-tf.storage._mkRace = function(r) {
+function mkRace(r) {
     r.start_from = moment(r.start_from);
     r.start_to = moment(r.start_to);
     return r;
 };
 
-tf.storage._mkLog = function(e) {
+function mkLog(e) {
     e.time = moment(e.time);
     return e;
 };

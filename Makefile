@@ -6,16 +6,6 @@ JS_SRC = $(wildcard src/js/*.js)
 
 HTML_SRC = $(wildcard src/html/*.html)
 
-CLOSURE_COMPILER_VSN=20170910
-
-ifeq ($(DEBUG),true)
-  CLOSURE_ARGS= -O simple --debug --formatting=PRETTY_PRINT
-else
-  CLOSURE_ARGS= -O simple
-#  CLOSURE_ARGS= -O ADVANCED --externs externs.js
-endif
-
-
 all: 	build/deps \
 	build/pod.js \
 	build/index.html \
@@ -27,12 +17,8 @@ all: 	build/deps \
 build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
-deps/vsn.js: vsn.mk
-	echo "tf.appVsn = '$(VSN)';" > $@
-
 build/24h.js: $(JS_SRC) deps/vsn.js
-	java -jar deps/closure-compiler-v$(CLOSURE_COMPILER_VSN).jar \
-	$(CLOSURE_ARGS) --js_output_file=$@ $^
+	rollup -c
 
 # This is temporary.  The pod will be downloaded from the server.
 # For now you need to get a PoD.xml covering the entire area and
@@ -40,9 +26,11 @@ build/24h.js: $(JS_SRC) deps/vsn.js
 build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
 	tools/pod-xml-to-geojson.py --javascript -i PoD.xml -o $@
 
+deps/vsn.js: deps vsn.mk
+	echo "export var tfAppVsn = '$(VSN)';" > $@
+
 PoD.xml:
 	curl -s "https://dev.24-timmars.nu/PoD/xmlapi_app.php" > $@
-
 
 build/icomoon.css: src/icomoon/style.css
 	cp $< $@
@@ -54,15 +42,25 @@ build/fonts: src/icomoon/fonts
 	cp -r $< build/
 
 # copy all dependencies except the compiler and the map
-build/deps: deps
-	cp -r deps build/; \
-	rm -f build/deps/closure-compiler*
+build/deps:
+	$(MAKE) depsjs; \
+	rm -rf $@; mkdir $@; \
+	cp node_modules/ol/ol.css $@/; \
 
-lint:
-	gjslint --nojsdoc -r src/js
+	cp node_modules/jquery/dist/jquery.min.js $@/; \
+	cp node_modules/jquery/dist/jquery.min.map $@/; \
 
-docs: $(JS_SRC) support/jsdoc.json
-	jsdoc -c support/jsdoc.json -d docs src/js
+	cp node_modules/popper.js/dist/umd/popper.min.js $@/; \
+	cp node_modules/bootstrap/dist/css/bootstrap.min.css $@/; \
+	cp node_modules/bootstrap/dist/css/bootstrap.min.css.map $@/; \
+	cp node_modules/bootstrap/dist/js/bootstrap.min.js $@/; \
+	cp node_modules/bootstrap/dist/js/bootstrap.min.js.map $@/; \
+
+	cp node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css $@/
+	cp node_modules/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js $@/
+
+	cp node_modules/moment/min/moment.min.js $@/; \
+	cp node_modules/moment/locale/sv.js $@/
 
 # must set TGT_DIR to a dedicated directory for the app
 www-publish:
@@ -76,7 +74,7 @@ www-publish-no-map: all deps
 	touch $(TGT_DIR)/cordova.js; \
 	ln -s ../tiles $(TGT_DIR)/tiles
 
-copy-target: all
+copy-target:
 	rm -rf $(TGT_DIR); \
 	mkdir $(TGT_DIR); \
 	cp -r build/* $(TGT_DIR)
@@ -112,7 +110,7 @@ build-app: 24h-app
 	cordova create 24h-app --template src/cordova-template; \
 	TGT_DIR=24h-app/www $(MAKE) copy-target; \
 	cd 24h-app; \
-	rm -f deps/*.css.map deps/*.js.map; \
+	rm -f deps/*.map; \
 	sed -e 's/version="1.0.0"/version="$(VSN)"/' \
 	    -e 's/org.homenet.mbj.tjugofyratimmars/$(APPID)/' \
 	    config.xml > c.xml; mv c.xml config.xml; \
@@ -125,15 +123,21 @@ cordova-template/template_src/res: \
 	cd cordova-template/template_src; \
 	splashicon-generator --imagespath="project/assets"
 
+.PHONY: depsjs
+depsjs: node_modules/ol \
+	node_modules/jquery \
+	node_modules/popper.js \
+	node_modules/bootstrap \
+	node_modules/moment \
+	node_modules/tempusdominus-bootstrap-4 \
+	node_modules/tempusdominus-core \
+	node_modules/rollup-plugin-node-resolve \
+	node_modules/rollup-plugin-commonjs \
+	node_modules/rollup-plugin-uglify \
+	node_modules/rollup-plugin-eslint
+
 deps:
 	mkdir deps; \
-	$(MAKE) deps/closure-compiler
-	$(MAKE) deps/jquery
-	$(MAKE) deps/ol
-	$(MAKE) deps/bootstrap
-	$(MAKE) deps/tempusdominus
-	$(MAKE) deps/popper
-	$(MAKE) deps/moment
 	$(MAKE) tiles
 
 clean:
@@ -141,88 +145,52 @@ clean:
 
 deps-clean:
 	rm -rf deps
+	rm -rf node_modules
 	rm -rf tiles
 
 mrproper: clean deps-clean
 	rm -f start_points.xml
 	rm -rf cordova-template/template_src/res
 
-# not proper make rules...
-
-deps/closure-compiler:
-	cd deps; \
-	wget http://dl.google.com/closure-compiler/compiler-$(CLOSURE_COMPILER_VSN).tar.gz; \
-	tar zxf compiler-$(CLOSURE_COMPILER_VSN).tar.gz closure-compiler-v$(CLOSURE_COMPILER_VSN).jar; \
-	rm compiler-$(CLOSURE_COMPILER_VSN).tar.gz
-
 JQUERY_VSN=3.3.1
-deps/jquery:
-	cd deps; \
-	wget https://code.jquery.com/jquery-$(JQUERY_VSN).min.js -O jquery.min.js
+node_modules/jquery:
+	npm install jquery@$(JQUERY_VSN)
 
-OL_VSN=4.6.5
-deps/ol:
-	cd deps; \
-	wget https://github.com/openlayers/openlayers/releases/download/v$(OL_VSN)/v$(OL_VSN)-dist.zip; \
-	unzip -q v$(OL_VSN)-dist.zip; \
-	rm -f v$(OL_VSN)-dist.zip; \
-	mv v$(OL_VSN)-dist/ol.js ol.js; \
-	mv v$(OL_VSN)-dist/ol.css .; \
-	rm -rf v$(OL_VSN)-dist
+OL_VSN=5.2.0
+node_modules/ol:
+	npm install ol$(OL_VSN)
 
-BOOTSTRAP_VSN=4.1.0
-deps/bootstrap:
-	cd deps; \
-	wget https://github.com/twbs/bootstrap/releases/download/v$(BOOTSTRAP_VSN)/bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
-	mkdir bootstrap-$(BOOTSTRAP_VSN)-dist; \
-	cd bootstrap-$(BOOTSTRAP_VSN)-dist; \
-	unzip -q ../bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
-	cd ..; \
-	rm -f bootstrap-$(BOOTSTRAP_VSN)-dist.zip; \
-	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.min.css .; \
-	mv bootstrap-$(BOOTSTRAP_VSN)-dist/css/bootstrap.min.css.map .; \
-	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js .; \
-	mv bootstrap-$(BOOTSTRAP_VSN)-dist/js/bootstrap.min.js.map .; \
-	rm -rf bootstrap-$(BOOTSTRAP_VSN)-dist
+MOMENT_VSN=2.22.2
+node_modules/moment:
+	npm install moment@$(MOMENT_VSN)
 
-TEMPUSDOMINUS_VSN=5.0.0-alpha18
-deps/tempusdominus:
-	cd deps; \
-	wget https://github.com/tempusdominus/bootstrap-4/archive/$(TEMPUSDOMINUS_VSN).tar.gz; \
-	tar zxf $(TEMPUSDOMINUS_VSN).tar.gz; \
-	rm -f $(TEMPUSDOMINUS_VSN).tar.gz; \
-	mv bootstrap-4-$(TEMPUSDOMINUS_VSN)/build/js/tempusdominus-bootstrap-4.min.js .; \
-	mv bootstrap-4-$(TEMPUSDOMINUS_VSN)/build/css/tempusdominus-bootstrap-4.min.css .; \
-	rm -rf bootstrap-4-$(TEMPUSDOMINUS_VSN)
+POPPER_VSN=1.14.4
+node_modules/popper.js:
+	npm install popper.js@$(POPPER_VSN)
 
-POPPER_VSN=1.12.9
-deps/popper:
-	cd deps; \
-	wget https://github.com/FezVrasta/popper.js/archive/v$(POPPER_VSN).tar.gz; \
-	tar zxf v$(POPPER_VSN).tar.gz; \
-	rm v$(POPPER_VSN).tar.gz; \
-	mv popper.js-$(POPPER_VSN)/dist/umd/popper.min.js .; \
-	mv popper.js-$(POPPER_VSN)/dist/umd/popper.min.js.map .; \
-	rm -rf popper.js-$(POPPER_VSN)
+BOOTSTRAP_VSN=4.1.3
+node_modules/bootstrap:
+	npm install bootstrap@$(BOOTSTRAP_VSN)
 
-MOMENT_VSN=2.20.1
-deps/moment:
-	cd deps; \
-	wget https://github.com/moment/moment/archive/$(MOMENT_VSN).tar.gz; \
-	tar zxf $(MOMENT_VSN).tar.gz; \
-	rm -f $(MOMENT_VSN).tar.gz; \
-	mv moment-$(MOMENT_VSN)/min/moment.min.js .; \
-	mv moment-$(MOMENT_VSN)/locale/sv.js .; \
-	rm -rf moment-$(MOMENT_VSN)
+TEMPUSDOMINUS_VSN=5.1.2
+node_modules/tempusdominus-bootstrap-4:
+	npm install tempusdominus-bootstrap-4@$(TEMPUSDOMINUS_VSN)
 
-OL3_EXT_VSN=1.0.1
-deps/ol3-ext:
-	cd deps; \
-	wget https://github.com/Viglino/ol3-ext/archive/v$(OL3_EXT_VSN).zip; \
-	unzip -q v$(OL3_EXT_VSN).zip; \
-	rm -f v$(OL3_EXT_VSN).zip; \
-	mv ol3-ext-$(OL3_EXT_VSN)/interaction/longtouchinteraction.js .; \
-	rm -rf ol3-ext-$(OL3_EXT_VSN)
+TEMPUSDOMINUS_CORE_VSN=5.1.2
+node_modules/tempusdominus-core:
+	npm install tempusdominus-core@$(TEMPUSDOMINUS_CORE_VSN)
+
+node_modules/rollup-plugin-node-resolve:
+	npm install --save-dev rollup-plugin-node-resolve
+
+node_modules/rollup-plugin-commonjs:
+	npm install --save-dev rollup-plugin-commonjs
+
+node_modules/rollup-plugin-uglify:
+	npm install --save-dev rollup-plugin-uglify
+
+node_modules/rollup-plugin-eslint:
+	npm install --save-dev rollup-plugin-eslint
 
 tiles:
 	wget http://4468.se/24h/map.tgz -O - | tar zx
