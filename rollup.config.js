@@ -14,6 +14,9 @@ export default {
         resolve(),
         commonjs(),
         eslint.eslint(), // see .eslintrc.js
-        (process.env.NODE_ENV === 'production' && uglify.uglify()),
+        (process.env.NODE_ENV === 'production' && uglify.uglify({compress:{
+            // FIXME: the setting below doesn't help!
+            side_effects: false // w/o this the map isn't displayed...
+        }})),
     ]
 };

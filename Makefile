@@ -156,9 +156,9 @@ JQUERY_VSN=3.3.1
 node_modules/jquery:
 	npm install jquery@$(JQUERY_VSN)
 
-OL_VSN=5.2.0
+OL_VSN=5.3.0
 node_modules/ol:
-	npm install ol$(OL_VSN)
+	npm install ol@$(OL_VSN)
 
 MOMENT_VSN=2.22.2
 node_modules/moment:
@@ -193,4 +193,4 @@ node_modules/rollup-plugin-eslint:
 	npm install --save-dev rollup-plugin-eslint
 
 tiles:
-	wget http://4468.se/24h/map.tgz -O - | tar zx
+	wget https://4468.se/24h/map.tgz -O - | tar zx

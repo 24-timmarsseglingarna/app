@@ -78,13 +78,6 @@ m4_include(planmenu.html)
     <script type="text/javascript" src="deps/tempusdominus-bootstrap-4.min.js">
     </script>
 
-    <!-- open layers -->
-<!--
-    <script type="text/javascript" src="deps/ol.js"></script>
--->
-
-    <script type="text/javascript" src="pod.js"></script>
-
     <script type="text/javascript" src="24h.js"></script>
   </body>
 </html>

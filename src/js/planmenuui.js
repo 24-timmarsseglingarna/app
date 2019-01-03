@@ -2,7 +2,6 @@
 
 import {curState} from './state.js';
 import {pushPage, popPage} from './pageui.js';
-import {planModeActivate, updateAll} from './ui.js';
 import {alert} from './alertui.js';
 import {Plan} from './plan.js';
 import {numberToName} from './util.js';
@@ -66,13 +65,11 @@ function itemClick(event) {
                     }
                 }
             });
-            plan.onPlanUpdate(updateAll);
         }
     } else {
         $('#tf-plan-plan').removeClass('disabled');
         plan = new Plan(name, curState.defaultPod, undefined);
         curState.curPlan.set(plan);
-        plan.onPlanUpdate(updateAll);
     }
     $('.tf-plan-item').removeClass('active');
     var activeId;
@@ -83,7 +80,7 @@ function itemClick(event) {
     }
     $(activeId).addClass('active');
 
-    planModeActivate(false);
+    curState.planMode.set(false);
     return false;
 };
 
@@ -93,7 +90,7 @@ function itemClick(event) {
 $(document).ready(function() {
 
     $('#tf-plan-normal').on('click', function() {
-        planModeActivate(false);
+        curState.planMode.set(false);
         popPage();
         return false;
     });
@@ -104,7 +101,7 @@ $(document).ready(function() {
                   'gå in i planeringsläget.</p>');
             return false;
         }
-        planModeActivate(true);
+        curState.planMode.set(true);
         popPage();
         return false;
     });

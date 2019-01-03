@@ -9,11 +9,16 @@
   },
   "dependencies": {
     "moment": "^2.22.2",
-    "ol": "^5.2.0",
+    "ol": "^5.3.0",
     "tempusdominus-bootstrap-4": "^5.1.2",
     "tempusdominus-core": "^5.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-eslint": "^5.0.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-uglify": "^6.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

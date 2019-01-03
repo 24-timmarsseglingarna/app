@@ -28,6 +28,7 @@ import {openPage as openPlanMenuPage} from './planmenuui.js';
 import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
+import {basePodSpec} from '../../build/pod.js';
 
 
 /**
@@ -144,7 +145,6 @@ var isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints > 0;
  */
 
 var showLegs = true;
-var planMode = false;
 var dragState = null;
 var initialCenterChanged = false;
 
@@ -320,7 +320,7 @@ function handleMapClick(event) {
                 var descr = feature.get('descr');
                 var coord;
                 if (descr) {
-                    if (planMode) {
+                    if (curState.planMode.get()) {
                         /*
                          * In plan mode:
                          *   single click - add to plan
@@ -375,7 +375,7 @@ function handleMapClick(event) {
 };
 
 function handleMapPointerDown(event) {
-    if (!planMode || dragState != null) {
+    if (!curState.planMode.get() || dragState != null) {
         return false;
     }
     return map.forEachFeatureAtPixel(
@@ -415,7 +415,7 @@ function handleMapPointerUp (event) {
     return false;
 };
 
-$(document).ready(function() {
+function initPopup() {
     pointPopup = new Popup();
     plannedPointPopup = new Popup();
 
@@ -429,7 +429,7 @@ $(document).ready(function() {
         })
     );
 */
-});
+};
 
 /**
  * Points handling
@@ -651,7 +651,7 @@ function mkLegStyleFunc(color) {
             } else {
                 // neither logged nor planned
                 var p;
-                if (planMode && curPlan) {
+                if (curState.planMode.get() && curPlan) {
                     p = curPlan.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
@@ -740,12 +740,10 @@ function mkLegsLayer(legs, title, color) {
  * Buttonbar handling
  */
 
-export function planModeActivate(active) {
+function planModeActivate(active) {
     if (active) {
-        planMode = true;
         $('#tf-nav-plan-mode').addClass('tf-plan-active');
     } else {
-        planMode = false;
         $('#tf-nav-plan-mode').removeClass('tf-plan-active');
     }
     inshoreLegsLayer.changed();
@@ -762,7 +760,7 @@ function showLegsActivate(active) {
     offshoreLegsLayer.changed();
 };
 
-$(document).ready(function() {
+function initNavbar() {
     // initiate the checkboxes according to default state
     $('#tf-nav-show-legs').prop('checked', showLegs);
 
@@ -882,7 +880,7 @@ $(document).ready(function() {
         popPage();
         return false;
     });
-});
+};
 
 function alertNoRace(w) {
     var s = '<p>Du behöver ';
@@ -1092,7 +1090,7 @@ function setFontSize(val) {
  * Add the view and layers to the map
  */
 
-$(document).ready(function() {
+function initLayers() {
     var podSpec = basePodSpec;
     turningPointsLayer =
         mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
@@ -1108,12 +1106,7 @@ $(document).ready(function() {
         mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
                     OFFSHORE_LEG_COLOR);
 
-    if (isCordova) {
-        document.addEventListener('deviceready', onDeviceReady, false);
-    } else {
-        onDeviceReady();
-    }
-});
+};
 
 function stateSetupDone(response) {
     if (response && response != true) {
@@ -1173,7 +1166,14 @@ function stateSetupDone(response) {
     updateAll();
 };
 
-function onDeviceReady() {
+export function onDocumentReady() {
+    initPopup();
+    initNavbar();
+    initLayers();
+};
+
+
+export function onDeviceReady() {
     // must be called after device ready since it accesses local files
     var mapLayer = mkMapLayer();
 
@@ -1205,13 +1205,18 @@ function onDeviceReady() {
         initialCenterChanged = true;
     });
 
-    curState.curPlan.onChange(function(val) {
-        if (!val) {
+    curState.curPlan.onChange(function(plan) {
+        if (!plan) {
             $('#tf-nav-plan-name').html('');
             planModeActivate(false);
         } else {
-            $('#tf-nav-plan-name').html(val.name);
+            $('#tf-nav-plan-name').html(plan.name);
+            plan.onPlanUpdate(updateAll);
         }
+    });
+
+    curState.planMode.onChange(function(val) {
+        planModeActivate(val);
     });
 
     $('#tf-nav-boats-badge').hide();
@@ -1324,8 +1329,4 @@ function showRegatta(regattaId) {
     curState.activeInterrupt = false;
 
     getRegattaRaces(regattaId, cfn0);
-}
-
-export function run() {
-    // empty
 }

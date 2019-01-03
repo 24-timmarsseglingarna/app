@@ -1,7 +1,7 @@
 /* -*- js -*- */
 
-import {curState, logout, reset as resetState,
-        defaultClientId} from './state.js';
+import {curState, logout, reset as resetState} from './state.js';
+import {defaultClientId} from './util.js';
 import {pushPage, popPage} from './pageui.js';
 import {openPage as openLoginPage} from './loginui.js';
 import {alert} from './alertui.js';

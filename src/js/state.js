@@ -16,6 +16,7 @@ import {init as initServerData, updateServerData,
         getMyRaces, getRaceData, getMyTeamData, getRacesData,
         clearCache as clearServerDataCache} from './serverdata.js';
 import {debugInfo} from './debug.js';
+import {basePodSpec} from '../../build/pod.js';
 
 export var curState = {};
 
@@ -35,6 +36,8 @@ export var curState = {};
 //       | 'logbook'      // NYI
 defineVariable(curState, 'mode', 'race');
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
+defineVariable(curState, 'planMode', false); // if mode == 'race'
+
 //defineVariable('curRace', null);
 //defineVariable('curLogBook', null);
 defineVariable(curState, 'curPlan', null);
