@@ -59,7 +59,7 @@ LogBook.prototype.getLog = function() {
 
 LogBook.prototype.getLogEntry = function(id) {
     for (var i = 0; i < this.log.length; i++) {
-        if (this.log[i].id == id) {
+        if (this.log[i].id == id || this.log[i].oldid == id) {
             return this.log[i];
         }
     }
@@ -68,7 +68,7 @@ LogBook.prototype.getLogEntry = function(id) {
 
 LogBook.prototype.getNextLogEntry = function(id) {
     for (var i = 0; (i + 1) < this.log.length; i++) {
-        if (this.log[i].id == id) {
+        if (this.log[i].id == id || this.log[i].oldid == id) {
             return this.log[i + 1];
         }
     }
@@ -151,7 +151,7 @@ LogBook.prototype._delLogEntryByIndex = function(index) {
 
 LogBook.prototype._delLogEntryById = function(id) {
     for (var i = 0; i < this.log.length; i++) {
-        if (this.log[i].id == id) {
+        if (this.log[i].id == id || this.log[i].oldid == id) {
             this._delLogEntryByIndex(i);
             return;
         }
@@ -558,7 +558,7 @@ LogBook.prototype.getInterrupt = function() {
 LogBook.prototype.deleteLogEntry = function(id) {
     var index = undefined;
     for (var i = 0; i < this.log.length; i++) {
-        if (this.log[i].id == id) {
+        if (this.log[i].id == id  || this.log[i].oldid == id) {
             index = i;
         }
     }
@@ -710,6 +710,9 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
                         return;
                     } else {
                         // update ok; store id and generation id
+                        e.oldid = e.id; // remember old (generated uuid) id
+                                        // so that we can find it if we have
+                                        // references to it
                         e.id = id;
                         e.gen = gen;
                         e.state = 'sync';
