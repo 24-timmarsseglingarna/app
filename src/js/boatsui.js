@@ -2,7 +2,6 @@
 
 import {curState} from './state.js';
 import {pushPage, popPage} from './pageui.js';
-import {updateAll} from './ui.js';
 import {getTeamsData, getRacesData} from './serverdata.js';
 
 var curRegatta;
@@ -162,7 +161,7 @@ function fillLeaderBoard(regatta) {
     var html = '';
 
     var pod = regatta.getPod();
-    var leaderboard = regatta.getLeaderBoard(curState.curLogBook);
+    var leaderboard = regatta.getLeaderBoard(curState.curLogBook.get());
     leaderboard.sort(function(a, b) { return b.netdist - a.netdist; });
     var updated = regatta.getLeaderBoardUpdatedTime();
     // clear 'updated' flag in the regatta in order to mark
@@ -296,8 +295,7 @@ function fillResult(regatta) {
 
 window.tfUiBoatsSelect = function(teamId) {
     var logbook = curRegatta.getTeamLogbook(teamId);
-    curState.curLogBook = logbook;
-    updateAll();
+    curState.curLogBook.set(logbook);
     popPage();
 
 /*

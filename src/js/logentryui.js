@@ -2,7 +2,6 @@
 
 import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
-import {curState} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {getTeamsData} from './serverdata.js';
 
@@ -132,7 +131,7 @@ export function openLogEntry(options) {
     // the user to confirm.
     if (options.logBook.getLog().length == 0 &&
         !options.logBook.getRace().hasStarted()) {
-        var s = curState.curRace.startTimes.start_from.format(
+        var s = options.logBook.getRace().startTimes.start_from.format(
             'YYYY-MM-DD HH:mm:ss');
         confirm('<p>Seglingen startar ' + s +
                 '. Vill du verkligen göra en loggboksanteckning?',

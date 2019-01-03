@@ -46,15 +46,16 @@ export function openPage() {
 function itemClick(event) {
     var name = $(event.target).data('name'); // html5 data-name attribute
     var plan = null;
+    var curRace = curState.curRace.get();
     if (name == 'none') {
         $('#tf-plan-plan').addClass('disabled');
         curState.curPlan.set(null);
-    } else if (curState.curRace) {
+    } else if (curRace) {
         $('#tf-plan-plan').removeClass('disabled');
-        plan = curState.curRace.getPlan(name);
+        plan = curRace.getPlan(name);
         curState.curPlan.set(plan);
         if (!plan.logbook) {
-            plan.attachLogBook(curState.curLogBook);
+            plan.attachLogBook(curState.curLogBook.get());
             // add a function that checks if the plan no longer matches
             // the logbook, and the plan is current, then we no longer
             // use the plan as current.

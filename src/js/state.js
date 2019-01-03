@@ -38,8 +38,9 @@ defineVariable(curState, 'mode', 'race');
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
 defineVariable(curState, 'planMode', false); // if mode == 'race'
 
-//defineVariable('curRace', null);
-//defineVariable('curLogBook', null);
+defineVariable(curState, 'curRegatta', null);
+defineVariable(curState, 'curRace', null);
+defineVariable(curState, 'curLogBook', null);
 defineVariable(curState, 'curPlan', null);
 defineVariable(curState, 'numberOfPlans', null);
 defineVariable(curState, 'clientId', null);
@@ -48,15 +49,13 @@ defineVariable(curState, 'pollInterval', null);
 defineVariable(curState, 'sendLogToServer', null);
 defineVariable(curState, 'immediateSendToServer', null);
 defineVariable(curState, 'serverId', null);
+defineVariable(curState, 'loggedInPersonId', null);
 
 /**
  * Initialize ephemeral state variables.
  */
 
 curState.isServerCompatible = null;
-curState.curRace = null;
-curState.curRegatta = null;
-curState.curLogBook = null;
 
 // this is initialized at startup by analyzing the log book, if there is one
 curState.boatState = {
@@ -68,9 +67,6 @@ curState.boatState = {
 curState.activeInterrupt = false;
 
 curState.defaultPod = new Pod(basePodSpec);
-
-curState.isLoggedIn = false;
-curState.personId = null;
 
 var platform = null;
 
@@ -85,10 +81,7 @@ debugInfo['timer'] = function() {
     return [{key: 'timer', val: val}];
 };
 
-var updateAll;
-
-export function init(updatef) {
-    updateAll = updatef;
+export function init() {
     // initialize local storage handler
     initStorage(false);
 
@@ -205,16 +198,18 @@ function timeout() {
     };
 
     var cfn2 = function() {
-        if (curState.curLogBook) {
-            curState.curLogBook.updateFromServer(cfn3);
+        var curLogBook = curState.curLogBook.get();
+        if (curLogBook) {
+            curLogBook.updateFromServer(cfn3);
         } else {
             cfn3();
         }
     };
 
     var cfn1 = function() {
-        if (curState.curLogBook && curState.sendLogToServer.get()) {
-            curState.curLogBook.sendToServer(cfn2);
+        var curLogBook = curState.curLogBook.get();
+        if (curLogBook && curState.sendLogToServer.get()) {
+            curLogBook.sendToServer(cfn2);
         } else {
             cfn2();
         }
@@ -222,9 +217,9 @@ function timeout() {
 
     var cfn0 = function() {
         serverDataUpdateDone();
-        updateAll();
-        if (curState.curRegatta) {
-            curState.curRegatta.updateLogFromServer(cfn1, curState.curLogBook);
+        var curRegatta = curState.curRegatta.get();
+        if (curRegatta) {
+            curRegatta.updateLogFromServer(cfn1, curState.curLogBook.get());
         } else {
             cfn1();
         }
@@ -369,8 +364,7 @@ function setupLogin2(continueFn, doLoginFn) {
 };
 
 function onAuthenticatedOnline(personId, continueFn) {
-    curState.isLoggedIn = true;
-    curState.personId = personId;
+    curState.loggedInPersonId.set(personId);
     forceTimeout();
     // we'll first start from cached data; if things have been updated on
     // the server, we might change active race when we get the reply.
@@ -424,29 +418,27 @@ function setActiveRace2(raceId, continueFn) {
         // FIXME: the pod should be more dynamic; it can change on the server
         var tmpPod = curState.defaultPod;
         var racesData = getRacesData(raceData.regatta_id);
-        curState.curRegatta = new Regatta(raceData.regatta_id,
-                                          raceData.regatta_name,
-                                          racesData, tmpPod);
-        curState.curRace = new Race(curState.curRegatta, raceData);
+        var curRegatta = new Regatta(raceData.regatta_id,
+                                     raceData.regatta_name,
+                                     racesData, tmpPod);
+        var curRace = new Race(curRegatta, raceData);
         // get the stored log from the app storage
         var raceLog = getRaceLog(raceId) || {};
         var log = raceLog.log || [];
-        curState.curLogBook =
-            new LogBook(teamData, curState.curRace, log, false);
+        var curLogBook = new LogBook(teamData, curRace, log, false);
 
-        curState.boatState.engine = curState.curLogBook.getEngine();
-        curState.boatState.lanterns = curState.curLogBook.getLanterns();
-        curState.activeInterrupt = curState.curLogBook.getInterrupt();
-        curState.curLogBook.onLogUpdate(function(logBook) {
+        curState.boatState.engine = curLogBook.getEngine();
+        curState.boatState.lanterns = curLogBook.getLanterns();
+        curState.activeInterrupt = curLogBook.getInterrupt();
+        curLogBook.onLogUpdate(function(logBook) {
             curState.boatState.engine = logBook.getEngine();
             curState.boatState.lanterns = logBook.getLanterns();
             curState.activeInterrupt = logBook.getInterrupt();
         }, 90);
-        curState.curLogBook.onLogUpdate(updateAll, 100);
-        curState.curLogBook.onLogUpdate(function(logBook) {
+        curLogBook.onLogUpdate(function(logBook) {
             setRaceLog(logBook.race.getId(), logBook.getLog());
         }, 110);
-        curState.curLogBook.onLogUpdate(function(logBook, reason) {
+        curLogBook.onLogUpdate(function(logBook, reason) {
             // communicate with server if the logBook has changed,
             // but not if the update was triggered by server communication!
             if (reason != 'syncError' && reason != 'syncDone' &&
@@ -454,16 +446,19 @@ function setActiveRace2(raceId, continueFn) {
                 forceTimeout();
             }
         }, 120);
+        curState.curRegatta.set(curRegatta);
+        curState.curRace.set(curRace);
+        curState.curLogBook.set(curLogBook);
         if (continueFn) {
             continueFn();
         }
     } else {
         if (curState.mode.get() != 'showRegatta') {
             // FIXME: tmp code
-            curState.curRegatta = null;
+            curState.curRegatta.set(null);
         }
-        curState.curRace = null;
-        curState.curLogBook = null;
+        curState.curRace.set(null);
+        curState.curLogBook.set(null);
         curState.boatState.engine = false;
         curState.boatState.lanterns = false;
         curState.activeInterrupt = false;
@@ -489,10 +484,7 @@ export function login(email, password, savepassword, responsefn) {
                     props.password = null;
                 }
                 setSettings(props);
-                onAuthenticatedOnline(props.personId,
-                                      function() {
-                                          updateAll();
-                                      });
+                onAuthenticatedOnline(props.personId);
                 responsefn(true);
             } else {
                 responsefn(response);
@@ -510,19 +502,16 @@ export function logout() {
         activeRaceId: null
     };
     setSettings(props);
-    curState.isLoggedIn = false;
-    curState.personId = null;
-    curState.curRace = null;
-    curState.curRegatta = null;
-    curState.curLogBook = null;
+    curState.loggedInPersonId.set(null);
+    curState.curRace.set(null);
+    curState.curRegatta.set(null);
+    curState.curLogBook.set(null);
     curState.curPlan.set(null);
     curState.boatState.engine = false;
     curState.boatState.lanterns = false;
     curState.activeInterrupt = false;
     clearTimer();
     clearServerDataCache();
-
-    updateAll();
 };
 
 export function reset(keepauth, doLoginFn) {

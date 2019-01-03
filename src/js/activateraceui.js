@@ -19,8 +19,9 @@ export function openPage() {
 function populateRaces() {
     var races = getMyRaces();
     var curActiveRaceId = 0;
-    if (curState.curRace) {
-        curActiveRaceId = curState.curRace.getId();
+    var curRace = curState.curRace.get();
+    if (curRace) {
+        curActiveRaceId = curRace.getId();
     }
     if (races.length == 0) {
         $('#activate-race-list').hide();

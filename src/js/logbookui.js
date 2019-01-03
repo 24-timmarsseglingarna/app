@@ -47,9 +47,9 @@ function refreshLogBook(options) {
     $('#log-book-comp-elem').hide();
 
     // no header and no arrow in the popup
-    var popover_template = '<div class="popover log-book-edit-popover"' +
-        ' role="tooltip">' +
-        '<div class="popover-body"></div></div>';
+    var popover_template = '<div class=\'popover log-book-edit-popover\'' +
+        ' role=\'tooltip\'>' +
+        '<div class=\'popover-body\'></div></div>';
 
     for (var i = 0; i < log.length; i++) {
         var e = log[i];
@@ -77,13 +77,13 @@ function refreshLogBook(options) {
             intTD = '<td class="log-book-invalid-interrupt text-danger">';
             intPost = '<span class="pl-1 icon-exclamation-circle"></span>';
         }
-        var edit_button_html = '<div class="row log-book-edit-buttons"' +
-            ' data-logid="' + e.id + '">' +
-            '<button class="btn btn-secondary" id="log-book-btn-edit">' +
+        var edit_button_html = '<div class=\'row log-book-edit-buttons\'' +
+            ' data-logid=\'' + e.id + '\'>' +
+            '<button class=\'btn btn-secondary\' id=\'log-book-btn-edit\'>' +
             'Ändra</button>' +
-            '<button class="btn btn-secondary" id="log-book-btn-add">' +
+            '<button class=\'btn btn-secondary\' id=\'log-book-btn-add\'>' +
             'Infoga</button>' +
-            '<button class="btn btn-warning" id="log-book-btn-del">' +
+            '<button class=\'btn btn-warning\' id=\'log-book-btn-del\'>' +
             'Radera</button>' +
             '</div>';
 
@@ -175,7 +175,7 @@ function refreshLogBook(options) {
         $('#log-book-comp-elem').show();
     }
 
-    if (curState.personId == logBook.teamData.skipper_id) {
+    if (curState.loggedInPersonId.get() == logBook.teamData.skipper_id) {
         $('#log-book-sign').show();
     } else {
         $('#log-book-sign').hide();

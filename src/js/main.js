@@ -5,11 +5,7 @@ import {isCordova} from './util.js';
 import {onDocumentReady as uiOnDocumentReady,
         onDeviceReady as uiOnDeviceReady} from './ui.js';
 
-// hmm, maybe re-write all modules to not depend on document ready,
-// but instead have a document ready in this file, and call the other's
-// init functions from here?
-
-export var state = curState;
+export var state = curState; // for debugging; access as tf.state
 
 $(document).ready(function() {
     uiOnDocumentReady();

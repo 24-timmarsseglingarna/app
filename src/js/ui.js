@@ -262,7 +262,8 @@ function mkPointPopupHTML(number, name, descr, footnote, eta) {
     for (var i = 0; i < eta.length; i++) {
         s += '<p>Planerad rundningstid: ' + eta[i] + '</p>';
     }
-    if (curState.curLogBook && !curState.curLogBook.isReadOnly()) {
+    var curLogBook = curState.curLogBook.get();
+    if (curLogBook && !curLogBook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
         // and w/o href in a bad way
         s += '<p><a class="log-point-button" tabindex="0"' +
@@ -276,7 +277,7 @@ window.tfUiLogPoint = function(number) {
     pointPopup.hide();
     openLogEntry({point: number,
                   type: 'round',
-                  logBook: curState.curLogBook});
+                  logBook: curState.curLogBook.get()});
 };
 
 function mkPlannedPointPopupHTML(number, name) {
@@ -621,8 +622,9 @@ function mkLegStyleFunc(color) {
             var src = feature.get('src');
             var dst = feature.get('dst');
             var logged = 0;
-            if (curState.curLogBook) {
-                logged = curState.curLogBook.getLegSailed(src, dst);
+            var curLogBook = curState.curLogBook.get();
+            if (curLogBook) {
+                logged = curLogBook.getLegSailed(src, dst);
             }
             var planned = 0;
             var curPlan = curState.curPlan.get();
@@ -656,10 +658,10 @@ function mkLegStyleFunc(color) {
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
-                } else if (curState.curLogBook &&
-                           !(curState.curLogBook.hasFinished() ||
-                             curState.curLogBook.isReadOnly())) {
-                    p = curState.curLogBook.getLastPoint();
+                } else if (curLogBook &&
+                           !(curLogBook.hasFinished() ||
+                             curLogBook.isReadOnly())) {
+                    p = curLogBook.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
@@ -790,11 +792,12 @@ function initNavbar() {
     });
 
     $('#tf-nav-boats').on('click', function() {
-        if (!curState.curRegatta) {
+        var curRegatta = curState.curRegatta.get();
+        if (!curRegatta) {
             alertNoRace('se deltagande båtar');
             return false;
         }
-        var opts = {regatta: curState.curRegatta};
+        var opts = {regatta: curRegatta};
         if (curState.mode.get() == 'showRegatta') {
             opts['adminView'] = true;
         }
@@ -803,10 +806,11 @@ function initNavbar() {
     });
 
     $('#tf-nav-log').on('click', function() {
-        if (!curState.curLogBook) {
+        var curLogBook = curState.curLogBook.get();
+        if (!curLogBook) {
             alertNoRace('göra en loggboksanteckning');
             return false;
-        } else if (curState.curLogBook.isReadOnly()) {
+        } else if (curLogBook.isReadOnly()) {
             alert('<p>När loggboken är signerad går det inte att' +
                   ' göra en loggboksanteckning.</p>');
             return false;
@@ -816,11 +820,12 @@ function initNavbar() {
     });
 
     $('#tf-nav-logbook').on('click', function() {
-        if (!curState.curLogBook) {
+        var curLogBook = curState.curLogBook.get();
+        if (!curLogBook) {
             alertNoRace('öppna loggboken');
         } else {
             openLogBook({
-                logBook: curState.curLogBook
+                logBook: curLogBook
             });
         }
         return false;
@@ -828,7 +833,7 @@ function initNavbar() {
 
     $('#tf-nav-plan-mode').on('click', function() {
         /*
-        if (!curState.curRace) {
+        if (!curState.curRace.get()) {
             alertNoRace('planera en rutt');
             return false;
         }
@@ -840,7 +845,7 @@ function initNavbar() {
     $('#tf-nav-show-activate-race').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
-        if (!curState.isLoggedIn) {
+        if (!curState.loggedInPersonId.get()) {
             alert('<p>Du behöver logga in för att kunna ' +
                   'aktivera en segling.</p>');
             return false;
@@ -884,7 +889,7 @@ function initNavbar() {
 
 function alertNoRace(w) {
     var s = '<p>Du behöver ';
-    if (!curState.isLoggedIn) {
+    if (!curState.loggedInPersonId.get()) {
         s += 'logga in och ';
     }
     s += 'aktivera en segling för att kunna ' + w + '.</p>';
@@ -892,53 +897,11 @@ function alertNoRace(w) {
 };
 
 /**
- * @constructor
- * @extends {ol.control.Control}
- * @param {Object=} opt_options Control options.
- */
-/*
-tf.ui.ButtonControl = function(opt_options) {
-    var element = $('<div>').addClass('ol-unselectable ol-control');
-
-    var button = $('<button>').html(opt_options.html || '')
-        .attr('title', opt_options.title)
-        .on('click', opt_options.onClick)
-        .appendTo(element);
-
-    ol.control.Control.call(this, {
-        element: element.get(0),
-        target: opt_options.target
-    });
-};
-ol.inherits(tf.ui.ButtonControl, ol.control.Control);
-*/
-
-/*
-tf.ui.patchTileUrls = function() {
-
-    mapSource.setTileUrlFunction(function(tileCoord, pixelRation, proj) {
-        var key = tileCoord[0].toString() + '/' +
-            tileCoord[1].toString() + '/' +
-            (-tileCoord[2] - 1).toString();
-        var sp = special_tiles[key];
-
-        if (sp == 1) {
-            return "tiles/yellow.png";
-        } else if (sp == 2) {
-            return "tiles/blue.png";
-        }
-        return 'tiles/' + key + '.png';
-    });
-}
-*/
-
-
-/**
  * Status bar handling
  */
 
 function updateStatusBar() {
-    if (!curState.curRace) {
+    if (!curState.curRace.get()) {
         $('#tf-status-time').text('--:--');
     }
 
@@ -959,14 +922,15 @@ function updateStatusBar() {
     }
 
     var dist = 0;
-    if (curState.curLogBook) {
-        var start = curState.curLogBook.getStartTime();
-        var speed = curState.curLogBook.getAverageSpeed();
-        var finished = curState.curLogBook.hasFinished();
-        dist = curState.curLogBook.getSailedDistance();
-        var netDist = curState.curLogBook.getNetDistance();
+    var curLogBook = curState.curLogBook.get();
+    if (curLogBook) {
+        var start = curLogBook.getStartTime();
+        var speed = curLogBook.getAverageSpeed();
+        var finished = curLogBook.hasFinished();
+        dist = curLogBook.getSailedDistance();
+        var netDist = curLogBook.getNetDistance();
 
-        $('#tf-status-boat').text(curState.curLogBook.teamData.boat_name);
+        $('#tf-status-boat').text(curLogBook.teamData.boat_name);
 
         if (start) {
             if (!headerTimer && !finished) {
@@ -990,7 +954,7 @@ function updateStatusBar() {
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
         $('#tf-status-net-distance').text(netDist.toFixed(1) + ' M');
-        if (curState.curLogBook.hasConflict()) {
+        if (curLogBook.hasConflict()) {
             $('#tf-nav-logbook-badge').show();
         } else {
             $('#tf-nav-logbook-badge').hide();
@@ -1024,7 +988,8 @@ function updateStatusBar() {
         $('.tf-status-plan').hide();
     }
 
-    if (curState.curRegatta && curState.curRegatta.log_updated) {
+    var curRegatta = curState.curRegatta.get();
+    if (curRegatta && curRegatta.log_updated) {
         $('#tf-nav-boats-badge').show();
     } else {
         $('#tf-nav-boats-badge').hide();
@@ -1037,8 +1002,9 @@ function updateStatusBarTime() {
     function p(num) {
         return (num < 10 ? '0' : '') + num;
     }
-    if (curState.curLogBook) {
-        var raceLeft = curState.curLogBook.getRaceLeftMinutes();
+    var curLogBook = curState.curLogBook.get();
+    if (curLogBook) {
+        var raceLeft = curLogBook.getRaceLeftMinutes();
         if (raceLeft < 0) {
             sign = '-';
             raceLeft = -raceLeft;
@@ -1128,13 +1094,14 @@ function stateSetupDone(response) {
     // center.
 
     var centerSet = false;
-    if (curState.curLogBook) {
-        var p = curState.curLogBook.getLastPoint();
+    var curLogBook = curState.curLogBook.get();
+    if (curLogBook) {
+        var p = curLogBook.getLastPoint();
         if (!p) {
-            p = curState.curLogBook.getStartPoint();
+            p = curLogBook.getStartPoint();
         }
         if (p) {
-            var pod = curState.curRace.getPod();
+            var pod = curState.curRace.get().getPod();
             var point = pod.getPoint(p);
             if (point && !initialCenterChanged) {
                 var center = transform(point.coords,
@@ -1166,12 +1133,13 @@ function stateSetupDone(response) {
     updateAll();
 };
 
+// hmm, maybe re-write all ui modules to not depend on document ready,
+// but instead call them from here?
 export function onDocumentReady() {
     initPopup();
     initNavbar();
     initLayers();
 };
-
 
 export function onDeviceReady() {
     // must be called after device ready since it accesses local files
@@ -1205,6 +1173,21 @@ export function onDeviceReady() {
         initialCenterChanged = true;
     });
 
+    curState.loggedInPersonId.onChange(function() {
+        updateAll();
+    });
+
+    curState.curRace.onChange(function() {
+        updateAll();
+    });
+
+    curState.curLogBook.onChange(function(logBook) {
+        if (logBook) {
+            logBook.onLogUpdate(updateAll, 100);
+        }
+        updateAll();
+    });
+
     curState.curPlan.onChange(function(plan) {
         if (!plan) {
             $('#tf-nav-plan-name').html('');
@@ -1221,7 +1204,7 @@ export function onDeviceReady() {
 
     $('#tf-nav-boats-badge').hide();
 
-    initState(updateAll);
+    initState();
 
     curState.fontSize.onChange(function(val) {
         setFontSize(val);
@@ -1310,7 +1293,7 @@ function showRegatta(regattaId) {
                                   new Pod(basePodSpec),
                                   showTeams, logs);
         $('#tf-nav-boats-badge').show();
-        curState.curRegatta = regatta;
+        curState.curRegatta.set(regatta);
     };
     var cfn1 = function(teams) {
         showTeams = teams;
@@ -1321,9 +1304,9 @@ function showRegatta(regattaId) {
         getRegattaTeams(regattaId, cfn1);
     };
     // tmp hack - don't set cur* and boat state when we show the regatta
-    curState.curRegatta = null;
-    curState.curRace = null;
-    curState.curLogBook = null;
+    curState.curRegatta.set(null);
+    curState.curRace.set(null);
+    curState.curLogBook.set(null);
     curState.boatState.engine = false;
     curState.boatState.lanterns = false;
     curState.activeInterrupt = false;

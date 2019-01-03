@@ -18,9 +18,9 @@ export function openPage(options) {
         $('#tf-log-engine').text('Stänger av motor för laddning');
     }
     if (!curState.activeInterrupt) {
-        $('#tf-log-interrupt').text('Avbrott i seglingen');
+        $('#tf-log-interrupt').text('Tillfälligt avbrott i seglingen');
     } else {
-        $('#tf-log-interrupt').text('Återupptar segling');
+        $('#tf-log-interrupt').text('Återupptar seglingen');
     }
 
     var page = $('#add-log-entry-page')[0];
@@ -40,7 +40,7 @@ $(document).ready(function() {
         var page = $('#add-log-entry-page')[0];
         popPage(function() {
             openLogEntry({
-                logBook: curState.curLogBook,
+                logBook: curState.curLogBook.get(),
                 time: page.tfOptions.time,
                 onclose: page.tfOptions.onclose,
                 type: $(event.target).data('type') // html5 data-type attribute

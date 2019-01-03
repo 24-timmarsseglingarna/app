@@ -9,7 +9,7 @@ import {getSetting} from './storage.js';
 import {debugInfo} from './debug.js';
 
 export function openPage() {
-    if (curState.isLoggedIn) {
+    if (curState.loggedInPersonId.get()) {
         $('#settings-login-block').hide();
         $('#settings-logout-block').show();
         $('#settings-logout-text').text('Du är inloggad som ' +
