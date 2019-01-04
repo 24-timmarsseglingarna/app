@@ -81,6 +81,7 @@ debugInfo['timer'] = function() {
     return [{key: 'timer', val: val}];
 };
 
+// must be called after device ready since it accesses local files
 export function init() {
     // initialize local storage handler
     initStorage(false);

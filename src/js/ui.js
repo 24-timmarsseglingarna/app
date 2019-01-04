@@ -12,12 +12,10 @@ import {transform} from 'ol/proj.js';
 
 import {Popup} from './ol-popup.js';
 
-import {Plan} from './plan.js';
 import {Pod} from './pod.js';
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
-import {init as initState, curState, setupLogin } from './state.js';
-import {isCordova} from './util.js';
+import {curState, setupLogin } from './state.js';
 import {getRegattaLogs, getRegattaTeams,
         getRegattaRaces} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
@@ -177,33 +175,37 @@ function getZoomLevel(resolution) {
  * Define the Map
  */
 
-var map = new Map({
-    target: 'map',
-    /*
-     * Increase moveTolerance in order to detect taps correctly on
-     * Sony Xperia Z3 Compact and Z4 Tablet.
-     */
-    moveTolerance: 1.5,
-    loadTilesWhileInteracting: true,
-    //loadTilesWhileAnimating: true,
-    controls: defaultControls({
-        attribution: false,
-        rotate: false,
-        zoom: !(isTouch) // no zoom on touch screen
-    }),
-    interactions: defaultInteractions({
-        altShiftDragRotate: false,
-        pinchRotate: false,
-        doubleClickZoom: false
-    }).extend([new Pointer({
-        handleDownEvent: function(event) {
-            return handleMapPointerDown(event);
-        },
-        handleUpEvent: function(event) {
-            return handleMapPointerUp(event);
-        }
-    })])
-});
+var map;
+
+function initMap() {
+    map = new Map({
+        target: 'map',
+        /*
+         * Increase moveTolerance in order to detect taps correctly on
+         * Sony Xperia Z3 Compact and Z4 Tablet.
+         */
+        moveTolerance: 1.5,
+        loadTilesWhileInteracting: true,
+        //loadTilesWhileAnimating: true,
+        controls: defaultControls({
+            attribution: false,
+            rotate: false,
+            zoom: !(isTouch) // no zoom on touch screen
+        }),
+        interactions: defaultInteractions({
+            altShiftDragRotate: false,
+            pinchRotate: false,
+            doubleClickZoom: false
+        }).extend([new Pointer({
+            handleDownEvent: function(event) {
+                return handleMapPointerDown(event);
+            },
+            handleUpEvent: function(event) {
+                return handleMapPointerUp(event);
+            }
+        })])
+    });
+};
 
 var mapURL = 'tiles/{z}/{x}/{y}.png';
 
@@ -1133,16 +1135,12 @@ function stateSetupDone(response) {
     updateAll();
 };
 
-// hmm, maybe re-write all ui modules to not depend on document ready,
-// but instead call them from here?
-export function onDocumentReady() {
+export function initMapUI() {
+    initMap();
     initPopup();
     initNavbar();
     initLayers();
-};
 
-export function onDeviceReady() {
-    // must be called after device ready since it accesses local files
     var mapLayer = mkMapLayer();
 
     //tf.ui.patchTileUrls();
@@ -1204,8 +1202,6 @@ export function onDeviceReady() {
 
     $('#tf-nav-boats-badge').hide();
 
-    initState();
-
     curState.fontSize.onChange(function(val) {
         setFontSize(val);
     });
@@ -1227,46 +1223,7 @@ export function onDeviceReady() {
 
     map.setView(view);
 
-    $('.tf-default-hidden').removeClass('tf-default-hidden');
-
-    if (isCordova) {
-        navigator.splashscreen.hide();
-    } else {
-        // This is the web version.  We can assume we have network.
-        // Parse query parameters
-        var query = window.location.search.slice(1);
-        var params = {};
-        var i;
-        if (query) {
-            var arr = query.split('&');
-            for (i = 0; i < arr.length; i++) {
-                var a = arr[i].split('=');
-                var val = typeof(a[1])==='undefined' ? true : a[1];
-                params[a[0]] = val;
-            }
-        }
-        // Experimental and undocumented feature - show a given plan
-        var plan = params['plan'];
-        // create a plan from the given string
-        if (plan) {
-            var points = plan.split(',');
-            var planX = new Plan('Plan X', new Pod(basePodSpec),
-                                 undefined);
-            for (i = 0; i < points.length; i++) {
-                planX.addPoint(points[i]);
-            }
-            curState.curPlan.set(planX);
-            inshoreLegsLayer.changed();
-            offshoreLegsLayer.changed();
-        }
-        // Experimental and undocumented feature - show all logs in
-        // a given regatta
-        var regatta = params['regatta'];
-        if (regatta) {
-            curState.mode.set('showRegatta');
-            curState.showRegattaId.set(regatta);
-        }
-    }
+    $('.tf-default-race-hidden').removeClass('tf-default-race-hidden');
 
 /* I don't know if this is a good idea or not...
 

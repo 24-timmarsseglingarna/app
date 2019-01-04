@@ -29,8 +29,8 @@ body {
     font-size: 22px !important;
 }
 
-.tf-default-hidden {
-    display: none;
+.tf-default-race-hidden {
+    display: none !important;
 }
 
 /* col-* doesn't work in chrome */
