@@ -10,7 +10,7 @@ import {getSetting} from './storage.js';
 export function openPage() {
     if (curState.isServerCompatible != true) {
         checkServerCompatible(function(response) {
-            if (response == true) {
+            if (response == true || response == null) {
                 openPage2();
             } else {
                 alertUpgrade(response.errorStr);

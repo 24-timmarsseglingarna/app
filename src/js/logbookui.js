@@ -2,17 +2,19 @@
 
 import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
-import {curState} from './state.js';
+import {curState, setupLogin} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {fmtInterrupt, fmtProtest, fmtSails, fmtOther,
         openLogEntry} from './logentryui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
+import {openPage as openLoginPage} from './loginui.js';
 
 export function openLogBook(options) {
     refreshLogBook(options);
     pushPage(
         function() { $('#log-book-page').modal({backdrop: 'static'}); },
-        function() { $('#log-book-page').modal('hide'); });
+        function() { $('#log-book-page').modal('hide'); },
+        options.mainPage);
     document.activeElement.blur();
 };
 
@@ -27,6 +29,13 @@ function refreshLogBook(options) {
     var prev;
     var rows = '';
 
+    if (logBook.standaloneUI) {
+        $('#log-book-cancel').hide();
+        $('#log-book-help').show();
+    } else {
+        $('#log-book-cancel').show();
+        $('#log-book-help').hide();
+    }
     if (logBook.hasConflict()) {
         $('#log-book-conflict').show();
     } else {
@@ -387,3 +396,30 @@ $(document).ready(function() {
     });
 });
 
+// initialize a complete UI for filling in the logbook
+export function initLogbookUI() {
+    curState.curLogBook.onChange(function(curLogBook) {
+        // FIXME: on a fresh login, the logbook is created with an empty log
+        // array.  we will display that empty log, and we're not updated
+        // if the log array is modified.
+        console.log('logbook changed; open it!');
+        curLogBook.standaloneUI = true;
+        openLogBook({
+            mainPage: true,
+            logBook: curLogBook
+        });
+    });
+    // FIXME: init.setupLogin() does too much work; it assumes the app
+    // specifically it reads all teams and races etc.  in this case we'd like
+    // to read just enough data for the selected team - not for the person,
+    // since we want admins to be able to add the logbook for participants.
+    setupLogin(function() {}, openLoginPage);
+    // FIXME: slightly tweak layout to fit this (non-app) purpose better
+    // e.g., change '+' to button?  send to server with special button?
+
+    /* BUGS:
+       o localStorage.clear(), reload, login -> shows empty logbook;
+         do a reload and the real logbook is shown.
+     */
+
+};

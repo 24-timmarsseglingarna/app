@@ -2,6 +2,8 @@
 
 import {uuid, legName} from './util.js';
 import {getNewMyLog, postLogEntry, patchLogEntry} from './serverdata.js';
+import {setSettings} from './storage.js';
+import {setServerURL} from './serverapi.js';
 
 /**
  * Log Entry states, local property, not sent to server.
@@ -132,17 +134,22 @@ LogBook.prototype.sign = function() {
 };
 
 LogBook.prototype._addLogEntry = function(logEntry) {
-    var low = 0;
-    var high = this.log.length;
-    while (low < high) {
-        var mid = (low + high) >>> 1;
-        if (this.log[mid].time.isBefore(logEntry.time)) {
-            low = mid + 1;
-        } else {
-            high = mid;
+    if (logEntry.type == 'sign') {
+        // alwyas put 'sign' at the end
+        this.log.push(logEntry);
+    } else {
+        var low = 0;
+        var high = this.log.length;
+        while (low < high) {
+            var mid = (low + high) >>> 1;
+            if (this.log[mid].time.isBefore(logEntry.time)) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
         }
+        this.log.splice(low, 0, logEntry);
     }
-    this.log.splice(low, 0, logEntry);
 };
 
 LogBook.prototype._delLogEntryByIndex = function(index) {
@@ -770,4 +777,16 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
         this._updateLog('syncDone');
     }
     continueFn();
+};
+
+export function initLogbookMode(url, email, token, raceId, personId) {
+    setServerURL(url);
+    var props = {
+        email: email,
+        token: token,
+        personId: personId,
+        activeRaceId: raceId,
+        pollInterval: 0
+    };
+    setSettings(props);
 };

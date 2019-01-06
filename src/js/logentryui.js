@@ -159,7 +159,7 @@ function openLogEntry2(options) {
 
     if (options.id) {
         for (i = 0; i < log.length; i++) {
-            if (log[i].id == options.id) {
+            if (log[i].id == options.id || log[i].oldid == options.id) {
                 index = i;
                 break;
             }

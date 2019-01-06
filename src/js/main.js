@@ -6,6 +6,8 @@ import {initMapUI} from './ui.js';
 import {basePodSpec} from '../../build/pod.js';
 import {Plan} from './plan.js';
 import {Pod} from './pod.js';
+import {initLogbookMode} from './logbook.js';
+import {initLogbookUI} from './logbookui.js';
 
 export var state = curState; // for debugging; access as tf.state
 
@@ -38,16 +40,15 @@ function onDeviceReady() {
             // Provide UI to fill in logbook for the given team.
             // Designed to be a link in Giona.
             curState.mode.set('logbook');
-            var teamid = params['teamId'];
-            var personId = params['personId'];
-            var token = params['token'];
+            var url = params['url'];
             var email = params['email'];
-            // TODO: set up server communication; no login window
-            // get log from server
-            // display log window
-            // Q: slightly tweak layout to fit this (non-app) purpose better
-            //    e.g., chnage '+' to button?  send to server with special
-            //    button?  make it clear that they must sign!
+            var token = params['token'];
+            var raceId = params['race'];
+            var personId = params['person'];
+            var teamId = params['team'];
+            // FIXME: temp debug
+            url = 'http://192.168.0.6:3000';
+            initLogbookMode(url, email, token, raceId, personId);
         } else if (params['plan']) {
             // Experimental and undocumented feature - show a given plan
             var plan = params['plan'];
@@ -70,6 +71,8 @@ function onDeviceReady() {
     var mode = curState.mode.get();
     if (mode == 'race' || mode == 'showRegatta') {
         initMapUI();
+    } else if (mode == 'logbook') {
+        initLogbookUI();
     }
 
     if (isCordova) {

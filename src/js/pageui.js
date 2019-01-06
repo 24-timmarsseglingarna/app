@@ -1,3 +1,5 @@
+/* -*- js -*- */
+
 /**
  * Handle the browser/phone back button.
  */
@@ -14,8 +16,13 @@ var pageStack = [];
  * popPage() is set up to be the same as hitting the 'back' button.
  * In this case, the sentinel function is called to actually close the
  * open page.
+ *
+ * If mainPage is set to true, the new page will be the "main" page,
+ * which means that if the user goes back in history after this page,
+ * the previous real page in the history will be loaded by the
+ * browser.
  */
-export function pushPage(openfn, closefn) {
+export function pushPage(openfn, closefn, mainPage) {
     // close current page, if there is one
     if (pageStack.length > 0) {
         var cur = pageStack[pageStack.length - 1];
@@ -23,7 +30,11 @@ export function pushPage(openfn, closefn) {
     }
     pageStack.push({openfn: openfn,
                     closefn: closefn});
-    history.pushState(pageStack.length, document.title, location.href);
+    if (mainPage) {
+        history.replaceState(pageStack.length, document.title, location.href);
+    } else {
+        history.pushState(pageStack.length, document.title, location.href);
+    }
     openfn();
 };
 
@@ -47,6 +58,7 @@ export function popPage(continueFn) {
     history.back();
 };
 
+// set pageStack length 0 as current state
 history.replaceState(0, document.title, location.href);
 
 window.addEventListener('popstate', function(event) {

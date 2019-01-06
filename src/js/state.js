@@ -279,7 +279,7 @@ export function checkServerCompatible(responseFn) {
             } else if (data.errorCode == 0) {
                 // connection error, keep going
                 curState.isServerCompatible = null;
-                responseFn(true);
+                responseFn(null);
             } else if (data.errorStr) {
                 // some other error, treat as non-compatible
                 curState.isServerCompatible = false;
@@ -292,6 +292,12 @@ export function checkServerCompatible(responseFn) {
     }
 };
 
+/*
+ * continueFn is always called, regardless of result, after
+ *            all communication is done.
+ * doLoginFn is called if the saved values for email/token/password
+ *           were not valid.  it is supposed to display a login page
+ */
 export function setupLogin(continueFn, doLoginFn) {
     if (hasNetwork() && curState.isServerCompatible == null) {
         checkServerCompatible(function(response) {
@@ -312,7 +318,7 @@ function setupLogin2(continueFn, doLoginFn) {
     var token = getSetting('token');
     var email = getSetting('email');
     var personId = getSetting('personId');
-    if (hasNetworkP && !getSetting('token')) {
+    if (hasNetworkP && !token) {
         //console.log('has network, no stored token');
         // we haven't logged in
         doLoginFn();
@@ -320,37 +326,44 @@ function setupLogin2(continueFn, doLoginFn) {
     } else if (hasNetworkP) {
         //console.log('has network and stored token, validate it');
         // validate the token
-        if (!validateToken(email, token)) {
-            //console.log('has network, invalid token');
-            // token invalid, check if the password is stored
-            var password = getSetting('password');
-            if (password) {
-                //console.log('has stored passwd, login');
-                serverAPILogin(email, password, function(response) {
-                    if (response) {
-                        //console.log('login ok');
-                        var props = {
-                            token: response.token,
-                            personId: response.personId
-                        };
-                        setSettings(props);
-                        onAuthenticatedOnline(props.personId, continueFn);
-                    } else {
-                        // saved login not ok
-                        doLoginFn();
-                        continueFn();
-                    }
-                });
+        validateToken(email, token, personId, function(response) {
+            if (response) {
+                // token is valid
+                console.log('valid token!');
+                var props = {
+                    role: response.role
+                };
+                setSettings(props);
+                onAuthenticatedOnline(personId, continueFn);
             } else {
-                // invalid token and no stored password.  try to login
-                doLoginFn();
-                continueFn();
+                console.log('has network, invalid token');
+                // token invalid, check if the password is stored
+                var password = getSetting('password');
+                if (password) {
+                    //console.log('has stored passwd, login');
+                    serverAPILogin(email, password, function(response) {
+                        if (response.token) {
+                            //console.log('login ok');
+                            var props = {
+                                token: response.token,
+                                personId: response.personId,
+                                role: response.role
+                            };
+                            setSettings(props);
+                            onAuthenticatedOnline(props.personId, continueFn);
+                        } else {
+                            // saved login not ok
+                            doLoginFn();
+                            continueFn();
+                        }
+                    });
+                } else {
+                    // invalid token and no stored password.  try to login
+                    doLoginFn();
+                    continueFn();
+                }
             }
-        } else {
-            // token is valid
-            //console.log('has network, valid token');
-            onAuthenticatedOnline(personId, continueFn);
-        }
+        });
     } else if (getSetting('token')) {
         //console.log('no network, token');
         // we have a token but no network; continue with the data we have
@@ -379,6 +392,7 @@ function serverDataUpdateDone() {
     if (races.length == 1 && races[0].raceData.id != curActiveRaceId) {
         // the user is registered for a single race,
         // make it active
+        console.log('make race active: ' + races[0].raceData.id);
         activateRace(races[0].raceData.id);
     } else if (getRaceData(curActiveRaceId) == null) {
         // current activeRaceId is not valid

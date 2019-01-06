@@ -19,12 +19,21 @@ export function setStagingServer() {
     URL = stagingURL;
 };
 
+export function setServerURL(url) {
+    URL = url;
+};
+
 /**
  * Keep track of email and token; necessary in all API calls.
  */
 var APIstate = {
     email: null,
     token: null
+};
+
+function setCredentials(email, token) {
+    APIstate.email = email;
+    APIstate.token = token;
 };
 
 export function getAPIVersion(responsefn) {
@@ -109,10 +118,11 @@ function mkError(jqXHR, textStatus, errorThrown) {
     };
 };
 
-//export function validateToken(email, token) {
-export function validateToken() {
-    // FIXME: implement when we have an API in the server
-    return false;
+export function validateToken(email, token, personId, responsefn) {
+    // we get the person as a way to validate the token.  on success,
+    // the response will contain the user's role.
+    setCredentials(email, token);
+    getJSON('/api/v1/people/' + personId, null, responsefn);
 };
 
 export function logout() {

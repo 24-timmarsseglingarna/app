@@ -15,7 +15,7 @@ import {Popup} from './ol-popup.js';
 import {Pod} from './pod.js';
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
-import {curState, setupLogin } from './state.js';
+import {curState, setupLogin} from './state.js';
 import {getRegattaLogs, getRegattaTeams,
         getRegattaRaces} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
@@ -883,10 +883,6 @@ function initNavbar() {
         return false;
     });
 
-    $('.dialog-close').on('click', function() {
-        popPage();
-        return false;
-    });
 };
 
 function alertNoRace(w) {
@@ -1134,6 +1130,14 @@ function stateSetupDone(response) {
     }
     updateAll();
 };
+
+
+$(document).ready(function() {
+    $('.dialog-close').on('click', function() {
+        popPage();
+        return false;
+    });
+});
 
 export function initMapUI() {
     initMap();

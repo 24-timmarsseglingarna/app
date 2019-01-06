@@ -70,6 +70,7 @@ export function init(doClear) {
         'password': null, // string()
         'token': null, // string()
         'personId': null, // integer()
+        'role': null, // string()
 
         /*
          * Configuration parameters
