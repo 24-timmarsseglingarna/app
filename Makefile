@@ -160,7 +160,7 @@ OL_VSN=5.3.0
 node_modules/ol:
 	npm install ol@$(OL_VSN)
 
-MOMENT_VSN=2.22.2
+MOMENT_VSN=2.24.0
 node_modules/moment:
 	npm install moment@$(MOMENT_VSN)
 
@@ -168,7 +168,7 @@ POPPER_VSN=1.14.4
 node_modules/popper.js:
 	npm install popper.js@$(POPPER_VSN)
 
-BOOTSTRAP_VSN=4.1.3
+BOOTSTRAP_VSN=4.2.1
 node_modules/bootstrap:
 	npm install bootstrap@$(BOOTSTRAP_VSN)
 

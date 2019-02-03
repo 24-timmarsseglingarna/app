@@ -321,16 +321,18 @@ export function getTeamData(regattaId, teamId) {
 
 function mkTeamData(s) {
     var r = {
-        id:               s.id,                // int
-        start_number:     s.start_number,      // int
-        start_point:      s.start_point,       // int
-        race_id:          s.race_id,           // int
-        regatta_id:       s.regatta_id,        // int
-        boat_name:        s.boat_name,         // string
-        boat_type_name:   s.boat_type_name,    // string
-        boat_sail_number: s.boat_sail_number,  // string
-        skipper_id:       s.skipper_id,        // int (person.id)
-        sxk_handicap:     s.sxk || 2           // float
+        id:                 s.id,                 // int
+        start_number:       s.start_number,       // int
+        start_point:        s.start_point,        // int
+        race_id:            s.race_id,            // int
+        regatta_id:         s.regatta_id,         // int
+        boat_name:          s.boat_name,          // string
+        boat_type_name:     s.boat_type_name,     // string
+        boat_sail_number:   s.boat_sail_number,   // string
+        skipper_id:         s.skipper_id,         // int (person.id)
+        skipper_first_name: s.skipper_first_name, // string
+        skipper_last_name:  s.skipper_last_name,  // string
+        sxk_handicap:       s.sxk || 2            // float
     };
     return r;
 };

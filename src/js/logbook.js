@@ -77,6 +77,14 @@ LogBook.prototype.getNextLogEntry = function(id) {
     return null;
 };
 
+LogBook.prototype.getLastLogEntry = function() {
+    for (var i = this.log.length - 1; i >= 0; i--) {
+        if (!(this.log[i].deleted == true)) {
+            return this.log[i];
+        }
+    }
+    return null;
+};
 LogBook.prototype.getRace = function() {
     return this.race;
 };
@@ -464,28 +472,35 @@ LogBook.prototype.getNetDistance = function() {
     return this.sailedDist / this.teamData.sxk_handicap;
 };
 
-// net time
+// gross
 LogBook.prototype.getEarlyStartDistance = function() {
     // we can't calculate this properly until the race has finished
     if (this.finishTime) {
-        return (2 * this.getNetDistance() * this.earlyStartTime) /
+        return (2 * this.getSailedDistance() * this.earlyStartTime) /
             this.getRaceLengthMinutes();
     } else {
         return 0;
     }
 };
+LogBook.prototype.getEarlyStartTime = function() {
+    return this.earlyStartTime;
+};
 
-// net time
+// gross
 LogBook.prototype.getLateFinishDistance = function() {
     // we can't calculate this properly until the race has finished
     if (this.finishTime) {
-        return (2 * this.getNetDistance() * this.lateFinishTime) /
+        return (2 * this.getSailedDistance() * this.lateFinishTime) /
             this.getRaceLengthMinutes();
     } else {
         return 0;
     }
 };
+LogBook.prototype.getLateFinishTime = function() {
+    return this.lateFinishTime;
+};
 
+// gross
 LogBook.prototype.getCompensationDistance = function() {
     // we can't calculate this properly until the race has finished
     if (this.finishTime) {
@@ -495,12 +510,22 @@ LogBook.prototype.getCompensationDistance = function() {
     }
 };
 
+// gross
+LogBook.prototype.getApprovedDistance = function() {
+    if (this.state == 'finished-early' || this.state == 'retired') {
+        return 0;
+    }
+    return this.getSailedDistance() + this.getCompensationDistance() -
+        (this.getEarlyStartDistance() + this.getLateFinishDistance());
+
+};
+
+// net
 LogBook.prototype.getPlaqueDistance = function() {
     if (this.state == 'finished-early' || this.state == 'retired') {
         return 0;
     }
-    return this.getNetDistance() + this.getCompensationDistance() -
-        (this.getEarlyStartDistance() + this.getLateFinishDistance());
+    return this.getApprovedDistance() / this.teamData.sxk_handicap;
 };
 
 LogBook.prototype.getAverageSpeed = function() {

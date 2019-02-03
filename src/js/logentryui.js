@@ -408,6 +408,7 @@ function openLogEntry2(options) {
         var time;
         if (options.time) {
             time = options.time;
+            console.log('HERE0 ' + time.format('HH:mm DD MMM YYYY'));
         } else {
             time = moment();
         }

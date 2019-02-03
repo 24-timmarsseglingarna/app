@@ -46,11 +46,9 @@ function onDeviceReady() {
             var raceId = params['race'];
             var personId = params['person'];
             var teamId = params['team'];
-            // FIXME: temp debug
-            url = 'http://192.168.0.6:3000';
             initLogbookMode(url, email, token, raceId, personId);
         } else if (params['plan']) {
-            // Experimental and undocumented feature - show a given plan
+            // Experimental feature - show a given plan
             var plan = params['plan'];
             var points = plan.split(',');
             var planX = new Plan('Plan X', new Pod(basePodSpec),
@@ -60,8 +58,7 @@ function onDeviceReady() {
             }
             curState.curPlan.set(planX);
         } else if (params['regatta']) {
-            // Experimental and undocumented feature - show all logs in
-            // a given regatta
+            // Experimental feature - show all logs in a given regatta
             var regattaId = params['regatta'];
             curState.mode.set('showRegatta');
             curState.showRegattaId.set(regattaId);

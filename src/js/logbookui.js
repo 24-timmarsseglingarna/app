@@ -54,6 +54,7 @@ function refreshLogBook(options) {
     $('#log-book-early-elem').hide();
     $('#log-book-late-elem').hide();
     $('#log-book-comp-elem').hide();
+    $('#log-book-approved-elem').hide();
 
     // no header and no arrow in the popup
     var popover_template = '<div class=\'popover log-book-edit-popover\'' +
@@ -145,7 +146,8 @@ function refreshLogBook(options) {
         rows +=
             '<td>' + e.time.format(
                 'HH:mm DD MMM').replace(/\s/g, '&nbsp;') + '</td>' +
-            '<td>' + point + '</td>' +
+            '<td><span class="badge badge-pill badge-secondary">' +
+            point + '</span></td>' +
             '<td class="d-none d-sm-table-cell">' + pointName + '</td>' +
             distTD + distance + distPost + '</td>' +
             '<td>' + wind + '</td>' +
@@ -163,25 +165,31 @@ function refreshLogBook(options) {
             '<td><a tabindex="0" class="log-book-add-entry"' +
             ' role="button"' +
             ' onclick="tfUiLogBookAddEntryClick();"' +
-            '><span class="icon-plus"></span></a></td>' +
+            '><span class="icon-plus tf-x-large"></span></a></td>' +
             '</tr>';
     }
     var dist = logBook.getSailedDistance();
     var netdist = logBook.getNetDistance();
     var earlydist = logBook.getEarlyStartDistance();
+    var earlytime = logBook.getEarlyStartTime();
     var latedist = logBook.getLateFinishDistance();
+    var latetime = logBook.getLateFinishTime();
     var compdist = logBook.getCompensationDistance();
+    var approveddist = logBook.getApprovedDistance();
     var plaquedist = logBook.getPlaqueDistance();
     var speed = logBook.getAverageSpeed();
 
     if (earlydist > 0) {
         $('#log-book-early-elem').show();
+        $('#log-book-approved-elem').show();
     }
     if (latedist > 0) {
         $('#log-book-late-elem').show();
+        $('#log-book-approved-elem').show();
     }
     if (compdist > 0) {
         $('#log-book-comp-elem').show();
+        $('#log-book-approved-elem').show();
     }
 
     if (curState.loggedInPersonId.get() == logBook.teamData.skipper_id) {
@@ -218,12 +226,17 @@ function refreshLogBook(options) {
     $('#log-book-boat').text(boatName);
     $('#log-book-startno').text(startNo);
     $('#log-book-sxk').text(sxk);
+    // header
     $('#log-book-sailed-dist').text(dist.toFixed(1) + ' M');
     $('#log-book-net-dist').text(netdist.toFixed(1) + ' M');
-    $('#log-book-net-dist2').text(netdist.toFixed(1) + ' M');
-    $('#log-book-early-dist').text('-' + earlydist.toFixed(1) + ' M');
-    $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M');
+    // footer
+    $('#log-book-sailed-dist2').text(dist.toFixed(1) + ' M');
+    $('#log-book-early-dist').text('-' + earlydist.toFixed(1) + ' M' +
+                                  ' (' + earlytime + ' min)');
+    $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M' +
+                                  ' (' + latetime + ' min)');
     $('#log-book-comp-dist').text(compdist.toFixed(1) + ' M');
+    $('#log-book-approved-dist').text(approveddist.toFixed(1) + ' M');
     $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);
@@ -241,10 +254,17 @@ function refreshLogBook(options) {
 
 window.tfUiLogBookAddEntryClick = function() {
     var logBookPage = $('#log-book-page')[0];
+    var e = logBookPage.logBook.getLastLogEntry();
+    var time = null;
+    if (e) {
+        time = e.time;
+    }
+
     openAddLogEntryPage({
         onclose: function() {
             refreshLogBook({logBook: logBookPage.logBook});
-        }
+        },
+        time: time
     });
 };
 
@@ -326,7 +346,8 @@ $(document).ready(function() {
               logBook.state == 'finished-early' ||
               logBook.state == 'retired')) {
             alert('<p>För att kunna signera loggboken måste du ha' +
-                  ' loggat målgång eller brutit seglingen.</p>');
+                  ' loggat målgång på den sista rundningen, eller loggat att' +
+                  ' du har brutit seglingen.</p>');
         } else if (logBook.hasConflict()) {
             alert('<p>Loggboken har ändringar gjorda av någon annan.' +
                   ' Dessa måste lösas genom att klicka på pennan' +

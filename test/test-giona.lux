@@ -45,6 +45,8 @@
     ?"regatta_id": ([0-9]+)
     [global REGATTAID=$1]
     ?"skipper_id": ([0-9]+)
+    ?"skipper_first_name": (.*)
+    ?"skipper_last_name": (.*)
     ?"start_number": ([0-9]+)
     ?"start_point": ([0-9]+)
     ?"sxk": ([0-9]+(\.[0-9]+)?)
