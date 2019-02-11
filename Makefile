@@ -62,6 +62,7 @@ build/deps:
 	cp node_modules/moment/min/moment.min.js $@/; \
 	cp node_modules/moment/locale/sv.js $@/
 
+
 # must set TGT_DIR to a dedicated directory for the app
 www-publish:
 	$(MAKE) www-publish-no-map; \

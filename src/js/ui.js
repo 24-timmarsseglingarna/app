@@ -15,7 +15,7 @@ import {Popup} from './ol-popup.js';
 import {Pod} from './pod.js';
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
-import {curState, setupLogin} from './state.js';
+import {curState, setupLogin, setupContinue} from './state.js';
 import {getRegattaLogs, getRegattaTeams,
         getRegattaRaces} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
@@ -1072,11 +1072,7 @@ function initLayers() {
 
 };
 
-function stateSetupDone(response) {
-    if (response && response != true) {
-        alertUpgrade(response.errorStr);
-    }
-
+function stateSetupDone() {
     if (curState.mode.get() == 'showRegatta') {
         showRegatta(curState.showRegattaId.get());
         return;
@@ -1241,7 +1237,39 @@ export function initMapUI() {
     }
 */
 
-    setupLogin(stateSetupDone, openLoginPage);
+    setupLogin()
+        .then(function() {
+            setupContinue(stateSetupDone);
+        })
+        .catch(function(response) {
+            if (response == false) {
+                openLoginPage();
+                stateSetupDone(); // FIXME
+            } else if (response == 'nonetwork') {
+                alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
+                      'du har nätverk.</p>');
+                stateSetupDone();
+            } else {
+                alertUpgrade(response);
+            }
+        });
+
+/*
+    setupLogin(function(response) {
+        if (response == true) {
+            setupContinue(stateSetupDone);
+        } else if (response == false) {
+            openLoginPage();
+            stateSetupDone(); // FIXME
+        } else if (response == 'nonetwork') {
+            alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
+                  'du har nätverk.</p>');
+            stateSetupDone();
+        } else {
+            alertUpgrade(response);
+        }
+    });
+*/
 };
 
 var showTeams;

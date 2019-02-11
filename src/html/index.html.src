@@ -40,12 +40,17 @@
           type="text/css"/>
   </head>
   <body>
-
     <!--
         The main Open Layers map.
         Controlled by ui.js.
     -->
     <div id="map" class="map"></div>
+    <div id="tf-spinner" class="text-center">
+      <div class="spinner-border mt-5" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p>Laddar...</p>
+    </div>
 
 m4_include(statusbar.html)
 m4_include(navbar.html)

@@ -1,9 +1,7 @@
 /* -*- js -*- */
 
 import {uuid, legName} from './util.js';
-import {getNewMyLog, postLogEntry, patchLogEntry} from './serverdata.js';
-import {setSettings} from './storage.js';
-import {setServerURL} from './serverapi.js';
+import {getTeamLog, postLogEntry, patchLogEntry} from './serverdata.js';
 
 /**
  * Log Entry states, local property, not sent to server.
@@ -542,9 +540,9 @@ LogBook.prototype.getSailedTime = function() {
     return this.sailedTime;
 };
 
-LogBook.prototype.getEngine = function() {
+LogBook.prototype.getEngine = function(beforeId) {
     var res = false;
-    for (var i = 0; i < this.log.length; i++) {
+    for (var i = 0; i < this.log.length && this.log[i].id != beforeId; i++) {
         var e = this.log[i];
         if (e.deleted) continue;
         if (e.engine == 'on') {
@@ -556,9 +554,9 @@ LogBook.prototype.getEngine = function() {
     return res;
 };
 
-LogBook.prototype.getLanterns = function() {
+LogBook.prototype.getLanterns = function(beforeId) {
     var res = false;
-    for (var i = 0; i < this.log.length; i++) {
+    for (var i = 0; i < this.log.length && this.log[i].id != beforeId; i++) {
         var e = this.log[i];
         if (e.deleted) continue;
         if (e.lanterns == 'on') {
@@ -570,9 +568,9 @@ LogBook.prototype.getLanterns = function() {
     return res;
 };
 
-LogBook.prototype.getInterrupt = function() {
+LogBook.prototype.getInterrupt = function(beforeId) {
     var res = false;
-    for (var i = 0; i < this.log.length; i++) {
+    for (var i = 0; i < this.log.length && this.log[i].id != beforeId; i++) {
         var e = this.log[i];
         if (e.deleted) continue;
         if (e.interrupt == undefined) {
@@ -627,14 +625,14 @@ LogBook.prototype.updateFromServer = function(continueFn) {
     if (this.lastServerUpdate) {
         lastUpdate = this.lastServerUpdate.toISOString();
     }
-    getNewMyLog(this.teamData.id,
-                lastUpdate,
-                function(res) {
-                    if (res) {
-                        logBook._addLogFromServer(res);
-                    }
-                    continueFn();
-                });
+    getTeamLog(this.teamData.id,
+               lastUpdate,
+               function(res) {
+                   if (res) {
+                       logBook.addLogFromServer(res);
+                   }
+                   continueFn();
+               });
 };
 
 // returns false if the logentry already exists
@@ -648,12 +646,12 @@ LogBook.prototype.addLogEntryFromServer = function(logEntry) {
             continue;
         }
     }
-    this._addLogFromServer([logEntry]);
+    this.addLogFromServer([logEntry]);
     return true;
 };
 
 
-LogBook.prototype._addLogFromServer = function(log) {
+LogBook.prototype.addLogFromServer = function(log) {
     var del = [];
     var add = [];
     var i;
@@ -802,16 +800,4 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
         this._updateLog('syncDone');
     }
     continueFn();
-};
-
-export function initLogbookMode(url, email, token, raceId, personId) {
-    setServerURL(url);
-    var props = {
-        email: email,
-        token: token,
-        personId: personId,
-        activeRaceId: raceId,
-        pollInterval: 0
-    };
-    setSettings(props);
 };

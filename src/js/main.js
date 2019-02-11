@@ -6,7 +6,6 @@ import {initMapUI} from './ui.js';
 import {basePodSpec} from '../../build/pod.js';
 import {Plan} from './plan.js';
 import {Pod} from './pod.js';
-import {initLogbookMode} from './logbook.js';
 import {initLogbookUI} from './logbookui.js';
 
 export var state = curState; // for debugging; access as tf.state
@@ -19,8 +18,16 @@ $(document).ready(function() {
     }
 });
 
+function initRace() {
+    curState.mode.set('race');
+    initMapUI();
+};
+
 function onDeviceReady() {
     initState();
+
+    var raceId;
+    var teamId;
 
     if (!isCordova) {
         // This is the web version.  We can assume we have network.
@@ -43,10 +50,10 @@ function onDeviceReady() {
             var url = params['url'];
             var email = params['email'];
             var token = params['token'];
-            var raceId = params['race'];
             var personId = params['person'];
-            var teamId = params['team'];
-            initLogbookMode(url, email, token, raceId, personId);
+            raceId = params['race'];
+            teamId = params['team'];
+            initLogbookUI(url, email, token, raceId, personId, teamId);
         } else if (params['plan']) {
             // Experimental feature - show a given plan
             var plan = params['plan'];
@@ -62,17 +69,13 @@ function onDeviceReady() {
             var regattaId = params['regatta'];
             curState.mode.set('showRegatta');
             curState.showRegattaId.set(regattaId);
+            initMapUI();
+        } else {
+            initRace();
         }
-    }
-
-    var mode = curState.mode.get();
-    if (mode == 'race' || mode == 'showRegatta') {
-        initMapUI();
-    } else if (mode == 'logbook') {
-        initLogbookUI();
-    }
-
-    if (isCordova) {
+    } else {
+        // isCordova
+        initRace();
         navigator.splashscreen.hide();
     }
 };

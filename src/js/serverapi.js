@@ -36,23 +36,20 @@ function setCredentials(email, token) {
     APIstate.token = token;
 };
 
-export function getAPIVersion(responsefn) {
-    $.ajax({
+export function getAPIVersion() {
+    return $.ajax({
         url: URL + '/api_version.json',
         dataType: 'json',
         beforeSend: function(jqXHR) {
             // make sure we don't use the browser's cache
             jqXHR.setRequestHeader('If-None-Match', '');
             return true;
-        },
-        success: function(data) {
-            responsefn(data);
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.log('req error api_version: ' + jqXHR.status);
-            responsefn(mkError(jqXHR, textStatus, errorThrown));
         }
-    });
+    })
+        .catch(function(jqXHR, textStatus, errorThrown) {
+            console.log('req error api_version: ' + jqXHR.status);
+            return mkError(jqXHR, textStatus, errorThrown);
+        });
 };
 
 export function login(email, password, responsefn) {
@@ -118,11 +115,11 @@ function mkError(jqXHR, textStatus, errorThrown) {
     };
 };
 
-export function validateToken(email, token, personId, responsefn) {
+export function validateToken(email, token, personId) {
     // we get the person as a way to validate the token.  on success,
     // the response will contain the user's role.
     setCredentials(email, token);
-    getJSON('/api/v1/people/' + personId, null, responsefn);
+    return getJSON('/api/v1/people/' + personId, null);
 };
 
 export function logout() {
@@ -141,9 +138,28 @@ export function logout() {
  * A race becomes inactive when the results are final.
  */
 export function getActiveTeams(personId, prevetag, responsefn) {
-    getJSON('/api/v1/teams?has_person=' + personId +
-            '&is_active=true', prevetag, responsefn);
+    return getJSON('/api/v1/teams?has_person=' + personId +
+                   '&is_active=true', prevetag, responsefn);
 };
+
+/**
+ * teamId :: integer()
+ * prevetag :: null || opaque()
+ * responsefn :: (team :: 'notmodified' | teamData :: json(),
+ *                etag :: opaque)
+ * On error, `team` = `etag` = null.
+ *
+ * Return the teams in the active races that `personId` is registered for.
+ * A race becomes inactive when the results are final.
+ */
+export function getTeam(teamId, prevetag, responsefn) {
+    return getJSON('/api/v1/teams/' + teamId, prevetag, responsefn);
+};
+
+export function getRace(raceId, prevetag) {
+    return getJSON('/api/v1/races/' + raceId, prevetag);
+};
+
 
 /**
  * regattaIds :: [regattaId :: integer()]
@@ -176,7 +192,8 @@ export function getRacesPerRegatta(regattaIds, prevetags, responsefn) {
             }
             etags[regattaId] = etag;
         }
-        responsefn(races, etags);
+        if (responsefn) { responsefn(races, etags); }
+        return {races: races, etags: etags};
     };
     var requests = [];
     for (var i = 0; i < regattaIds.length; i++) {
@@ -185,8 +202,9 @@ export function getRacesPerRegatta(regattaIds, prevetags, responsefn) {
                               etag, regattaIds[i]));
     }
     // wait for all requests to finish
-    $.when.apply($, requests).then(cfn,
-                                   function() { responsefn(null, null); });
+    return $.when.apply($, requests)
+        .then(cfn,
+              function() { if (responsefn) { responsefn(null, null); } });
 };
 
 /**
@@ -220,7 +238,8 @@ export function getTeamsPerRegatta(regattaIds, prevetags, responsefn) {
             }
             etags[regattaId] = etag;
         }
-        responsefn(teams, etags);
+        if (responsefn) { responsefn(teams, etags); }
+        return {teams: teams, etags: etags};
     };
     var requests = [];
     for (var i = 0; i < regattaIds.length; i++) {
@@ -229,11 +248,12 @@ export function getTeamsPerRegatta(regattaIds, prevetags, responsefn) {
                               etag, regattaIds[i]));
     }
     // wait for all requests to finish
-    $.when.apply($, requests).then(cfn,
-                                   function() { responsefn(null, null); });
+    return $.when.apply($, requests)
+        .then(cfn,
+              function() { if (responsefn) { responsefn(null, null); } });
 };
 
-export function getNewMyLog(teamId, client, updatedAfter, responsefn) {
+export function getTeamLog(teamId, client, updatedAfter, responsefn) {
     var url = '/api/v1/logs?from_team=' + teamId;
     if (client) {
         url += '&not_client=' + client;
@@ -241,7 +261,7 @@ export function getNewMyLog(teamId, client, updatedAfter, responsefn) {
     if (updatedAfter) {
         url += '&updated_after=' + updatedAfter;
     }
-    getJSON(url, null, responsefn);
+    return getJSON(url, null, responsefn);
 };
 
 export function getNewRegattaLog(regattaId, teamId,
@@ -271,7 +291,11 @@ export function patchLogEntry(logid, data, responsefn) {
 
 function getJSON(urlpath, etag, responsefn) {
     //console.log('req: ' + urlpath);
-    $.ajax({
+    if (!responsefn) {
+        // FIXME: remove when we use promises everywhere
+        responsefn = function() {};
+    }
+    return $.ajax({
         url: URL + urlpath,
         dataType: 'json',
         beforeSend: function(jqXHR) {

@@ -7,7 +7,13 @@ import {pushPage, popPage} from './pageui.js';
 import {fmtInterrupt, fmtProtest, fmtSails, fmtOther,
         openLogEntry} from './logentryui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
-import {openPage as openLoginPage} from './loginui.js';
+import {setSettings} from './storage.js';
+import {setServerURL} from './serverapi.js';
+import {getRaceP, getRegattaTeamsP,
+        getTeamLogP, getTeamData} from './serverdata.js';
+import {Regatta} from './regatta.js';
+import {Race} from './race.js';
+import {LogBook} from './logbook.js';
 
 export function openLogBook(options) {
     refreshLogBook(options);
@@ -261,6 +267,7 @@ window.tfUiLogBookAddEntryClick = function() {
     }
 
     openAddLogEntryPage({
+        logbook: logBookPage.logBook,
         onclose: function() {
             refreshLogBook({logBook: logBookPage.logBook});
         },
@@ -392,15 +399,19 @@ $(document).ready(function() {
         var cur = logBook.getLogEntry(id);
         var next = logBook.getNextLogEntry(id);
         var addSeconds;
+        var nextId;
         if (next) {
             addSeconds = next.time.diff(cur.time) / 2000;
+            nextId = next.id;
         } else {
             addSeconds = 3600;
         }
         var new_ = moment(cur.time).add(addSeconds, 'seconds');
         $('.log-book-edit').popover('hide');
         openAddLogEntryPage({
+            logbook: logBook,
             time: new_,
+            beforeId: nextId,
             onclose: function() {
                 refreshLogBook({logBook: logBookPage.logBook});
             }
@@ -418,29 +429,71 @@ $(document).ready(function() {
 });
 
 // initialize a complete UI for filling in the logbook
-export function initLogbookUI() {
-    curState.curLogBook.onChange(function(curLogBook) {
-        // FIXME: on a fresh login, the logbook is created with an empty log
-        // array.  we will display that empty log, and we're not updated
-        // if the log array is modified.
-        console.log('logbook changed; open it!');
-        curLogBook.standaloneUI = true;
-        openLogBook({
-            mainPage: true,
-            logBook: curLogBook
+export function initLogbookUI(url, email, token, raceId, personId, teamId) {
+    setServerURL(url);
+    var props = {
+        email: email,
+        token: token,
+        personId: personId,
+        activeRaceId: raceId,
+        pollInterval: 0
+    };
+    setSettings(props);
+
+    $('#map').hide();
+    $('#tf-spinner').removeClass('tf-spinner-hide');
+    var r = {};
+    setupLogin()
+        .catch(function(error) {
+            alert('<p>Kunde inte logga in, vilket tyder på att något ' +
+                  'har gått fel!</p>' +
+                  '<p>Fel: ' + error + '</p>' +
+                  '<p>Kontakta arrangören.</p>');
+            throw 'handled';
+        })
+        .then(function() {
+            // get the race data for this race
+            return getRaceP(raceId);
+        })
+        .then(function(raceData) {
+            // get all teams in this regatta
+            r['raceData'] = raceData;
+            return getRegattaTeamsP(raceData.regatta_id);
+        })
+        .then(function() {
+            // get current logbook for this team
+            return getTeamLogP(teamId);
+        })
+        .then(function(log) {
+            var tmpPod = curState.defaultPod;
+            var curRegatta = new Regatta(r.raceData.regatta_id,
+                                         r.raceData.regatta_name,
+                                         [], tmpPod);
+            var curRace = new Race(curRegatta, r.raceData);
+            // get our team data from app storage
+            var teamData = getTeamData(r.raceData.regatta_id, teamId);
+            var curLogBook = new LogBook(teamData, curRace, [], false);
+            curLogBook.addLogFromServer(log);
+            curLogBook.standaloneUI = true;
+            curLogBook.onLogUpdate(function(logBook, reason) {
+                // communicate with server if the logBook has changed,
+                // but not if the update was triggered by server communication!
+                if (reason != 'syncError' && reason != 'syncDone') {
+                    logBook.sendToServer(function() {});
+                }
+            }, 120);
+            $('#tf-spinner').hide();
+            openLogBook({
+                mainPage: true,
+                logBook: curLogBook
+            });
+        })
+        .catch(function(error) {
+            $('#tf-spinner').hide();
+            if (error != 'handled') {
+                alert('<p>Kunde inte hämta data från servern.</p>' +
+                      '<p>Fel: ' + error + '</p>' +
+                      '<p>Kontakta arrangören.</p>');
+            }
         });
-    });
-    // FIXME: init.setupLogin() does too much work; it assumes the app
-    // specifically it reads all teams and races etc.  in this case we'd like
-    // to read just enough data for the selected team - not for the person,
-    // since we want admins to be able to add the logbook for participants.
-    setupLogin(function() {}, openLoginPage);
-    // FIXME: slightly tweak layout to fit this (non-app) purpose better
-    // e.g., change '+' to button?  send to server with special button?
-
-    /* BUGS:
-       o localStorage.clear(), reload, login -> shows empty logbook;
-         do a reload and the real logbook is shown.
-     */
-
 };

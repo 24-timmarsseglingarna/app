@@ -9,13 +9,13 @@ import {getSetting} from './storage.js';
 
 export function openPage() {
     if (curState.isServerCompatible != true) {
-        checkServerCompatible(function(response) {
-            if (response == true || response == null) {
+        checkServerCompatible()
+            .then(function() {
                 openPage2();
-            } else {
+            })
+            .catch(function(response) {
                 alertUpgrade(response.errorStr);
-            }
-        });
+            });
     } else {
         openPage2();
     }

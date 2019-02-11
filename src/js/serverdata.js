@@ -81,6 +81,16 @@ export function getRegattaTeams(regattaId, responsefn) {
         });
 };
 
+export function getRegattaTeamsP(regattaId) {
+    return serverAPI.getTeamsPerRegatta(
+        [regattaId],
+        [null])
+        .then(function(r) {
+            teams[regattaId] = r.teams[regattaId].map(mkTeamData);
+            return teams[regattaId];
+        });
+};
+
 export function getRegattaRaces(regattaId, responsefn) {
     serverAPI.getRacesPerRegatta(
         [regattaId],
@@ -94,13 +104,43 @@ export function getRegattaRaces(regattaId, responsefn) {
         });
 };
 
+export function getRaceP(raceId) {
+    return serverAPI.getRace(raceId, null)
+        .then(function(r) {
+            var race = mkRaceData(r);
+            races[race.regatta_id] = race;
+            return race;
+        });
+};
 
-export function getNewMyLog(teamId, lastUpdate, responsefn) {
+export function getTeam(teamId, responsefn) {
+    serverAPI.getTeam(
+        teamId,
+        null,
+        function(r) {
+            var team = null;
+            if (r) {
+                team = mkTeamData(r);
+            }
+            responsefn(team);
+        });
+};
+
+export function getTeamP(teamId) {
+    return serverAPI.getTeam(teamId, null)
+        .then(function(r) {
+            var teamData = mkTeamData(r);
+            myTeams = [teamData];
+            return teamData;
+        });
+};
+
+export function getTeamLog(teamId, lastUpdate, responsefn) {
     var client;
     if (lastUpdate) {
         client = clientId.get();
     }
-    serverAPI.getNewMyLog(
+    serverAPI.getTeamLog(
         teamId, client, lastUpdate,
         function(data) {
             if (data) {
@@ -109,6 +149,14 @@ export function getNewMyLog(teamId, lastUpdate, responsefn) {
             } else {
                 responsefn(null);
             }
+        });
+};
+
+export function getTeamLogP(teamId, lastUpdate) {
+    return serverAPI.getTeamLog(
+        teamId, null, lastUpdate)
+        .then(function(data) {
+            return data.map(mkLogData);
         });
 };
 
@@ -206,8 +254,65 @@ export function updateServerData(personId, continueFn) {
         });
 };
 
+export function updateServerDataP(personId) {
+    return serverAPI.getActiveTeams(
+        personId, myTeamsETag,
+        function(srvTeams, newMyTeamsETag) {
+            var newMyTeams = null;
+            if (srvTeams == null) {
+                // error, maybe network issues
+                return;
+            } else if (srvTeams == 'notmodified') {
+                newMyTeams = myTeams;
+            } else {
+                newMyTeams = srvTeams.map(mkTeamData);
+                if (newMyTeams) {
+                    myTeams = newMyTeams;
+                    myTeamsETag = newMyTeamsETag;
+                    setCachedMyTeams({data: newMyTeams,
+                                      etag: newMyTeamsETag});
+                }
+            }
+            if (newMyTeams != null) {
+                var rIds = getRegattaIds(newMyTeams);
+                myRegattaIds = rIds;
+            }
+        })
+        .then(function() {
+            return serverAPI.getRacesPerRegatta(
+                myRegattaIds,
+                racesETags);
+        })
+        .then(function(result) {
+            var r = result.races;
+            var newRacesETags = result.etags;
+            var newRaces = null;
+            if (result.races) {
+                newRaces = {};
+                for (var regattaId in r) {
+                    if (r[regattaId] == 'notmodified') {
+                        newRaces[regattaId] =
+                            races[regattaId];
+                    } else {
+                        newRaces[regattaId] =
+                            r[regattaId].map(
+                                mkRaceData);
+                    }
+                }
+            }
+            if (newRaces) {
+                races = newRaces;
+                racesETags = newRacesETags;
+                setCachedRaces({
+                    data: races,
+                    etags: racesETags});
+            }
+            return updateTeams();
+        });
+};
+
 function updateTeams(continueFn) {
-    serverAPI.getTeamsPerRegatta(
+    return serverAPI.getTeamsPerRegatta(
         myRegattaIds,
         teamsETags,
         function(r, newTeamsETags) {

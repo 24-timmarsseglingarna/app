@@ -2,6 +2,10 @@ html, body, #map {
     height: 100%;
 }
 
+.tf-spinner-hide {
+    display: none !important;
+}
+
 /* special css for iPhone X */
 body {
     padding-top: constant(safe-area-inset-top); /* iOS 11.0 */
@@ -35,15 +39,15 @@ body {
 
 /* col-* doesn't work in chrome */
 .tf-col-1 {
-  width: 8.333333%;
+    width: 8.333333%;
 }
 
 .tf-col-2 {
-  width: 16.666667%;
+    width: 16.666667%;
 }
 
 .tf-col-4 {
-  width: 33.333333%;
+    width: 33.333333%;
 }
 
 @media (min-width: 768px) {

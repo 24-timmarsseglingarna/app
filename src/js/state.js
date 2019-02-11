@@ -11,7 +11,6 @@ import {init as initStorage,
 import {login as serverAPILogin, logout as serverAPILogout,
         setStagingServer, setProductionServer,
         getAPIVersion, validateToken} from './serverapi';
-import {alert} from './alertui.js';
 import {init as initServerData, updateServerData,
         getMyRaces, getRaceData, getMyTeamData, getRacesData,
         clearCache as clearServerDataCache} from './serverdata.js';
@@ -34,7 +33,7 @@ export var curState = {};
 // mode :: 'race'
 //       | 'showRegatta'  // experimental
 //       | 'logbook'      // NYI
-defineVariable(curState, 'mode', 'race');
+defineVariable(curState, 'mode', null);
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
 defineVariable(curState, 'planMode', false); // if mode == 'race'
 
@@ -194,6 +193,30 @@ function timeout() {
     }
     debugInfo['poll-timer-n'] = n;
 
+    /*
+    updateServerData(getSetting('personId'))
+        .then(function() {
+            var curLogBook = curState.curLogBook.get();
+            if (curLogBook && curState.sendLogToServer.get()) {
+                return curLogBook.sendToServer();
+            }
+        })
+        .then(function() {
+            var curLogBook = curState.curLogBook.get();
+            if (curLogBook) {
+                return curLogBook.updateFromServer();
+            }
+        })
+        .then(function() {
+            setTimer();
+        })
+        .catch(function() {
+            // reset timer also on error
+            setTimer();
+        });
+    */
+
+
     var cfn3 = function() {
         setTimer();
     };
@@ -245,74 +268,83 @@ function timeout() {
  *
  * This function calls responseFn(true | { errorStr: <string> })
  */
-export function checkServerCompatible(responseFn) {
+export function checkServerCompatible() {
     if (curState.isServerCompatible == true) {
-        responseFn(true);
+        return new Promise(function(resolve) {
+            resolve(true);
+        });
     } else {
-        getAPIVersion(function(data) {
-            // check for platform / upgrade match
-            if (data.app_info && data.app_info.require_upgrade) {
-                var r = data.app_info.require_upgrade;
-                for (var i = 0; i < r.length; i++) {
-                    if (r[i].platform == '*' ||
-                        r[i].platform == platform) {
-                        var re = new RegExp(r[i].app_version);
-                        if (re.test(tfAppVsn)) {
-                            curState.isServerCompatible = false;
-                            responseFn({ errorStr: r[i].upgrade_text });
-                            return;
+        return getAPIVersion()
+            .then(function(data) {
+                // check for platform / upgrade match
+                if (data.app_info && data.app_info.require_upgrade) {
+                    var r = data.app_info.require_upgrade;
+                    for (var i = 0; i < r.length; i++) {
+                        if (r[i].platform == '*' ||
+                            r[i].platform == platform) {
+                            var re = new RegExp(r[i].app_version);
+                            if (re.test(tfAppVsn)) {
+                                curState.isServerCompatible = false;
+                                throw { errorStr: r[i].upgrade_text };
+                            }
                         }
                     }
                 }
-            }
-            if (data.api_version) {
-                var x = data.api_version.split('.');
-                var major = parseInt(x[0]) || 0;
-                if (major == 1) {
-                    curState.isServerCompatible = true;
-                    responseFn(true);
-                } else {
-                    // new major version on server
+                if (data.api_version) {
+                    var x = data.api_version.split('.');
+                    var major = parseInt(x[0]) || 0;
+                    if (major == 1) {
+                        curState.isServerCompatible = true;
+                        return true;
+                    } else {
+                        // new major version on server
+                        curState.isServerCompatible = false;
+                        throw { errorStr: '' };
+                    }
+                } else if (data.errorCode == 0) {
+                    // connection error, keep going
+                    curState.isServerCompatible = null;
+                    return null;
+                } else if (data.errorStr) {
+                    // some other error, treat as non-compatible
                     curState.isServerCompatible = false;
-                    responseFn({ errorStr: '' });
+                    throw data;
+                } else {
+                    curState.isServerCompatible = false;
+                    throw { errorStr: '' };
                 }
-            } else if (data.errorCode == 0) {
-                // connection error, keep going
-                curState.isServerCompatible = null;
-                responseFn(null);
-            } else if (data.errorStr) {
-                // some other error, treat as non-compatible
-                curState.isServerCompatible = false;
-                responseFn(data);
-            } else {
-                curState.isServerCompatible = false;
-                responseFn({ errorStr: '' });
-            }
-        });
+            });
     }
 };
 
 /*
+ * responseFn is called with:
+ *    true - if we're successfully logged in with the stored credentials
+ *    false - if we need to log in
+ *    'nonetwork' - if there is no network
+ *    <errorstring>
+ */
+
+/*
  * continueFn is always called, regardless of result, after
- *            all communication is done.
+ *              all communication is done.
+ *            it *may* be called with a parameter 'result', which
+ *              in that case is an object: { errorStr: <string> }
  * doLoginFn is called if the saved values for email/token/password
  *           were not valid.  it is supposed to display a login page
  */
-export function setupLogin(continueFn, doLoginFn) {
+export function setupLogin() {
     if (hasNetwork() && curState.isServerCompatible == null) {
-        checkServerCompatible(function(response) {
-            if (response == true) {
-                setupLogin2(continueFn, doLoginFn);
-            } else {
-                continueFn(response);
-            }
-        });
+        return checkServerCompatible()
+            .then(setupLogin2);
     } else {
-        setupLogin2(continueFn, doLoginFn);
+        return new Promise(function(resolve) {
+            resolve(setupLogin2());
+        });
     }
 };
 
-function setupLogin2(continueFn, doLoginFn) {
+function setupLogin2() {
     // check if we're authenticated and possibly login
     var hasNetworkP = hasNetwork();
     var token = getSetting('token');
@@ -321,68 +353,70 @@ function setupLogin2(continueFn, doLoginFn) {
     if (hasNetworkP && !token) {
         //console.log('has network, no stored token');
         // we haven't logged in
-        doLoginFn();
-        continueFn();
+        throw false;
     } else if (hasNetworkP) {
         //console.log('has network and stored token, validate it');
         // validate the token
-        validateToken(email, token, personId, function(response) {
-            if (response) {
+        return validateToken(email, token, personId)
+            .then(function(response) {
                 // token is valid
-                console.log('valid token!');
+                //console.log('valid token!');
                 var props = {
                     role: response.role
                 };
                 setSettings(props);
-                onAuthenticatedOnline(personId, continueFn);
-            } else {
+                onAuthenticatedOnline(personId);
+                return true;
+            })
+            .catch(function() {
                 console.log('has network, invalid token');
                 // token invalid, check if the password is stored
                 var password = getSetting('password');
                 if (password) {
                     //console.log('has stored passwd, login');
-                    serverAPILogin(email, password, function(response) {
-                        if (response.token) {
-                            //console.log('login ok');
-                            var props = {
-                                token: response.token,
-                                personId: response.personId,
-                                role: response.role
-                            };
-                            setSettings(props);
-                            onAuthenticatedOnline(props.personId, continueFn);
-                        } else {
-                            // saved login not ok
-                            doLoginFn();
-                            continueFn();
-                        }
-                    });
+                    return serverAPILogin(email, password)
+                        .then(function(response) {
+                            if (response.token) {
+                                //console.log('login ok');
+                                var props = {
+                                    token: response.token,
+                                    personId: response.personId,
+                                    role: response.role
+                                };
+                                setSettings(props);
+                                onAuthenticatedOnline(props.personId);
+                                return true;
+                            } else {
+                                // saved login not ok
+                                throw false;
+                            }
+                        });
                 } else {
                     // invalid token and no stored password.  try to login
-                    doLoginFn();
-                    continueFn();
+                    throw false;
                 }
-            }
-        });
+            });
     } else if (getSetting('token')) {
         //console.log('no network, token');
         // we have a token but no network; continue with the data we have
-        setupContinue(continueFn);
+        return true;
     } else {
         //console.log('no network, no token');
         // no network, no token; not much to do
-        alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
-              'du har nätverk.</p>');
-        continueFn();
+        throw 'nonetwork';
     }
 };
 
-function onAuthenticatedOnline(personId, continueFn) {
+function onAuthenticatedOnline(personId) {
     curState.loggedInPersonId.set(personId);
+};
+
+// FIXME: rename and move from state.js
+// this function is called from ui.js
+export function setupContinue(continueFn) {
+    var activeRaceId = getSetting('activeRaceId');
     forceTimeout();
-    // we'll first start from cached data; if things have been updated on
-    // the server, we might change active race when we get the reply.
-    setupContinue(continueFn);
+    setActiveRace2(activeRaceId, continueFn);
 };
 
 function serverDataUpdateDone() {
@@ -398,13 +432,6 @@ function serverDataUpdateDone() {
         // current activeRaceId is not valid
         setActiveRace2(null);
     }
-};
-
-function setupContinue(continueFn) {
-
-    var activeRaceId = getSetting('activeRaceId');
-
-    setActiveRace2(activeRaceId, continueFn);
 };
 
 export function activateRace(raceId) {
@@ -499,8 +526,7 @@ export function login(email, password, savepassword, responsefn) {
                     props.password = null;
                 }
                 setSettings(props);
-                onAuthenticatedOnline(props.personId);
-                responsefn(true);
+                onAuthenticatedOnline(props.personId, responsefn);
             } else {
                 responsefn(response);
             }
@@ -556,5 +582,9 @@ export function reset(keepauth, doLoginFn) {
     curState.immediateSendToServer.set(getSetting('immediateSendToServer'));
     curState.serverId.set(getSetting('serverId'));
 
-    setupLogin(function() {}, doLoginFn);
+    setupLogin(function(response) {
+        if (response == false) {
+            doLoginFn();
+        }
+    });
 };

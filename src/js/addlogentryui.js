@@ -1,23 +1,22 @@
 /* -*- js -*- */
 
-import {curState} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {openLogEntry} from './logentryui.js';
 
 export function openPage(options) {
 
     /* Modify the text depending on current state */
-    if (!curState.boatState.lanterns) {
+    if (!options.logbook.getLanterns(options.beforeId)) {
         $('#tf-log-lanterns').text('Tänder lanternor');
     } else {
         $('#tf-log-lanterns').text('Släcker lanternor');
     }
-    if (!curState.boatState.engine) {
+    if (!options.logbook.getEngine(options.beforeId)) {
         $('#tf-log-engine').text('Startar motor för laddning');
     } else {
         $('#tf-log-engine').text('Stänger av motor för laddning');
     }
-    if (!curState.activeInterrupt) {
+    if (!options.logbook.getInterrupt(options.beforeId)) {
         $('#tf-log-interrupt').text('Tillfälligt avbrott i seglingen');
     } else {
         $('#tf-log-interrupt').text('Återupptar seglingen');
@@ -40,7 +39,7 @@ $(document).ready(function() {
         var page = $('#add-log-entry-page')[0];
         popPage(function() {
             openLogEntry({
-                logBook: curState.curLogBook.get(),
+                logBook: page.tfOptions.logbook,
                 time: page.tfOptions.time,
                 onclose: page.tfOptions.onclose,
                 type: $(event.target).data('type') // html5 data-type attribute
