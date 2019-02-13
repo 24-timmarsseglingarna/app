@@ -45,8 +45,9 @@
         Controlled by ui.js.
     -->
     <div id="map" class="map"></div>
-    <div id="tf-spinner" class="text-center">
-      <div class="spinner-border mt-5" role="status">
+    <div id="tf-spinner" class="text-center pt-5">
+      <h1>24-timmars Loggbok</h1>
+      <div class="spinner-border mt-3">
         <span class="sr-only">Loading...</span>
       </div>
       <p>Laddar...</p>

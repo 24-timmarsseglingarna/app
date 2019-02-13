@@ -22,6 +22,7 @@ export function openPage() {
         ' data-name="' + ch + '">Plan ' + ch + '</button>';
     }
     $('#plan-btns').html(btns);
+    $('.tf-plan-item').off();
     $('.tf-plan-item').on('click', itemClick);
 
     // mark the active plan

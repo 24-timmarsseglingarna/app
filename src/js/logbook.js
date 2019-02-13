@@ -736,7 +736,7 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
                         if (updated) {
                             logBook._updateLog('syncError');
                         }
-                        continueFn();
+                        continueFn(false);
                         return;
                     } else {
                         // update ok; store id and generation id
@@ -772,7 +772,7 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
                         if (updated) {
                             logBook._updateLog('syncError');
                         }
-                        continueFn();
+                        continueFn(false);
                         return;
                     } else if (res == 'conflict') {
                         // someone modified this entry before us; ignore
@@ -799,5 +799,5 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
     if (updated) {
         this._updateLog('syncDone');
     }
-    continueFn();
+    continueFn(true);
 };

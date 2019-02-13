@@ -11,6 +11,9 @@ export function confirm(html, cancelLabel, continueLabel, continueFn) {
     $('#confirm-cancel').prop('value', cancelLabel);
     $('#confirm-continue').prop('value', continueLabel);
     $('#confirm-continue').on('click', function() {
+        // remove the dynamic 'on' handler (actually, remove _all_ handlers,
+        // but we just have one)
+        $('#confirm-continue').off();
         popPage(continueFn);
         return false;
     });

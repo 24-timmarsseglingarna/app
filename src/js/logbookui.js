@@ -34,13 +34,18 @@ function refreshLogBook(options) {
     var pod = logBook.race.getPod();
     var prev;
     var rows = '';
+    var pointName = '';
 
+    $('#log-book-help').hide();
     if (logBook.standaloneUI) {
         $('#log-book-cancel').hide();
-        $('#log-book-help').show();
+        if (logBook.signed != 'signed-sync') {
+            $('#log-book-help').show();
+        }
+        $('.log-book-extra-data').show();
     } else {
         $('#log-book-cancel').show();
-        $('#log-book-help').hide();
+        $('.log-book-extra-data').hide();
     }
     if (logBook.hasConflict()) {
         $('#log-book-conflict').show();
@@ -61,6 +66,8 @@ function refreshLogBook(options) {
     $('#log-book-late-elem').hide();
     $('#log-book-comp-elem').hide();
     $('#log-book-approved-elem').hide();
+    $('#log-book-plaque-elem').hide();
+    $('#log-book-net-elem2').hide();
 
     // no header and no arrow in the popup
     var popover_template = '<div class=\'popover log-book-edit-popover\'' +
@@ -104,7 +111,6 @@ function refreshLogBook(options) {
             '</div>';
 
         var point = e.point || '';
-        var pointName = '';
         if (e.point) {
             var p = pod.getPoint(point);
             if (p) {
@@ -197,6 +203,13 @@ function refreshLogBook(options) {
         $('#log-book-comp-elem').show();
         $('#log-book-approved-elem').show();
     }
+    if (logBook.state == 'finished' ||
+        logBook.state == 'finished-early' ||
+        logBook.state == 'retired') {
+        $('#log-book-plaque-elem').show();
+    } else {
+        $('#log-book-net-elem2').show();
+    }
 
     if (curState.loggedInPersonId.get() == logBook.teamData.skipper_id) {
         $('#log-book-sign').show();
@@ -229,6 +242,27 @@ function refreshLogBook(options) {
         $('#log-book-plaque-reason').html('(seglingen bruten)');
     }
 
+    if (logBook.standaloneUI) {
+        var r = logBook.race.raceData;
+        $('#log-book-race').text(r.regatta_name + ' ' +
+                                 r.period + '-timmars');
+        var startStr = r.start_from.format('YYYY-MM-DD HH:mm');
+        if (!r.start_from.isSame(r.start_to)) {
+            startStr += r.start_to.format('-HH:mm');
+        }
+        $('#log-book-start-time').text(startStr);
+        $('#log-book-skipper').text(logBook.teamData.skipper_first_name + ' ' +
+                                    logBook.teamData.skipper_last_name);
+        var sp = pod.getPoint(logBook.teamData.start_point);
+        if (sp) {
+            pointName = sp.name;
+        } else {
+            pointName = '';
+        }
+        $('#log-book-start-point').text(logBook.teamData.start_point + ' ' +
+                                        pointName);
+    }
+
     $('#log-book-boat').text(boatName);
     $('#log-book-startno').text(startNo);
     $('#log-book-sxk').text(sxk);
@@ -237,6 +271,7 @@ function refreshLogBook(options) {
     $('#log-book-net-dist').text(netdist.toFixed(1) + ' M');
     // footer
     $('#log-book-sailed-dist2').text(dist.toFixed(1) + ' M');
+    $('#log-book-net-dist2').text(netdist.toFixed(1) + ' M');
     $('#log-book-early-dist').text('-' + earlydist.toFixed(1) + ' M' +
                                   ' (' + earlytime + ' min)');
     $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M' +
@@ -247,9 +282,11 @@ function refreshLogBook(options) {
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);
     $('.log-book-edit').popover();
+    $('.log-book-invalid-dist').off(); // remove all handlers
     $('.log-book-invalid-dist').on('click', function(event) {
         logBookInvalidDistClick(event.currentTarget);
     });
+    $('.log-book-invalid-interrupt').off(); // remove all handlers
     $('.log-book-invalid-interrupt').on('click', function(event) {
         logBookInvalidInterruptClick(event.currentTarget);
     });
@@ -370,9 +407,18 @@ $(document).ready(function() {
                     'Signera',
                     function() {
                         logBook.sign();
-                        logBook.sendToServer(function() {
+                        logBook.sendToServer(function(result) {
+                            if (result) {
+                                alert('<p>Loggboken är nu signerad och' +
+                                      ' inskickad.</p>',
+                                      function() {
+                                          refreshLogBook({
+                                              logBook: logBook
+                                          });
+                                      });
+                            }
                             refreshLogBook({
-                                logBook: logBookPage.logBook
+                                logBook: logBook
                             });
                         });
                     });
