@@ -6,6 +6,11 @@ import {openLogEntry} from './logentryui.js';
 export function openPage(options) {
 
     /* Modify the text depending on current state */
+    if (options.logbook.getPrevRound(options.beforeId) == null) {
+        $('#tf-log-round').text('Start');
+    } else {
+        $('#tf-log-round').text('Rundning');
+    }
     if (!options.logbook.getLanterns(options.beforeId)) {
         $('#tf-log-lanterns').text('Tänder lanternor');
     } else {

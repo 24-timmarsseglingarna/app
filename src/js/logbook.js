@@ -584,6 +584,17 @@ LogBook.prototype.getInterrupt = function(beforeId) {
     return res;
 };
 
+LogBook.prototype.getPrevRound = function(beforeId) {
+    var res = null;
+    for (var i = 0; i < this.log.length && this.log[i].id != beforeId; i++) {
+        var e = this.log[i];
+        if (e.deleted) continue;
+        if (e.type == 'round') {
+            res = e;
+        }
+    }
+    return res;
+};
 
 LogBook.prototype.deleteLogEntry = function(id) {
     var index = undefined;

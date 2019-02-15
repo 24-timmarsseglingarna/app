@@ -221,7 +221,7 @@ function openLogEntry2(options) {
         }
         break;
     case 'endOfRace':
-        title = 'Segelperiodens slut';
+        title = 'Segelperioden slut';
         initGeoPosition();
         $('#log-entry-form-position').show();
         break;

@@ -34,7 +34,6 @@ function refreshLogBook(options) {
     var pod = logBook.race.getPod();
     var prev;
     var rows = '';
-    var pointName = '';
 
     $('#log-book-help').hide();
     if (logBook.standaloneUI) {
@@ -111,6 +110,7 @@ function refreshLogBook(options) {
             '</div>';
 
         var point = e.point || '';
+        var pointName = '';
         if (e.point) {
             var p = pod.getPoint(point);
             if (p) {
@@ -254,13 +254,12 @@ function refreshLogBook(options) {
         $('#log-book-skipper').text(logBook.teamData.skipper_first_name + ' ' +
                                     logBook.teamData.skipper_last_name);
         var sp = pod.getPoint(logBook.teamData.start_point);
+        var startPointName = '';
         if (sp) {
-            pointName = sp.name;
-        } else {
-            pointName = '';
+            startPointName = sp.name;
         }
         $('#log-book-start-point').text(logBook.teamData.start_point + ' ' +
-                                        pointName);
+                                        startPointName);
     }
 
     $('#log-book-boat').text(boatName);
@@ -290,6 +289,11 @@ function refreshLogBook(options) {
     $('.log-book-invalid-interrupt').on('click', function(event) {
         logBookInvalidInterruptClick(event.currentTarget);
     });
+    if (options.scroll) {
+        window.setTimeout(function() {
+            $('#log-book-footer')[0].scrollIntoView();
+        }, 1);
+    }
     var logBookPage = $('#log-book-page')[0];
     // save the current logBook in the page
     logBookPage.logBook = logBook;
@@ -306,7 +310,8 @@ window.tfUiLogBookAddEntryClick = function() {
     openAddLogEntryPage({
         logbook: logBookPage.logBook,
         onclose: function() {
-            refreshLogBook({logBook: logBookPage.logBook});
+            refreshLogBook({logBook: logBookPage.logBook,
+                            scroll: true});
         },
         time: time
     });
@@ -354,7 +359,8 @@ function openLogEntryFromPage(options) {
     var logBookPage = $('#log-book-page')[0];
     options.logBook = logBookPage.logBook;
     options.onclose = function() {
-        refreshLogBook({logBook: logBookPage.logBook});
+        refreshLogBook({logBook: logBookPage.logBook,
+                        scroll: true});
     };
     openLogEntry(options);
 };
@@ -459,7 +465,8 @@ $(document).ready(function() {
             time: new_,
             beforeId: nextId,
             onclose: function() {
-                refreshLogBook({logBook: logBookPage.logBook});
+                refreshLogBook({logBook: logBookPage.logBook,
+                                scroll: true});
             }
         });
     });
@@ -470,7 +477,8 @@ $(document).ready(function() {
         logBookPage.logBook.deleteLogEntry(id);
         // re-open the log book
         $('.log-book-edit').popover('hide');
-        refreshLogBook({logBook: logBookPage.logBook});
+        refreshLogBook({logBook: logBookPage.logBook,
+                        scroll: true});
     });
 });
 
