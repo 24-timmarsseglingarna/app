@@ -860,7 +860,9 @@ $(document).ready(function() {
         }
     });
     $('#log-entry-datepicker').datetimepicker({
-        format: 'DD MMM',
+        // NOTE: if we don't use YYYY (or YY), tempusdominus will
+        // use the current year.
+        format: 'DD MMM YYYY',
         icons: icons,
         widgetPositioning: {
             horizontal: 'right',
