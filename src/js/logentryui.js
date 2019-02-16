@@ -45,14 +45,6 @@ export function fmtInterrupt(interrupt) {
     return s;
 }
 
-export function fmtProtest(protest) {
-    if (protest == undefined || protest.boat == -1) {
-        return '-';
-    } else {
-        return 'Mot ' + protest.boat;
-    }
-}
-
 export function fmtSails(sails) {
     if (sails == undefined) {
         return '';
@@ -106,6 +98,9 @@ export function fmtOther(e) {
     }
     if (e.type == 'sign') {
         s.push('signerad');
+    }
+    if (e.type == 'protest') {
+        s.push('protest mot ' + e.protest.boat);
     }
     return s.join(',');
 }

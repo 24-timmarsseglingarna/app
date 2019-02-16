@@ -4,8 +4,7 @@ import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
 import {curState, setupLogin} from './state.js';
 import {pushPage, popPage} from './pageui.js';
-import {fmtInterrupt, fmtProtest, fmtSails, fmtOther,
-        openLogEntry} from './logentryui.js';
+import {fmtInterrupt, fmtSails, fmtOther, openLogEntry} from './logentryui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
 import {setSettings} from './storage.js';
 import {setServerURL} from './serverapi.js';
@@ -127,7 +126,12 @@ function refreshLogBook(options) {
             boats = e.boats.join(',');
             // FIXME: test with boat names
         }
-        var comment = e.comment || '';
+        var note = fmtOther(e);
+        if (note != '' && e.comment) {
+            note += '<br/>' + e.comment;
+        } else {
+            note = e.comment || '';
+        }
 
         var conflict = '';
         if (e.state == 'conflict') {
@@ -165,11 +169,9 @@ function refreshLogBook(options) {
             '<td>' + wind + '</td>' +
             intTD + fmtInterrupt(e.interrupt) +
             intPost + '</td>' +
-            '<td>' + fmtProtest(e.protest) + '</td>' +
             '<td>' + fmtSails(e.sails) + '</td>' +
             '<td>' + boats + '</td>' +
-            '<td>' + fmtOther(e) + '</td>' +
-            '<td>' + comment + '</td>' +
+            '<td>' + note + '</td>' +
             '</tr>';
     }
     if (!isReadOnly) {

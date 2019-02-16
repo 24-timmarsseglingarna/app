@@ -101,11 +101,11 @@ LogBook.prototype.saveToLog = function(logEntry, id) {
         // update of an existing entry, find it
         var index = undefined;
         for (var i = 0; i < this.log.length; i++) {
-            if (this.log[i].id == id) {
+            if (this.log[i].id == id || this.log[i].oldid == id) {
                 index = i;
             }
         }
-        logEntry.id = id;
+        logEntry.id = this.log[index].id;
         if (this.log[index].gen) {
             // copy server-provided data to the new entry
             logEntry.gen = this.log[index].gen;
@@ -194,7 +194,6 @@ LogBook.prototype._updateLog = function(reason) {
     var startTime;
     var finishTime;
     var earlyFinish = false;
-    var startIdx = 0;
     var npoints = {};
     var nlegs = {};
     var points = [];
@@ -216,7 +215,6 @@ LogBook.prototype._updateLog = function(reason) {
                 startPoint = e.point;
                 startTime = e.time;
                 points.push({point: e.point, time: e.time});
-                startIdx = i;
                 prev = e;
             }
         }
@@ -238,7 +236,7 @@ LogBook.prototype._updateLog = function(reason) {
     // code below
 
     // ignore any log items before the start point
-    for (i = (startIdx + 1); startPoint && i < this.log.length; i++) {
+    for (i = 0; i < this.log.length; i++) {
         e = this.log[i];
         if (e.deleted) continue;
 
