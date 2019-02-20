@@ -27,7 +27,7 @@ import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
 import {basePodSpec} from '../../build/pod.js';
-
+import {isTouch} from './util.js';
 
 /**
  * Font for point labels on zoom levels 1-3
@@ -131,12 +131,6 @@ var INSHORE_LEG_COLOR = '#0113e6'; // blue
  * @const {string}
  */
 var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
-
-/**
- * Detect environment
- */
-
-var isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints > 0;
 
 /**
  * Initialize ui ephemeral state variables

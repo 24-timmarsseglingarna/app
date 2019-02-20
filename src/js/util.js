@@ -54,4 +54,10 @@ export var numberToName = function(n) {
     return String.fromCharCode(64 + n);
 };
 
+/**
+ * Detect environment
+ */
+
 export var isCordova = 'cordova' in window;
+
+export var isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints > 0;

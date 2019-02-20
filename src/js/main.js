@@ -1,7 +1,7 @@
 /* -*- js -*- */
 
 import {init as initState, curState} from './state.js';
-import {isCordova} from './util.js';
+import {isCordova, isTouch} from './util.js';
 import {initMapUI} from './ui.js';
 import {basePodSpec} from '../../build/pod.js';
 import {Plan} from './plan.js';
@@ -25,6 +25,21 @@ function initRace() {
 
 function onDeviceReady() {
     initState();
+
+    if (!isTouch) {
+        /* Prevent ESC from making whole page blank */
+        $(':input').on('keydown', function(e) {
+            var isEscape = false;
+            if ('key' in e) {
+                isEscape = (e.key === 'Escape' || e.key === 'Esc');
+            } else {
+                isEscape = (e.keyCode === 27);
+            }
+            if (isEscape) {
+                return false;
+            }
+        });
+    }
 
     var raceId;
     var teamId;

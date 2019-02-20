@@ -4,6 +4,7 @@ import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
 import {pushPage, popPage} from './pageui.js';
 import {getTeamsData} from './serverdata.js';
+import {isTouch} from './util.js';
 
 var onclose = undefined;
 
@@ -184,10 +185,10 @@ function openLogEntry2(options) {
     // if a point was clicked, make this field read-only
     $('#log-entry-point').removeClass('is-invalid');
     if (options.point) {
-        $('#log-entry-point').prop('type', 'text');
+        //$('#log-entry-point').prop('type', 'text');
         $('#log-entry-point').prop('readonly', true);
     } else {
-        $('#log-entry-point').prop('type', 'number');
+        //$('#log-entry-point').prop('type', 'number');
         $('#log-entry-point').prop('readonly', false);
     }
     // hide everything except time and comment
@@ -291,9 +292,9 @@ function openLogEntry2(options) {
             $('#log-entry-point').val(entry.point);
             p = options.logBook.getRace().getPod().getPoint(entry.point);
             if (p) {
-                $('#log-entry-point-name').val(p.name);
+                $('#log-entry-point-name').html(p.name);
             } else {
-                $('#log-entry-point-name').val('');
+                $('#log-entry-point-name').html('');
             }
         }
         if (entry.finish != undefined) {
@@ -395,9 +396,9 @@ function openLogEntry2(options) {
         $('#log-entry-point').val(point);
         p = options.logBook.getRace().getPod().getPoint(point);
         if (p) {
-            $('#log-entry-point-name').val(p.name);
+            $('#log-entry-point-name').html(p.name);
         } else {
-            $('#log-entry-point-name').val('');
+            $('#log-entry-point-name').html('');
         }
 
         var time;
@@ -482,15 +483,35 @@ function openLogEntry2(options) {
         logEntryPage.logEntryType = 'start';
     }
     pushPage(
-        function() { $('#log-entry-page').modal({backdrop: 'static'}); },
-        closeLogEntry);
+        function() {
+            $('#log-entry-page').modal({backdrop: 'static'});
+            if (type == 'round') {
+                $(document).on('keydown', keypressed);
+            }
+        },
+        function() {
+            $(document).off('keydown', keypressed);
+            closeLogEntry();
+        });
     document.activeElement.blur();
-    if (options.time) {
-        // if a time was given, show the time picker b/c the given time
-        // was probably not correct.
-        $('#log-entry-timepicker').datetimepicker('show');
+    if (isTouch) {
+        if (options.time) {
+            // if a time was given, show the time picker b/c the given time
+            // was probably not correct.
+            $('#log-entry-timepicker').datetimepicker('show');
+        }
+    } else {
+        $('#log-entry-time').focus().select();
     }
 }
+
+function keypressed(e) {
+    if (e.key == 'n' && e.altKey) {
+        // TODO: save & prepare for new round entry, to make it easier
+        // to quickly enter rounds from a logbook.
+        //console.log('** HERE');
+    }
+};
 
 function initGeoPosition() {
     /* NOTE: the HTML and this code assumes lat N and long E */
@@ -683,6 +704,15 @@ function logEntrySave() {
     var interrupt = getInterrupt();
     var protest = getProtest();
     var sails = getSails();
+
+    if (!time) {
+        alert('<p>Du måste ange en tidpunkt.</p>');
+        return false;
+    }
+    if (!date) {
+        alert('<p>Du måste ange ett datum.</p>');
+        return false;
+    }
 
     // combine the date with the time
     var t = time.toObject();
@@ -891,12 +921,27 @@ $(document).ready(function() {
         var point = $('#log-entry-point').val();
         var p = logEntryPage.logBook.getRace().getPod().getPoint(point);
         if (!p) {
-            $('#log-entry-point-name').val('');
+            $('#log-entry-point-name').html('');
             $('#log-entry-point').addClass('is-invalid');
         } else {
-            $('#log-entry-point-name').val(p.name);
+            $('#log-entry-point-name').html(p.name);
             $('#log-entry-point').removeClass('is-invalid');
         }
     });
-
+    $('#log-entry-time').blur(function() {
+        var time = $('#log-entry-timepicker').datetimepicker('date');
+        if (!time) {
+            $('#log-entry-time').addClass('is-invalid');
+        } else {
+            $('#log-entry-time').removeClass('is-invalid');
+        }
+    });
+    $('#log-entry-date').blur(function() {
+        var time = $('#log-entry-datepicker').datetimepicker('date');
+        if (!time) {
+            $('#log-entry-date').addClass('is-invalid');
+        } else {
+            $('#log-entry-date').removeClass('is-invalid');
+        }
+    });
 });

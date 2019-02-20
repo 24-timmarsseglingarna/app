@@ -119,10 +119,18 @@ function refreshLogBook(options) {
 
         var wind = '';
         if (e.wind) {
-            wind = e.wind.dir + '&nbsp;' + e.wind.speed;
+            if (e.wind.dir == '-' && e.wind.speed == '-') {
+                wind = '-';
+            } else {
+                wind = e.wind.dir + '&nbsp;' + e.wind.speed;
+            }
         }
         var boats = '';
         if (e.boats != undefined) {
+//            var teams = getTeamsData(regattaId);
+//            for sn in e.boats {
+//HERE
+//           }
             boats = e.boats.join(',');
             // FIXME: test with boat names
         }
