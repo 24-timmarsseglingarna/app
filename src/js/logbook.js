@@ -148,7 +148,7 @@ LogBook.prototype._addLogEntry = function(logEntry) {
         var high = this.log.length;
         while (low < high) {
             var mid = (low + high) >>> 1;
-            if (this.log[mid].time.isBefore(logEntry.time)) {
+            if (!this.log[mid].time.isAfter(logEntry.time)) {
                 low = mid + 1;
             } else {
                 high = mid;

@@ -9,7 +9,7 @@ import {openPage as openAddLogEntryPage} from './addlogentryui.js';
 import {setSettings} from './storage.js';
 import {setServerURL} from './serverapi.js';
 import {getRaceP, getRegattaTeamsP,
-        getTeamLogP, getTeamData} from './serverdata.js';
+        getTeamLogP, getTeamData, getTeamsData} from './serverdata.js';
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
@@ -21,6 +21,29 @@ export function openLogBook(options) {
         function() { $('#log-book-page').modal('hide'); },
         options.mainPage);
     document.activeElement.blur();
+};
+
+function getTeam(teams, startNo) {
+    for (var i = 0; i < teams.length; i++) {
+        if (teams[i].start_number == startNo) {
+            return teams[i];
+        }
+    }
+};
+
+function fmtTeam(sn, teams, colortype) {
+    var s = '<span class="badge badge-pill badge-' + colortype +
+        ' mr-1 align-middle">' + sn + '</span>';
+    var t = getTeam(teams, sn);
+    var media = $('#tf-media').css('content');
+    if (t) {
+        s += t.boat_type_name + ' ';
+        if (media == '"md+"') {
+            s += t.boat_sail_number + ' ';
+        }
+        s += t.boat_name;
+    }
+    return s;
 };
 
 function refreshLogBook(options) {
@@ -110,7 +133,8 @@ function refreshLogBook(options) {
 
         var point = e.point || '';
         var pointName = '';
-        if (e.point) {
+        var media = $('#tf-media').css('content');
+        if (e.point && (media == '"sm"' || media == '"md+"')) {
             var p = pod.getPoint(point);
             if (p) {
                 pointName = p.name;
@@ -126,20 +150,35 @@ function refreshLogBook(options) {
             }
         }
         var boats = '';
+        var teams = getTeamsData(logBook.race.getRegattaId());
         if (e.boats != undefined) {
-//            var teams = getTeamsData(regattaId);
-//            for sn in e.boats {
-//HERE
-//           }
-            boats = e.boats.join(',');
-            // FIXME: test with boat names
+            var res = [];
+            for (var j = 0; j < e.boats.length; j++) {
+                res.push(fmtTeam(e.boats[j], teams, 'success'));
+            }
+            boats = res.join('<br/>');
         }
-        var note = fmtOther(e);
-        if (note != '' && e.comment) {
-            note += '<br/>' + e.comment;
-        } else {
-            note = e.comment || '';
+        var notes = [];
+        var sails = fmtSails(e.sails);
+        var other = fmtOther(e);
+        if (e.protest) {
+            var protest = 'protest mot<br/>' +
+                fmtTeam(e.protest.boat, teams, 'danger');
+            notes.push(protest);
         }
+        if (boats) {
+            notes.push(boats);
+        }
+        if (sails != '') {
+            notes.push(sails);
+        }
+        if (other != '') {
+            notes.push(other);
+        }
+        if (e.comment) {
+            notes.push(e.comment);
+        }
+        var note = notes.join('<br/>');
 
         var conflict = '';
         if (e.state == 'conflict') {
@@ -170,15 +209,13 @@ function refreshLogBook(options) {
         rows +=
             '<td>' + e.time.format(
                 'HH:mm DD MMM').replace(/\s/g, '&nbsp;') + '</td>' +
-            '<td><span class="badge badge-pill badge-secondary">' +
-            point + '</span></td>' +
-            '<td class="d-none d-sm-table-cell">' + pointName + '</td>' +
+            '<td><span class="badge badge-pill badge-secondary' +
+            ' mr-2 align-middle">' +
+            point + '</span>' + pointName + '</td>' +
             distTD + distance + distPost + '</td>' +
-            '<td>' + wind + '</td>' +
+            '<td class="d-none d-sm-table-cell">' + wind + '</td>' +
             intTD + fmtInterrupt(e.interrupt) +
             intPost + '</td>' +
-            '<td>' + fmtSails(e.sails) + '</td>' +
-            '<td>' + boats + '</td>' +
             '<td>' + note + '</td>' +
             '</tr>';
     }

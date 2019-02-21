@@ -1204,7 +1204,7 @@ export function initMapUI() {
         // initial value; try to detect high dpi large screens,
         // and set font size large on these
         if (window.devicePixelRatio > 1.5 &&
-            $('#tf-media').css('content') == '"md"') {
+            $('#tf-media').css('content') == '"md+"') {
             curState.fontSize.set('large');
         } else {
             curState.fontSize.set('normal');

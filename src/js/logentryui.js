@@ -15,7 +15,7 @@ var onclose = undefined;
 export function fmtInterrupt(interrupt) {
     var s;
     if (interrupt == undefined) {
-        return '-';
+        return '';
     }
     switch (interrupt.type) {
     case 'done':
@@ -71,11 +71,7 @@ export function fmtSails(sails) {
     if (sails.other != undefined && sails.other != '') {
         s.push(sails.other);
     }
-    if (s.length == 0) {
-        return '-';
-    } else {
-        return s.join(',');
-    }
+    return s.join(',');
 }
 
 export function fmtOther(e) {
@@ -99,9 +95,6 @@ export function fmtOther(e) {
     }
     if (e.type == 'sign') {
         s.push('signerad');
-    }
-    if (e.type == 'protest') {
-        s.push('protest mot ' + e.protest.boat);
     }
     return s.join(',');
 }
@@ -203,16 +196,14 @@ function openLogEntry2(options) {
         title = 'Rundning';
         $('#log-entry-form-point').show();
         $('#log-entry-form-wind').show();
+        initBoats(regattaId);
+        $('#log-entry-form-boats').show();
         if (isStart) {
             title = 'Start';
             initBoats(regattaId);
             $('#log-entry-form-finish').hide();
-            $('#log-entry-form-boats').show();
             $('#log-entry-form-sail').show();
         } else {
-            initBoats(-1);
-            // FIXME: show finish only if point is possible finish point
-            // needs more data about finish from server
             $('#log-entry-form-finish').show();
         }
         break;

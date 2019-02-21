@@ -50,9 +50,15 @@ body {
     width: 33.333333%;
 }
 
+@media (min-width: 576px) {
+    #tf-media {
+        content: "sm";
+    }
+}
+
 @media (min-width: 768px) {
     #tf-media {
-        content: "md";
+        content: "md+";
     }
 }
 
