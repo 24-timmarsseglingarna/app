@@ -5,6 +5,7 @@ import {confirm} from './confirmui.js';
 import {pushPage, popPage} from './pageui.js';
 import {getTeamsData} from './serverdata.js';
 import {isTouch} from './util.js';
+import {getSetting} from './storage.js';
 
 var onclose = undefined;
 
@@ -188,6 +189,19 @@ function openLogEntry2(options) {
     $('.log-entry-form').hide();
     $('#log-entry-form-time').show();
     $('#log-entry-form-comment').show();
+
+    console.log('ROLE' + getSetting('role'));
+
+    $('#log-book-help').hide();
+    $('#log-entry-expert-help').hide();
+    if (options.logBook.standaloneUI) {
+        $('#log-entry-help').show();
+        if (type == 'round'
+            && (getSetting('role') == 'organizer'
+                || getSetting('role') == 'admin') {
+            $('#log-entry-expert-help').show();
+        }
+    }
 
     var regattaId = options.logBook.getRace().getRegattaId();
 
@@ -476,9 +490,13 @@ function openLogEntry2(options) {
     pushPage(
         function() {
             $('#log-entry-page').modal({backdrop: 'static'});
-            if (type == 'round') {
-                $(document).on('keydown', keypressed);
+            // We pass round and data from our keypressed function.
+            if (options.type == 'round' && options.data) {
+                $('#log-entry-round-toast-number').html(options.data);
+                $('#log-entry-round-toast').toast('hide');
+                $('#log-entry-round-toast').toast('show');
             }
+            $(document).on('keydown', keypressed);
         },
         function() {
             $(document).off('keydown', keypressed);
@@ -496,11 +514,29 @@ function openLogEntry2(options) {
     }
 }
 
+function saveAndClose(continuefn) {
+    if (!logEntrySave()) {
+        return false;
+    }
+    popPage(continuefn);
+};
+
 function keypressed(e) {
-    if (e.key == 'n' && e.altKey) {
-        // TODO: save & prepare for new round entry, to make it easier
-        // to quickly enter rounds from a logbook.
-        //console.log('** HERE');
+    if (e.key == 's' && e.altKey) {
+        saveAndClose();
+        return false;
+    } else if (e.key == 'r' && e.altKey) {
+        var point = $('#log-entry-point').val();
+        if (point) {
+            // Alt-r applies only when a round is logged; then it
+            // saves the logentry and opens a new of type round.
+            document.activeElement.blur();
+            saveAndClose(function() {
+                window.tfUiLogBookAddEntryClick({type: 'round',
+                                                 data: point});
+            });
+            return false;
+        }
     }
 };
 
@@ -897,10 +933,7 @@ $(document).ready(function() {
         return false;
     });
     $('#log-entry-save').on('click', function() {
-        if (!logEntrySave()) {
-            return false;
-        }
-        popPage();
+        saveAndClose();
         return false;
     });
 

@@ -17,10 +17,23 @@ import {LogBook} from './logbook.js';
 export function openLogBook(options) {
     refreshLogBook(options);
     pushPage(
-        function() { $('#log-book-page').modal({backdrop: 'static'}); },
-        function() { $('#log-book-page').modal('hide'); },
+        function() {
+            $('#log-book-page').modal({backdrop: 'static'});
+            $(document).on('keydown', keypressed);
+        },
+        function() {
+            $(document).off('keydown', keypressed);
+            $('#log-book-page').modal('hide');
+        },
         options.mainPage);
     document.activeElement.blur();
+};
+
+function keypressed(e) {
+    if (e.key == 'n' && e.altKey) {
+        window.tfUiLogBookAddEntryClick();
+        return false;
+    }
 };
 
 function getTeam(teams, startNo) {
@@ -346,22 +359,34 @@ function refreshLogBook(options) {
     logBookPage.logBook = logBook;
 };
 
-window.tfUiLogBookAddEntryClick = function() {
+window.tfUiLogBookAddEntryClick = function(r) {
     var logBookPage = $('#log-book-page')[0];
     var e = logBookPage.logBook.getLastLogEntry();
     var time = null;
     if (e) {
         time = e.time;
     }
-
-    openAddLogEntryPage({
-        logbook: logBookPage.logBook,
-        onclose: function() {
-            refreshLogBook({logBook: logBookPage.logBook,
-                            scroll: true});
-        },
-        time: time
-    });
+    if (r && r.type == 'round') {
+        openLogEntry({
+            logBook: logBookPage.logBook,
+            time: time,
+            onclose: function() {
+                refreshLogBook({logBook: logBookPage.logBook,
+                                scroll: true});
+            },
+            type: r.type,
+            data: r.data
+        });
+    } else {
+        openAddLogEntryPage({
+            logbook: logBookPage.logBook,
+            onclose: function() {
+                refreshLogBook({logBook: logBookPage.logBook,
+                                scroll: true});
+            },
+            time: time
+        });
+    }
 };
 
 function logBookInvalidDistClick(col) {

@@ -10,6 +10,31 @@
         <span id="log-entry-title-type"></span></h3>
       </div>
       <div class="modal-body">
+        <div class="container border-bottom" id="log-entry-help">
+          <p class="font-italic">
+            Fyll i alla uppgifter och klicka på Spara nedan (genväg:
+            Alt-s).
+          </p>
+          <p class="font-italic" id="log-entry-expert-help">
+            Om du vill spara och lägga till en ny rundning kan du
+            använda genvägen Alt-r.
+          </p>
+        </div>
+        <div class="toast" id="log-entry-round-toast"
+             data-autohide="false" data-delay="1000">
+          <div class="toast-header">
+            <strong class="mr-auto">Notera</strong>
+            <button type="button" class="ml-2 mb-1 close"
+                    data-dismiss="toast" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="toast-body">
+            Punkten <span id="log-entry-round-toast-number"></span>
+            har lagts till.
+          </div>
+        </div>
+
         <form>
           <div class="form-group row log-entry-form"
                id="log-entry-conflict">
@@ -60,18 +85,6 @@
             <div class="offset-md-2"></div>
           </div>
 
-          <!-- Position -->
-          <div class="form-group row log-entry-form"
-               id="log-entry-form-position">
-            <label class="col-12 col-md-2 col-form-label text-md-right"
-                   for="log-entry-position">Position</label>
-            <div class="col-12 col-md-8">
-              <input name="position" type="text" class="form-control"
-                     id="log-entry-position"/>
-            </div>
-            <div class="offset-md-2"></div>
-          </div>
-
           <!-- Point -->
           <div class="form-group row log-entry-form align-items-center"
                id="log-entry-form-point">
@@ -95,6 +108,18 @@
                      id="log-entry-finish"/>
             </div>
             <div class="offset-md-7"></div>
+          </div>
+
+          <!-- Position -->
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-position">
+            <label class="col-12 col-md-2 col-form-label text-md-right"
+                   for="log-entry-position">Position</label>
+            <div class="col-12 col-md-8">
+              <input name="position" type="text" class="form-control"
+                     id="log-entry-position"/>
+            </div>
+            <div class="offset-md-2"></div>
           </div>
 
           <!-- Wind -->
@@ -267,11 +292,13 @@
             <label class="col-12 col-md-2 col-form-label
                           text-md-right">Segel</label>
             <div class="col-md-10">
-              <input name="main" type="checkbox" class="log-entry-sail"
+              <input name="main" type="checkbox"
+                     class="log-entry-sail mr-1"
                      id="log-entry-sail-main"/>
               <label for="log-entry-sail-main"
                      class="form-check-inline">stor</label>
-              <input name="reef" type="checkbox" class="log-entry-sail"
+              <input name="reef" type="checkbox"
+                     class="log-entry-sail mr-1"
                      id="log-entry-sail-reef"/>
               <label for="log-entry-sail-reef"
                      class="form-check-inline">rev</label>
@@ -279,29 +306,34 @@
             <div class="offset-md-2 col-md-10">
               <label for="log-entry-sail-jib"
                      class="form-check-inline">
-                <input name="foresail" type="checkbox" class="log-entry-sail"
+                <input name="foresail" type="checkbox"
+                       class="log-entry-sail mr-1"
                        id="log-entry-sail-jib"/>fock
               </label>
               <label for="log-entry-sail-genoa"
                      class="form-check-inline">
-                <input name="foresail" type="checkbox" class="log-entry-sail"
+                <input name="foresail" type="checkbox"
+                       class="log-entry-sail mr-1"
                        id="log-entry-sail-genoa"/>genua
               </label>
             </div>
             <div class="offset-md-2 col-md-10">
               <label for="log-entry-sail-code"
                      class="form-check-inline">
-                <input name="down" type="checkbox" class="log-entry-sail"
+                <input name="down" type="checkbox"
+                       class="log-entry-sail mr-1"
                        id="log-entry-sail-code"/>code
               </label>
               <label for="log-entry-sail-gennaker"
                      class="form-check-inline">
-                <input name="down" type="checkbox" class="log-entry-sail"
+                <input name="down" type="checkbox"
+                       class="log-entry-sail mr-1"
                        id="log-entry-sail-gennaker"/>gennaker
               </label>
               <label for="log-entry-sail-spinnaker"
                      class="form-check-inline">
-                <input name="down" type="checkbox" class="log-entry-sail"
+                <input name="down" type="checkbox"
+                       class="log-entry-sail mr-1"
                        id="log-entry-sail-spinnaker"/>spinnaker
               </label>
             </div>

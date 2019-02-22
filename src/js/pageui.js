@@ -52,7 +52,7 @@ export function popPage(continueFn) {
         pageStack.push({openfn: prev.openfn,
                         closefn: function() {
                             prev.closefn();
-                            continueFn();
+                            return continueFn();
                         }});
     }
     history.back();
@@ -68,12 +68,13 @@ window.addEventListener('popstate', function(event) {
             // user is trying to move forward; ignore
         } else {
             var steps = pageStack.length - event.state;
+            var alreadyOpen = false;
             for (var i = 0; i < steps; i++) {
                 var prev = pageStack.pop();
-                prev.closefn();
+                alreadyOpen = prev.closefn();
             }
             // re-open last page
-            if (pageStack.length > 0) {
+            if (!alreadyOpen && pageStack.length > 0) {
                 var cur = pageStack[pageStack.length - 1];
                 cur.openfn();
             }

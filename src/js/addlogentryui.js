@@ -49,6 +49,7 @@ $(document).ready(function() {
                 onclose: page.tfOptions.onclose,
                 type: $(event.target).data('type') // html5 data-type attribute
             });
+            return true;
         });
         return false;
     });
