@@ -535,12 +535,15 @@ function mkServerLogData(r, teamId) {
         if (r.finish) {
             data.finish = r.finish;
         }
-        data.boats = r.boats;
+        data.teams = r.teams;
         break;
     case 'endOfRace':
         data.position = r.position;
         break;
-    case 'seeOtherBoats':
+    case 'seeOtherTeams':
+        data.teams = r.teams;
+        break;
+    case 'seeOtherBoats': // OBSOLETE
         data.boats = r.boats;
         break;
     case 'protest':

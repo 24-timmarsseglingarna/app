@@ -104,11 +104,12 @@ export function fmtOther(e) {
  * options:
  *  logBook - mandatory
  *  type :: 'round' | 'endOfRace'
- *        | 'seeOtherBoats' | 'protest' | 'interrupt'
+ *        | 'seeOtherTeams' | 'protest' | 'interrupt'
  *        | 'changeSails' | 'engine' | 'lanterns'
  *        | 'retire' | 'sign'
  *        | 'other'
  *        | 'adminNote' | 'adminDSQ' | 'adminDist'
+ *        | 'seeOtherBoats' // OBSOLETE, not used anymore
  *  index  -- either type or index MUST be given
  *  point
  *  onclose
@@ -225,7 +226,7 @@ function openLogEntry2(options) {
         initGeoPosition();
         $('#log-entry-form-position').show();
         break;
-    case 'seeOtherBoats':
+    case 'seeOtherTeams':
         title = 'Siktar båtar';
         initBoats(regattaId);
         initGeoPosition();
@@ -389,7 +390,7 @@ function openLogEntry2(options) {
             boatElement = $('#log-entry-protest-boat')[0];
             boatElement.options[0].selected = true;
             for (i = 1; i < boatElement.options.length; i++) {
-                if (boatElement.options[i].value == entry.protest.boat) {
+                if (boatElement.options[i].value == entry.protest.team) {
                     boatElement.options[i].selected = true;
                 }
             }
@@ -582,22 +583,23 @@ function initGeoPosition() {
 function getBoatsOptions(regattaId) {
     var teams = getTeamsData(regattaId);
     var logEntryPage = $('#log-entry-page')[0];
-    var mySn = logEntryPage.logBook.teamData.start_number;
+    var myId = logEntryPage.logBook.teamData.id;
     teams.sort(function(a, b) {
         return Number(a.start_number) - Number(b.start_number);
     });
     var boatsOptions = '';
     for (var i = 0; teams && i < teams.length; i++) {
+        var id = teams[i].id;
         var sn = teams[i].start_number;
         var bn = teams[i].boat_name;
         var bcn = teams[i].boat_type_name;
         var bsn = teams[i].boat_sail_number;
-        if (sn == mySn) {
+        if (id == myId) {
             // don't add ourselves
             continue;
         }
         boatsOptions +=
-            '<option value="' + sn + '">' +
+            '<option value="' + id + '">' +
             sn + ' - ' + bn + ', ' + bcn;
         if (bsn) {
             boatsOptions += ', ' + bsn;
@@ -728,10 +730,10 @@ function logEntrySave() {
     var engine = $('#log-entry-form-engine input:checked').val();
     var comment = $('#log-entry-comment').val();
     var position = $('#log-entry-position').val();
-    var boats = [];
+    var teams = [];
     for (var i = 0; i < boatsElement.options.length; i++) {
         if (boatsElement.options[i].selected) {
-            boats.push(boatsElement.options[i].value);
+            teams.push(boatsElement.options[i].value);
         }
     }
     var interrupt = getInterrupt();
@@ -780,15 +782,15 @@ function logEntrySave() {
         logEntry.wind = wind;
         if (isStart) {
             logEntry.sails = sails;
-            logEntry.boats = boats;
+            logEntry.teams = teams;
         }
         logEntry.finish = finish;
         break;
     case 'endOfRace':
         logEntry.position = position;
         break;
-    case 'seeOtherBoats':
-        logEntry.boats = boats;
+    case 'seeOtherTeams':
+        logEntry.teams = teams;
         break;
     case 'protest':
         logEntry.position = position;

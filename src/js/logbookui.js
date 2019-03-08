@@ -37,7 +37,31 @@ function keypressed(e) {
     }
 };
 
-function getTeam(teams, startNo) {
+function getTeam(teams, teamId) {
+    for (var i = 0; i < teams.length; i++) {
+        if (teams[i].id == teamId) {
+            return teams[i];
+        }
+    }
+};
+
+function fmtTeam(teamid, teams, colortype) {
+    var t = getTeam(teams, teamid);
+    var s = '';
+    var media = $('#tf-media').css('content');
+    if (t) {
+        s += '<span class="badge badge-pill badge-' + colortype +
+        ' mr-1 align-middle">' + t.start_number + '</span>';
+        s += t.boat_type_name + ' ';
+        if (media == '"md+"') {
+            s += t.boat_sail_number + ' ';
+        }
+        s += t.boat_name;
+    }
+    return s;
+};
+
+function getBoat(teams, startNo) {
     for (var i = 0; i < teams.length; i++) {
         if (teams[i].start_number == startNo) {
             return teams[i];
@@ -45,10 +69,10 @@ function getTeam(teams, startNo) {
     }
 };
 
-function fmtTeam(sn, teams, colortype) {
+function fmtBoat(sn, teams, colortype) {
     var s = '<span class="badge badge-pill badge-' + colortype +
         ' mr-1 align-middle">' + sn + '</span>';
-    var t = getTeam(teams, sn);
+    var t = getBoat(teams, sn);
     var media = $('#tf-media').css('content');
     if (t) {
         s += t.boat_type_name + ' ';
@@ -167,12 +191,20 @@ function refreshLogBook(options) {
         }
         var boats = '';
         var teams = getTeamsData(logBook.race.getRegattaId());
-        if (e.boats != undefined) {
+        if (e.teams != undefined) {
             var res = [];
-            for (var j = 0; j < e.boats.length; j++) {
-                res.push(fmtTeam(e.boats[j], teams, 'success'));
+            for (var j = 0; j < e.teams.length; j++) {
+                res.push(fmtTeam(e.teams[j], teams, 'success'));
             }
             boats = res.join('<br/>');
+        }
+        // OBSOLETE
+        if (e.boats != undefined) {
+            var bres = [];
+            for (var k = 0; k < e.boats.length; k++) {
+                bres.push(fmtBoat(e.boats[k], teams, 'success'));
+            }
+            boats = bres.join('<br/>');
         }
         var notes = [];
         var sails = fmtSails(e.sails);
@@ -198,7 +230,7 @@ function refreshLogBook(options) {
         }
         if (e.protest) {
             var protest = 'Protest mot<br/>' +
-                fmtTeam(e.protest.boat, teams, 'danger');
+                fmtTeam(e.protest.team, teams, 'danger');
             notes.push(protest);
         }
         if (boats) {
