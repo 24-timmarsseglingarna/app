@@ -50,8 +50,16 @@ export function uuid() {
     return uuid;
 };
 
-export var numberToName = function(n) {
+export function numberToName(n) {
     return String.fromCharCode(64 + n);
+};
+
+export function isOrganizerRights(role) {
+    if (role == 'organizer' || role == 'admin') {
+        return true;
+    } else {
+        return false;
+    }
 };
 
 /**

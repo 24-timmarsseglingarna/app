@@ -5,6 +5,14 @@ import {openLogEntry} from './logentryui.js';
 
 export function openPage(options) {
 
+    if (options.type == 'admin') {
+        $('#tf-log-team').hide();
+        $('#tf-log-admin').show();
+    } else {
+        $('#tf-log-admin').hide();
+        $('#tf-log-team').show();
+    }
+
     /* Modify the text depending on current state */
     if (options.logbook.getPrevRound(options.beforeId) == null) {
         $('#tf-log-round').text('Start');
@@ -45,6 +53,7 @@ $(document).ready(function() {
         popPage(function() {
             openLogEntry({
                 logBook: page.tfOptions.logbook,
+                beforeId: page.tfOptions.beforeId,
                 time: page.tfOptions.time,
                 onclose: page.tfOptions.onclose,
                 type: $(event.target).data('type') // html5 data-type attribute

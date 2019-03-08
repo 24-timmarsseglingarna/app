@@ -38,6 +38,10 @@ export function LogBook(teamData, race, log, readOnly) {
     this.earlyStartTime = 0;
     /* late finish in minutes */
     this.lateFinishTime = 0;
+    /* net distance added by administrator */
+    this.adminNetDist = 0;
+    /* gross distance added by administrator */
+    this.adminGrossDist = 0;
     /* keep track of how many times points are rounded (max 2 allowed) */
     this.npoints = {};
     /* keep track of how many times legs are sailed (max 2 allowed) */
@@ -46,7 +50,7 @@ export function LogBook(teamData, race, log, readOnly) {
     this.points = [];
     this.state = 'init'; // 'init' | 'started'
                          // | 'finished' | 'finished-early' | 'retired'
-
+    this.admin_state = 'ok'; // 'ok' | 'dsq'
     this.signed = false; // | 'signed' | 'signed-sync'
 
     this.lastServerUpdate = null;
@@ -201,6 +205,9 @@ LogBook.prototype._updateLog = function(reason) {
     var pod = this.race.getPod();
     var retired = false;
     var i, e;
+    var dsq = false;
+    var adminNetDist = 0;
+    var adminGrossDist = 0;
 
     // find startpoint - the first log entry that has a point.
     // we currently allow _any_ point (including points not marked as
@@ -322,6 +329,14 @@ LogBook.prototype._updateLog = function(reason) {
             if (e.state == 'sync') {
                 this.signed = 'signed-sync';
             }
+        } else if (e.type == 'adminDSQ') {
+            dsq = true;
+        } else if (e.type == 'adminDist') {
+            if (e.admin_dist_type == 'net') {
+                adminNetDist += e.admin_dist;
+            } else if (e.admin_dist_type == 'gross') {
+                adminGrossDist += e.admin_dist;
+            }
         }
     }
 
@@ -355,6 +370,10 @@ LogBook.prototype._updateLog = function(reason) {
     if (retired) {
         this.state = 'retired';
     }
+    this.admin_state = 'ok';
+    if (dsq) {
+        this.admin_state = 'dsq';
+    }
 
     this.sailedDist = Math.round(sailedDist) / 10;
     this.sailedTime = sailedTime;
@@ -364,6 +383,8 @@ LogBook.prototype._updateLog = function(reason) {
     this.lateFinishTime = lateFinishTime;
     this.compensationTime = compensationTime;
     this.compensationDistTime = compensationDistTime;
+    this.adminNetDist = adminNetDist;
+    this.adminGrossDist = adminGrossDist;
     this.npoints = npoints;
     this.nlegs = nlegs;
     this.points = points;
@@ -507,21 +528,36 @@ LogBook.prototype.getCompensationDistance = function() {
 };
 
 // gross
+LogBook.prototype.getAdminGrossDistance = function() {
+    return this.adminGrossDist;
+};
+
+// gross
 LogBook.prototype.getApprovedDistance = function() {
-    if (this.state == 'finished-early' || this.state == 'retired') {
+    if (this.state == 'finished-early' || this.state == 'retired'
+        || this.admin_state == 'dsq') {
         return 0;
     }
     return this.getSailedDistance() + this.getCompensationDistance() -
-        (this.getEarlyStartDistance() + this.getLateFinishDistance());
+        (this.getEarlyStartDistance() +
+         this.getAdminGrossDistance() +
+         this.getLateFinishDistance());
 
 };
 
 // net
+LogBook.prototype.getAdminNetDistance = function() {
+    return this.adminNetDist;
+};
+
+// net
 LogBook.prototype.getPlaqueDistance = function() {
-    if (this.state == 'finished-early' || this.state == 'retired') {
+    if (this.state == 'finished-early' || this.state == 'retired'
+       || this.admin_state == 'dsq') {
         return 0;
     }
-    return this.getApprovedDistance() / this.teamData.sxk_handicap;
+    return ((this.getApprovedDistance() / this.teamData.sxk_handicap) -
+            this.getAdminNetDistance());
 };
 
 LogBook.prototype.getAverageSpeed = function() {

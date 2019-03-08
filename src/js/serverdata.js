@@ -461,8 +461,9 @@ function mkRaceData(s) {
 function mkLogData(s) {
     var r = {
         id:               s.id,                // int
-        team_id:          s.team_id,           // int
+        class:            s.type,              // 'TeamLog' | 'AdminLog'
         type:             s.log_type,          // string
+        team_id:          s.team_id,           // int
         time:             moment(s.time),      // date and time
         gen:              s.gen,               // int
         user:             s.user_name,         // string
@@ -505,6 +506,9 @@ function mkServerLogData(r, teamId) {
 
     if (r.type) {
         s.log_type = r.type;
+    }
+    if (r.class) {
+        s.type = r.class;
     }
     if (r.time) {
         s.time = r.time.toISOString();
@@ -568,6 +572,14 @@ function mkServerLogData(r, teamId) {
         break;
     case 'other':
         break;
+    // AdminLog follows
+    case 'adminNote':
+        break;
+    case 'adminDSQ':
+        break;
+    case 'adminDist':
+        data.admin_dist = r.admin_dist;
+        data.admin_dist_type = r.admin_dist_type;
     }
     s.data = JSON.stringify(data);
     return s;

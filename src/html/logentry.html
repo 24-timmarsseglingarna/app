@@ -15,7 +15,7 @@
             Fyll i alla uppgifter och klicka på Spara nedan (genväg:
             Alt-s).
           </p>
-          <p class="font-italic" id="log-entry-expert-help">
+          <p class="font-italic" id="log-entry-admin-round-help">
             Om du vill spara och lägga till en ny rundning kan du
             använda genvägen Alt-r.
           </p>
@@ -411,6 +411,42 @@
                          name="log-entry-lanterns-type"
                          value="off"/>
                   Släcker lanternor
+                </label>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Admin Distance -->
+          <div class="form-group row log-entry-form"
+               id="log-entry-form-admin-dist">
+            <label class="col-12 col-md-2 col-form-label text-md-right">
+            Distansavdrag</label>
+            <div class="col-12 col-md-5">
+              <input type="text" class="form-control"
+                     id="log-entry-admin-dist"/>
+              <div class="invalid-feedback">Ogiltigt värde.</div>
+              <p class="form-text text-muted">
+                Avdrag i nautiska mil (M)
+              </p>
+            </div>
+            <div class="col-12 col-md-5">
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         id="log-entry-admin-dist-type-gross"
+                         name="log-entry-admin-dist-type"
+                         value="gross"/>
+                  Brutto
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio"
+                         id="log-entry-admin-dist-type-net"
+                         name="log-entry-admin-dist-type"
+                         value="net" checked="true"/>
+                  Netto
                 </label>
               </div>
             </div>

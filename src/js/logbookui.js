@@ -6,13 +6,14 @@ import {curState, setupLogin} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {fmtInterrupt, fmtSails, fmtOther, openLogEntry} from './logentryui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
-import {setSettings} from './storage.js';
+import {getSetting, setSettings} from './storage.js';
 import {setServerURL} from './serverapi.js';
 import {getRaceP, getRegattaTeamsP,
         getTeamLogP, getTeamData, getTeamsData} from './serverdata.js';
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
+import {isOrganizerRights} from './util.js';
 
 export function openLogBook(options) {
     refreshLogBook(options);
@@ -59,6 +60,10 @@ function fmtTeam(sn, teams, colortype) {
     return s;
 };
 
+function isSkipper(logBook) {
+    return (curState.loggedInPersonId.get() == logBook.teamData.skipper_id);
+};
+
 function refreshLogBook(options) {
     var logBook = options.logBook;
     var isReadOnly = logBook.isReadOnly();
@@ -99,7 +104,9 @@ function refreshLogBook(options) {
     $('#log-book-early-elem').hide();
     $('#log-book-late-elem').hide();
     $('#log-book-comp-elem').hide();
+    $('#log-book-admin-gross-dist-elem').hide();
     $('#log-book-approved-elem').hide();
+    $('#log-book-admin-net-dist-elem').hide();
     $('#log-book-plaque-elem').hide();
     $('#log-book-net-elem2').hide();
 
@@ -114,6 +121,7 @@ function refreshLogBook(options) {
         var distance = '';
         var distTD = '<td>';
         var distPost = '';
+        var pointColor = 'secondary';
         if (e.point && prev) {
             distance = pod.getDistance(prev.point, e.point);
             if (distance == -1) {
@@ -122,17 +130,12 @@ function refreshLogBook(options) {
             if (e._legStatus) {
                 distTD = '<td class="log-book-invalid-dist text-danger">';
                 distPost = '<span class="pl-1 icon-exclamation-circle"></span>';
+                pointColor = 'danger';
                 distance = 0;
             }
             prev = e;
         } else if (e.point) {
             prev = e;
-        }
-        var intTD = '<td>';
-        var intPost = '';
-        if (e._interruptStatus) {
-            intTD = '<td class="log-book-invalid-interrupt text-danger">';
-            intPost = '<span class="pl-1 icon-exclamation-circle"></span>';
         }
         var edit_button_html = '<div class=\'row log-book-edit-buttons\'' +
             ' data-logid=\'' + e.id + '\'>' +
@@ -174,8 +177,27 @@ function refreshLogBook(options) {
         var notes = [];
         var sails = fmtSails(e.sails);
         var other = fmtOther(e);
+        if (e.position) {
+            notes.push(e.position);
+        }
+        if (e.interrupt) {
+            var interrupt = '';
+            if (e._interruptStatus) {
+                interrupt += '<span class="log-book-invalid-interrupt ' +
+                    'text-danger">';
+            }
+            if (e.interrupt && e.interrupt.type != 'done') {
+                interrupt += 'Avbrott - ';
+            }
+            interrupt += fmtInterrupt(e.interrupt);
+            if (e._interruptStatus) {
+                interrupt += '<span class="pl-1 icon-exclamation-circle">' +
+                    '</span></span>';
+            }
+            notes.push(interrupt);
+        }
         if (e.protest) {
-            var protest = 'protest mot<br/>' +
+            var protest = 'Protest mot<br/>' +
                 fmtTeam(e.protest.boat, teams, 'danger');
             notes.push(protest);
         }
@@ -200,7 +222,9 @@ function refreshLogBook(options) {
         }
 
         rows += '<tr data-logid="' + e.id + '">';
-        if (isReadOnly) {
+        if (isReadOnly &&
+            !(e.class == 'AdminLog' && hasOrganizerRights())) {
+            // An organizer can edit Admin entries
             rows += '<td></td>';
         } else {
             rows +=
@@ -222,21 +246,25 @@ function refreshLogBook(options) {
         rows +=
             '<td>' + e.time.format(
                 'HH:mm DD MMM').replace(/\s/g, '&nbsp;') + '</td>' +
-            '<td><span class="badge badge-pill badge-secondary' +
+            distTD + '<span class="badge badge-pill badge-' + pointColor +
             ' mr-2 align-middle">' +
             point + '</span>' + pointName + '</td>' +
             distTD + distance + distPost + '</td>' +
             '<td class="d-none d-sm-table-cell">' + wind + '</td>' +
-            intTD + fmtInterrupt(e.interrupt) +
-            intPost + '</td>' +
             '<td>' + note + '</td>' +
             '</tr>';
     }
-    if (!isReadOnly) {
+    if (!isReadOnly || hasOrganizerRights()) {
+        // An organizer can modify a signed loggbook by adding
+        // entries of type 'admin'
+        var args = '';
+        if (isReadOnly) {
+            args = '{type: \'admin\'}';
+        }
         rows += '<tr>' +
             '<td><a tabindex="0" class="log-book-add-entry"' +
             ' role="button"' +
-            ' onclick="tfUiLogBookAddEntryClick();"' +
+            ' onclick="tfUiLogBookAddEntryClick(' + args + ');"' +
             '><span class="icon-plus tf-x-large"></span></a></td>' +
             '</tr>';
     }
@@ -247,6 +275,8 @@ function refreshLogBook(options) {
     var latedist = logBook.getLateFinishDistance();
     var latetime = logBook.getLateFinishTime();
     var compdist = logBook.getCompensationDistance();
+    var admingrossdist = logBook.getAdminGrossDistance();
+    var adminnetdist = logBook.getAdminNetDistance();
     var approveddist = logBook.getApprovedDistance();
     var plaquedist = logBook.getPlaqueDistance();
     var speed = logBook.getAverageSpeed();
@@ -263,6 +293,13 @@ function refreshLogBook(options) {
         $('#log-book-comp-elem').show();
         $('#log-book-approved-elem').show();
     }
+    if (admingrossdist != 0) {
+        $('#log-book-admin-gross-dist-elem').show();
+        $('#log-book-approved-elem').show();
+    }
+    if (adminnetdist != 0) {
+        $('#log-book-admin-net-dist-elem').show();
+    }
     if (logBook.state == 'finished' ||
         logBook.state == 'finished-early' ||
         logBook.state == 'retired') {
@@ -271,7 +308,7 @@ function refreshLogBook(options) {
         $('#log-book-net-elem2').show();
     }
 
-    if (curState.loggedInPersonId.get() == logBook.teamData.skipper_id) {
+    if (isSkipper(logBook) || hasOrganizerRights()) {
         $('#log-book-sign').show();
     } else {
         $('#log-book-sign').hide();
@@ -336,7 +373,11 @@ function refreshLogBook(options) {
     $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M' +
                                   ' (' + latetime + ' min)');
     $('#log-book-comp-dist').text(compdist.toFixed(1) + ' M');
+    $('#log-book-admin-gross-dist').text('-' + admingrossdist.toFixed(1) +
+                                         ' M');
     $('#log-book-approved-dist').text(approveddist.toFixed(1) + ' M');
+    $('#log-book-admin-net-dist').text('-' + adminnetdist.toFixed(1) +
+                                         ' M');
     $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);
@@ -366,7 +407,16 @@ window.tfUiLogBookAddEntryClick = function(r) {
     if (e) {
         time = e.time;
     }
-    if (r && r.type == 'round') {
+    if (r && r.type == 'admin') {
+        openAddLogEntryPage({
+            type: 'admin',
+            logbook: logBookPage.logBook,
+            onclose: function() {
+                refreshLogBook({logBook: logBookPage.logBook,
+                                scroll: true});
+            }
+        });
+    } else if (r && r.type == 'round') {
         openLogEntry({
             logBook: logBookPage.logBook,
             time: time,
@@ -379,6 +429,7 @@ window.tfUiLogBookAddEntryClick = function(r) {
         });
     } else {
         openAddLogEntryPage({
+            type: 'team',
             logbook: logBookPage.logBook,
             onclose: function() {
                 refreshLogBook({logBook: logBookPage.logBook,
@@ -413,10 +464,10 @@ function logBookInvalidDistClick(col) {
     alert('<p>' + text + '</p>');
 };
 
-function logBookInvalidInterruptClick(col) {
+function logBookInvalidInterruptClick(span) {
     var logBookPage = $('#log-book-page')[0];
     var logBook = logBookPage.logBook;
-    var e = logBook.getLogEntry(col.parentElement.dataset.logid);
+    var e = logBook.getLogEntry(span.parentElement.parentElement.dataset.logid);
     var text = '';
     switch (e._interruptStatus) {
     case 'no-done':
@@ -622,4 +673,8 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
                       '<p>Kontakta arrangören.</p>');
             }
         });
+};
+
+function hasOrganizerRights() {
+    return isOrganizerRights(getSetting('role'));
 };

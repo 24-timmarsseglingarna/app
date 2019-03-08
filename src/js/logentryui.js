@@ -4,7 +4,7 @@ import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
 import {pushPage, popPage} from './pageui.js';
 import {getTeamsData} from './serverdata.js';
-import {isTouch} from './util.js';
+import {isOrganizerRights, isTouch} from './util.js';
 import {getSetting} from './storage.js';
 
 var onclose = undefined;
@@ -20,7 +20,7 @@ export function fmtInterrupt(interrupt) {
     }
     switch (interrupt.type) {
     case 'done':
-        s = 'Åter segling';
+        s = 'Återupptar segling';
         break;
     case 'bridge':
         s = 'Broöppning';
@@ -78,24 +78,24 @@ export function fmtSails(sails) {
 export function fmtOther(e) {
     var s = [];
     if (e.lanterns == 'on') {
-        s.push('lanternor på');
+        s.push('Lanternor på');
     } else if (e.lanterns == 'off') {
-        s.push('lanternor av');
+        s.push('Lanternor av');
     }
     if (e.engine == 'on') {
-        s.push('motor på');
+        s.push('Motor på');
     } else if (e.engine == 'off') {
-        s.push('motor av');
+        s.push('Motor av');
     }
     if (e.type == 'endOfRace') {
-        s.push('segling slut');
+        s.push('Segling slut');
     } else if (e.type == 'retire') {
-        s.push('bryter seglingen');
+        s.push('Bryter seglingen');
     } else if (e.finish) {
-        s.push('målgång');
+        s.push('Målgång');
     }
     if (e.type == 'sign') {
-        s.push('signerad');
+        s.push('Signerad');
     }
     return s.join(',');
 }
@@ -108,6 +108,7 @@ export function fmtOther(e) {
  *        | 'changeSails' | 'engine' | 'lanterns'
  *        | 'retire' | 'sign'
  *        | 'other'
+ *        | 'adminNote' | 'adminDSQ' | 'adminDist'
  *  index  -- either type or index MUST be given
  *  point
  *  onclose
@@ -176,8 +177,11 @@ function openLogEntry2(options) {
             }
         }
     }
-    // if a point was clicked, make this field read-only
     $('#log-entry-point').removeClass('is-invalid');
+    $('#log-entry-time').removeClass('is-invalid');
+    $('#log-entry-date').removeClass('is-invalid');
+    $('#log-entry-admin-dist').removeClass('is-invalid');
+    // if a point was clicked, make this field read-only
     if (options.point) {
         //$('#log-entry-point').prop('type', 'text');
         $('#log-entry-point').prop('readonly', true);
@@ -190,16 +194,12 @@ function openLogEntry2(options) {
     $('#log-entry-form-time').show();
     $('#log-entry-form-comment').show();
 
-    console.log('ROLE' + getSetting('role'));
-
     $('#log-book-help').hide();
-    $('#log-entry-expert-help').hide();
+    $('#log-entry-admin-round-help').hide();
     if (options.logBook.standaloneUI) {
         $('#log-entry-help').show();
-        if (type == 'round'
-            && (getSetting('role') == 'organizer'
-                || getSetting('role') == 'admin') {
-            $('#log-entry-expert-help').show();
+        if (type == 'round' && isOrganizerRights(getSetting('role'))) {
+            $('#log-entry-admin-round-help').show();
         }
     }
 
@@ -212,11 +212,10 @@ function openLogEntry2(options) {
         $('#log-entry-form-wind').show();
         initBoats(regattaId);
         $('#log-entry-form-boats').show();
+        $('#log-entry-form-sail').show();
+        $('#log-entry-form-sail2').show();
         if (isStart) {
             title = 'Start';
-            initBoats(regattaId);
-            $('#log-entry-form-finish').hide();
-            $('#log-entry-form-sail').show();
         } else {
             $('#log-entry-form-finish').show();
         }
@@ -269,6 +268,16 @@ function openLogEntry2(options) {
         break;
     case 'other':
         title = 'Annat';
+        break;
+    case 'adminNote':
+        title = 'Notering';
+        break;
+    case 'adminDist':
+        title = 'Distansavdrag';
+        $('#log-entry-form-admin-dist').show();
+        break;
+    case 'adminDSQ':
+        title = 'Ogiltig segling';
         break;
     }
 
@@ -361,6 +370,20 @@ function openLogEntry2(options) {
             }
         }
 
+        if (entry.admin_dist != undefined) {
+            $('#log-entry-admin-dist').val(entry.position);
+        }
+        if (entry.admin_dist_type != undefined) {
+            switch (entry.admin_dist_type) {
+            case 'net':
+                $('#log-entry-admin-dist-type-net').prop('checked', true);
+                break;
+            case 'gross':
+                $('#log-entry-admin-dist-type-gross').prop('checked', true);
+                break;
+            }
+        }
+
         var boatElement;
         if (entry.protest != undefined) {
             boatElement = $('#log-entry-protest-boat')[0];
@@ -417,6 +440,7 @@ function openLogEntry2(options) {
         // reset some fields to empty
         $('#log-entry-finish').prop('checked', false);
         $('#log-entry-comment').val('');
+        $('#log-entry-position').val('');
 
         var found = false;
         if (type == 'changeSails' || type == 'round') {
@@ -442,44 +466,26 @@ function openLogEntry2(options) {
             initSails({});
         }
         if (type == 'engine') {
-            found = false;
-            for (i = log.length - 1; !found && i >= 0; i--) {
-                if (!log[i].deleted && log[i].type == type && log[i].engine) {
-                    switch (log[i].engine) {
-                    case 'on':
-                        $('#log-entry-engine-off').prop('checked', true);
-                        break;
-                    case 'off':
-                        $('#log-entry-engine-on').prop('checked', true);
-                        break;
-                    }
-                    found = true;
-                }
-            }
-            if (!found) {
+            if (options.logBook.getEngine(options.beforeId)) {
+                $('#log-entry-engine-off').prop('checked', true);
+            } else {
                 $('#log-entry-engine-on').prop('checked', true);
             }
         }
         if (type == 'lanterns') {
-            found = false;
-            for (i = log.length - 1; !found && i >= 0; i--) {
-                if (!log[i].deleted && log[i].type == type && log[i].lanterns) {
-                    switch (log[i].lanterns) {
-                    case 'on':
-                        $('#log-entry-lanterns-off').prop('checked', true);
-                        break;
-                    case 'off':
-                        $('#log-entry-lanterns-on').prop('checked', true);
-                        break;
-                    }
-                    found = true;
-                }
-            }
-            if (!found) {
+            if (options.logBook.getLanterns(options.beforeId)) {
+                $('#log-entry-lanterns-off').prop('checked', true);
+            } else {
                 $('#log-entry-lanterns-on').prop('checked', true);
             }
         }
-
+        if (type == 'interrupt') {
+            if (options.logBook.getInterrupt(options.beforeId)) {
+                $('#log-entry-interrupt-done').prop('checked', true);
+            } else {
+                $('#log-entry-interrupt-done').prop('checked', false);
+            }
+        }
     }
 
     onclose = options.onclose;
@@ -493,7 +499,7 @@ function openLogEntry2(options) {
             // We pass round and data from our keypressed function.
             if (options.type == 'round' && options.data) {
                 $('#log-entry-round-toast-number').html(options.data);
-                $('#log-entry-round-toast').toast('hide');
+                //$('#log-entry-round-toast').toast('hide');
                 $('#log-entry-round-toast').toast('show');
             }
             $(document).on('keydown', keypressed);
@@ -750,6 +756,7 @@ function logEntrySave() {
 
     var logEntry = {
         type: type,
+        class: getLogClass(type),
         time: moment(t),
     };
 
@@ -807,12 +814,40 @@ function logEntrySave() {
         break;
     case 'other':
         break;
+    case 'adminNote':
+        break;
+    case 'adminDSQ':
+        break;
+    case 'adminDist':
+        var dist = parseInt($('#log-entry-admin-dist').val());
+        if (isNaN(dist)) {
+            alert('<p>Du måste ange ett distansavdrag.</p>');
+            return false;
+        }
+        var distType = $('#log-entry-form-admin-dist input:checked').val();
+        logEntry.admin_dist = dist;
+        logEntry.admin_dist_type = distType;
+        break;
     }
 
     // save the current logbook in the page
     logEntryPage.logBook.saveToLog(logEntry, logEntryPage.logEntryId);
     return true;
 };
+
+var adminLog = {
+    'adminNote': true,
+    'adminDSQ': true,
+    'adminDist': true
+};
+
+function getLogClass(type) {
+    if (adminLog[type]) {
+        return 'AdminLog';
+    } else {
+        return 'TeamLog';
+    }
+}
 
 function sailChanged(element) {
     var checked = element.checked;
@@ -966,6 +1001,14 @@ $(document).ready(function() {
             $('#log-entry-date').addClass('is-invalid');
         } else {
             $('#log-entry-date').removeClass('is-invalid');
+        }
+    });
+    $('#log-entry-admin-dist').blur(function() {
+        var dist = parseInt($('#log-entry-admin-dist').val());
+        if (isNaN(dist)) {
+            $('#log-entry-admin-dist').addClass('is-invalid');
+        } else {
+            $('#log-entry-admin-dist').removeClass('is-invalid');
         }
     });
 });
