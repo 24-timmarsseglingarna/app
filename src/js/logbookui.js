@@ -128,9 +128,8 @@ function refreshLogBook(options) {
     $('#log-book-early-elem').hide();
     $('#log-book-late-elem').hide();
     $('#log-book-comp-elem').hide();
-    $('#log-book-admin-gross-dist-elem').hide();
     $('#log-book-approved-elem').hide();
-    $('#log-book-admin-net-dist-elem').hide();
+    $('#log-book-admin-dist-elem').hide();
     $('#log-book-plaque-elem').hide();
     $('#log-book-net-elem2').hide();
 
@@ -243,7 +242,18 @@ function refreshLogBook(options) {
             notes.push(other);
         }
         if (e.comment) {
-            notes.push(e.comment);
+            if (e.class == 'AdminLog') {
+                var s = '';
+                if (e.type == 'adminDist') {
+                    s += 'Avdrag plakettdistans: ' + e.admin_dist + 'M.<br/>';
+                } else if (e.type == 'adminDSQ') {
+                    s += 'Ogiltig segling<br/> ';
+                }
+                s += e.comment;
+                notes.push('<em>' + s + '</em>');
+            } else {
+                notes.push(e.comment);
+            }
         }
         var note = notes.join('<br/>');
 
@@ -275,9 +285,12 @@ function refreshLogBook(options) {
                 ' data-template="' + popover_template + '"' +
                 '><span class="icon-pencil">' + conflict + '</span></a></td>';
         }
+        var ts = '';
+        if (e.class != 'AdminLog') {
+            ts = e.time.format('HH:mm DD MMM').replace(/\s/g, '&nbsp;');
+        }
         rows +=
-            '<td>' + e.time.format(
-                'HH:mm DD MMM').replace(/\s/g, '&nbsp;') + '</td>' +
+            '<td>' + ts + '</td>' +
             distTD + '<span class="badge badge-pill badge-' + pointColor +
             ' mr-2 align-middle">' +
             point + '</span>' + pointName + '</td>' +
@@ -307,8 +320,7 @@ function refreshLogBook(options) {
     var latedist = logBook.getLateFinishDistance();
     var latetime = logBook.getLateFinishTime();
     var compdist = logBook.getCompensationDistance();
-    var admingrossdist = logBook.getAdminGrossDistance();
-    var adminnetdist = logBook.getAdminNetDistance();
+    var admindist = logBook.getAdminDistance();
     var approveddist = logBook.getApprovedDistance();
     var plaquedist = logBook.getPlaqueDistance();
     var speed = logBook.getAverageSpeed();
@@ -325,12 +337,8 @@ function refreshLogBook(options) {
         $('#log-book-comp-elem').show();
         $('#log-book-approved-elem').show();
     }
-    if (admingrossdist != 0) {
-        $('#log-book-admin-gross-dist-elem').show();
-        $('#log-book-approved-elem').show();
-    }
-    if (adminnetdist != 0) {
-        $('#log-book-admin-net-dist-elem').show();
+    if (admindist != 0) {
+        $('#log-book-admin-dist-elem').show();
     }
     if (logBook.state == 'finished' ||
         logBook.state == 'finished-early' ||
@@ -405,11 +413,8 @@ function refreshLogBook(options) {
     $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M' +
                                   ' (' + latetime + ' min)');
     $('#log-book-comp-dist').text(compdist.toFixed(1) + ' M');
-    $('#log-book-admin-gross-dist').text('-' + admingrossdist.toFixed(1) +
-                                         ' M');
     $('#log-book-approved-dist').text(approveddist.toFixed(1) + ' M');
-    $('#log-book-admin-net-dist').text('-' + adminnetdist.toFixed(1) +
-                                         ' M');
+    $('#log-book-admin-dist').text('-' + admindist.toFixed(1) + ' M');
     $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);

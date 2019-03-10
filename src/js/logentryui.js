@@ -372,17 +372,7 @@ function openLogEntry2(options) {
         }
 
         if (entry.admin_dist != undefined) {
-            $('#log-entry-admin-dist').val(entry.position);
-        }
-        if (entry.admin_dist_type != undefined) {
-            switch (entry.admin_dist_type) {
-            case 'net':
-                $('#log-entry-admin-dist-type-net').prop('checked', true);
-                break;
-            case 'gross':
-                $('#log-entry-admin-dist-type-gross').prop('checked', true);
-                break;
-            }
+            $('#log-entry-admin-dist').val(entry.admin_dist);
         }
 
         var boatElement;
@@ -826,9 +816,7 @@ function logEntrySave() {
             alert('<p>Du måste ange ett distansavdrag.</p>');
             return false;
         }
-        var distType = $('#log-entry-form-admin-dist input:checked').val();
         logEntry.admin_dist = dist;
-        logEntry.admin_dist_type = distType;
         break;
     }
 
