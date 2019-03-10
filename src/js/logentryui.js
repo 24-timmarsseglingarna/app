@@ -211,8 +211,8 @@ function openLogEntry2(options) {
         title = 'Rundning';
         $('#log-entry-form-point').show();
         $('#log-entry-form-wind').show();
-        initBoats(regattaId);
-        $('#log-entry-form-boats').show();
+        initTeams(regattaId);
+        $('#log-entry-form-teams').show();
         $('#log-entry-form-sail').show();
         $('#log-entry-form-sail2').show();
         if (isStart) {
@@ -228,9 +228,9 @@ function openLogEntry2(options) {
         break;
     case 'seeOtherTeams':
         title = 'Siktar båtar';
-        initBoats(regattaId);
+        initTeams(regattaId);
         initGeoPosition();
-        $('#log-entry-form-boats').show();
+        $('#log-entry-form-teams').show();
         $('#log-entry-form-position').show();
         break;
     case 'protest':
@@ -375,13 +375,13 @@ function openLogEntry2(options) {
             $('#log-entry-admin-dist').val(entry.admin_dist);
         }
 
-        var boatElement;
+        var teamElement;
         if (entry.protest != undefined) {
-            boatElement = $('#log-entry-protest-boat')[0];
-            boatElement.options[0].selected = true;
-            for (i = 1; i < boatElement.options.length; i++) {
-                if (boatElement.options[i].value == entry.protest.team) {
-                    boatElement.options[i].selected = true;
+            teamElement = $('#log-entry-protest-team')[0];
+            teamElement.options[0].selected = true;
+            for (i = 1; i < teamElement.options.length; i++) {
+                if (teamElement.options[i].value == entry.protest.team) {
+                    teamElement.options[i].selected = true;
                 }
             }
         }
@@ -390,13 +390,13 @@ function openLogEntry2(options) {
             initSails(entry.sails);
         }
 
-        var boatsElement;
-        if (entry.boats != undefined) {
-            boatsElement = $('#log-entry-boats')[0];
-            for (i = 0; i < boatsElement.options.length; i++) {
-                var val = boatsElement.options[i].value;
-                if ($.inArray(val, entry.boats) != -1) {
-                    boatsElement.options[i].selected = true;
+        var teamsElement;
+        if (entry.teams != undefined) {
+            teamsElement = $('#log-entry-teams')[0];
+            for (i = 0; i < teamsElement.options.length; i++) {
+                var val = teamsElement.options[i].value;
+                if ($.inArray(val, entry.teams) != -1) {
+                    teamsElement.options[i].selected = true;
                 }
             }
         }
@@ -570,14 +570,14 @@ function initGeoPosition() {
     }
 }
 
-function getBoatsOptions(regattaId) {
+function getTeamsOptions(regattaId) {
     var teams = getTeamsData(regattaId);
     var logEntryPage = $('#log-entry-page')[0];
     var myId = logEntryPage.logBook.teamData.id;
     teams.sort(function(a, b) {
         return Number(a.start_number) - Number(b.start_number);
     });
-    var boatsOptions = '';
+    var teamsOptions = '';
     for (var i = 0; teams && i < teams.length; i++) {
         var id = teams[i].id;
         var sn = teams[i].start_number;
@@ -588,34 +588,34 @@ function getBoatsOptions(regattaId) {
             // don't add ourselves
             continue;
         }
-        boatsOptions +=
+        teamsOptions +=
             '<option value="' + id + '">' +
             sn + ' - ' + bn + ', ' + bcn;
         if (bsn) {
-            boatsOptions += ', ' + bsn;
+            teamsOptions += ', ' + bsn;
         }
-        boatsOptions += '</option>';
+        teamsOptions += '</option>';
     }
-    return boatsOptions;
+    return teamsOptions;
 }
 
-function initBoats(regattaId) {
-    var boatsElement = $('#log-entry-boats')[0];
-    // populate 'boats' with list of boats from current regatta, -1 means reset
+function initTeams(regattaId) {
+    var teamsElement = $('#log-entry-teams')[0];
+    // populate 'teams' with list of teams from current regatta, -1 means reset
     if (regattaId == -1) {
-        boatsElement.innerHTML = '';
+        teamsElement.innerHTML = '';
     } else {
-        boatsElement.innerHTML = getBoatsOptions(regattaId);
+        teamsElement.innerHTML = getTeamsOptions(regattaId);
     }
 }
 
 function initProtest(regattaId) {
-    var boatElement = $('#log-entry-protest-boat')[0];
-    boatElement.innerHTML =
+    var teamElement = $('#log-entry-protest-team')[0];
+    teamElement.innerHTML =
         '<option value="-1">-- ingen båt vald --</option>' +
         '<option value="0">Okänd båt</option>' +
-        getBoatsOptions(regattaId);
-    boatElement.options[0].selected = true;
+        getTeamsOptions(regattaId);
+    teamElement.options[0].selected = true;
 }
 
 function initSails(sails) {
@@ -657,19 +657,19 @@ function getInterrupt() {
 }
 
 function getProtest() {
-    var boatElement = $('#log-entry-protest-boat')[0];
-    var boat = undefined;
-    for (var i = 0; i < boatElement.options.length; i++) {
-        if (boatElement.options[i].selected &&
-            boatElement.options[i].value != -1) {
-            boat = boatElement.options[i].value;
+    var teamElement = $('#log-entry-protest-team')[0];
+    var team = undefined;
+    for (var i = 0; i < teamElement.options.length; i++) {
+        if (teamElement.options[i].selected &&
+            teamElement.options[i].value != -1) {
+            team = teamElement.options[i].value;
         }
     }
-    if (boat == undefined) {
+    if (team == undefined) {
         return undefined;
     } else {
         var protest = {
-            boat: boat
+            team: team
         };
         return protest;
     }
@@ -715,15 +715,15 @@ function logEntrySave() {
         dir: windDir,
         speed: windSpeed
     };
-    var boatsElement = $('#log-entry-boats')[0];
+    var teamsElement = $('#log-entry-teams')[0];
     var lanterns = $('#log-entry-form-lanterns input:checked').val();
     var engine = $('#log-entry-form-engine input:checked').val();
     var comment = $('#log-entry-comment').val();
     var position = $('#log-entry-position').val();
     var teams = [];
-    for (var i = 0; i < boatsElement.options.length; i++) {
-        if (boatsElement.options[i].selected) {
-            teams.push(boatsElement.options[i].value);
+    for (var i = 0; i < teamsElement.options.length; i++) {
+        if (teamsElement.options[i].selected) {
+            teams.push(teamsElement.options[i].value);
         }
     }
     var interrupt = getInterrupt();
