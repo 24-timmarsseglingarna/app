@@ -374,8 +374,9 @@ function setupLogin2() {
                 var password = getSetting('password');
                 if (password) {
                     //console.log('has stored passwd, login');
-                    return serverAPILogin(email, password)
-                        .then(function(response) {
+                    return serverAPILogin(
+                        email, password,
+                        function(response) {
                             if (response.token) {
                                 //console.log('login ok');
                                 var props = {
@@ -526,7 +527,9 @@ export function login(email, password, savepassword, responsefn) {
                     props.password = null;
                 }
                 setSettings(props);
-                onAuthenticatedOnline(props.personId, responsefn);
+                onAuthenticatedOnline(props.personId);
+                setupContinue();
+                responsefn(true);
             } else {
                 responsefn(response);
             }

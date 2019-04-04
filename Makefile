@@ -17,7 +17,7 @@ all: 	build/deps \
 build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
-build/24h.js: $(JS_SRC) deps/vsn.js
+build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
 	rollup -c
 
 # This is temporary.  The pod will be downloaded from the server.
