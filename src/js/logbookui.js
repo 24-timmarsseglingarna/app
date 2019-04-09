@@ -447,7 +447,7 @@ window.tfUiLogBookAddEntryClick = function(r) {
     if (r && r.type == 'admin') {
         openAddLogEntryPage({
             type: 'admin',
-            logbook: logBookPage.logBook,
+            logBook: logBookPage.logBook,
             onclose: function() {
                 refreshLogBook({logBook: logBookPage.logBook,
                                 scroll: true});
@@ -467,7 +467,7 @@ window.tfUiLogBookAddEntryClick = function(r) {
     } else {
         openAddLogEntryPage({
             type: 'team',
-            logbook: logBookPage.logBook,
+            logBook: logBookPage.logBook,
             onclose: function() {
                 refreshLogBook({logBook: logBookPage.logBook,
                                 scroll: true});
@@ -621,7 +621,7 @@ $(document).ready(function() {
         var new_ = moment(cur.time).add(addSeconds, 'seconds');
         $('.log-book-edit').popover('hide');
         openAddLogEntryPage({
-            logbook: logBook,
+            logBook: logBook,
             time: new_,
             beforeId: nextId,
             onclose: function() {

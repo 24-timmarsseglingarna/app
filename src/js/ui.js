@@ -811,7 +811,9 @@ function initNavbar() {
                   ' göra en loggboksanteckning.</p>');
             return false;
         }
-        openAddLogEntryPage();
+        openAddLogEntryPage({
+            logBook: curLogBook
+        });
         return false;
     });
 

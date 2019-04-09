@@ -4,7 +4,6 @@ import {pushPage, popPage} from './pageui.js';
 import {openLogEntry} from './logentryui.js';
 
 export function openPage(options) {
-
     if (options.type == 'admin') {
         $('#tf-log-team').hide();
         $('#tf-log-admin').show();
@@ -14,29 +13,29 @@ export function openPage(options) {
     }
 
     /* Modify the text depending on current state */
-    if (options.logbook.getPrevRound(options.beforeId) == null) {
+    if (options.logBook.getPrevRound(options.beforeId) == null) {
         $('#tf-log-round').text('Start');
     } else {
         $('#tf-log-round').text('Rundning');
     }
-    if (!options.logbook.getLanterns(options.beforeId)) {
+    if (!options.logBook.getLanterns(options.beforeId)) {
         $('#tf-log-lanterns').text('Tänder lanternor');
     } else {
         $('#tf-log-lanterns').text('Släcker lanternor');
     }
-    if (!options.logbook.getEngine(options.beforeId)) {
+    if (!options.logBook.getEngine(options.beforeId)) {
         $('#tf-log-engine').text('Startar motor för laddning');
     } else {
         $('#tf-log-engine').text('Stänger av motor för laddning');
     }
-    if (!options.logbook.getInterrupt(options.beforeId)) {
+    if (!options.logBook.getInterrupt(options.beforeId)) {
         $('#tf-log-interrupt').text('Tillfälligt avbrott i seglingen');
     } else {
         $('#tf-log-interrupt').text('Återupptar seglingen');
     }
 
     var page = $('#add-log-entry-page')[0];
-    page.tfOptions = options || {};
+    page.tfOptions = options;
     pushPage(
         function() { $('#add-log-entry-page').modal({backdrop: 'static'}); },
         function() { $('#add-log-entry-page').modal('hide'); });
@@ -52,7 +51,7 @@ $(document).ready(function() {
         var page = $('#add-log-entry-page')[0];
         popPage(function() {
             openLogEntry({
-                logBook: page.tfOptions.logbook,
+                logBook: page.tfOptions.logBook,
                 beforeId: page.tfOptions.beforeId,
                 time: page.tfOptions.time,
                 onclose: page.tfOptions.onclose,
