@@ -205,6 +205,7 @@ LogBook.prototype._updateLog = function(reason) {
     var i, e;
     var dsq = false;
     var adminDist = 0;
+    var adminTime = 0;
 
     // find startpoint - the first log entry that has a point.
     // we currently allow _any_ point (including points not marked as
@@ -255,8 +256,7 @@ LogBook.prototype._updateLog = function(reason) {
             // unless this was the finish, count the point as rounded
             if (!e.finish) {
                 npoints[e.point] = npoints[e.point] + 1;
-            }
-            if (e.finish) {
+            } else {
                 finishTime = e.time;
             }
             var leg = legName(e.point, prev.point);
@@ -284,14 +284,14 @@ LogBook.prototype._updateLog = function(reason) {
                 compensationTime += e.time.diff(prev.time, 'minutes');
             } else {
                 sailedDist += 10 * curDist;
-                sailedTime += e.time.diff(prev.time, 'minutes');
                 compensationTime += curCompensationTime;
                 compensationDistTime += curCompensationDistTime;
             }
+            sailedTime += e.time.diff(prev.time, 'minutes');
+            prev = e;
             // reset compensation counters
             curCompensationTime = 0;
             curCompensationDistTime = 0;
-            prev = e;
         } else if (e.interrupt && e.interrupt.type != 'done') {
             // Find the corresponding log entry for interrupt done
             var found = false;
@@ -311,7 +311,7 @@ LogBook.prototype._updateLog = function(reason) {
                     // error
                     e._interruptStatus = 'no-done';
                     found = true;
-                } else {
+                } else if (f.interrupt) {
                     // A new interrupt 'replaced' this one
                     found = true;
                 }
@@ -330,19 +330,23 @@ LogBook.prototype._updateLog = function(reason) {
             dsq = true;
         } else if (e.type == 'adminDist') {
             adminDist += e.admin_dist;
+        } else if (e.type == 'adminTime') {
+            adminTime += e.admin_time;
         }
     }
 
     if (finishTime) {
+        var extraTime = compensationTime + adminTime;
         var raceLength =
-            this.race.getRaceLengthHours() * 60 + compensationTime;
+            this.race.getRaceLengthHours() * 60 + extraTime;
+        // FIXME: verify that it is correct to not add extra time here
         var raceMinLength =
-            this.race.getMinimumRaceLengthHours() * 60 + compensationTime;
+            this.race.getMinimumRaceLengthHours() * 60;
         // moment's add function mutates the original object; thus copy first
-        var realFinishTime = moment(startTime).add(raceLength, 'minutes');
+        var raceFinishTime = moment(startTime).add(raceLength, 'minutes');
         var minFinishTime = moment(startTime).add(raceMinLength, 'minutes');
-        if (finishTime.isAfter(realFinishTime)) {
-            lateFinishTime = finishTime.diff(realFinishTime, 'minutes');
+        if (finishTime.isAfter(raceFinishTime)) {
+            lateFinishTime = finishTime.diff(raceFinishTime, 'minutes');
         }
         if (finishTime.isBefore(minFinishTime)) {
             // too short race, does not count
@@ -377,6 +381,7 @@ LogBook.prototype._updateLog = function(reason) {
     this.compensationTime = compensationTime;
     this.compensationDistTime = compensationDistTime;
     this.adminDist = adminDist;
+    this.adminTime = adminTime;
     this.npoints = npoints;
     this.nlegs = nlegs;
     this.points = points;
@@ -457,7 +462,8 @@ LogBook.prototype.hasFinished = function() {
 
 // includes any compensation time due to rescue interrupts
 LogBook.prototype.getRaceLeftMinutes = function() {
-    var raceMinutes = this.getRaceLengthMinutes();
+    var raceMinutes = this.getRaceLengthMinutes() +
+        this.compensationTime + this.adminTime;
     if (this.startTime == null) {
         return raceMinutes;
     } else {
@@ -469,7 +475,7 @@ LogBook.prototype.getRaceLeftMinutes = function() {
 
 // includes any compensation time due to rescue interrupts
 LogBook.prototype.getRaceLengthMinutes = function() {
-    return this.race.getRaceLengthHours() * 60 + this.compensationTime;
+    return this.race.getRaceLengthHours() * 60;
 };
 
 LogBook.prototype.getSailedDistance = function() {
@@ -547,8 +553,7 @@ LogBook.prototype.getPlaqueDistance = function() {
 
 LogBook.prototype.getAverageSpeed = function() {
     var speed = 0;
-    var time = this.sailedTime -
-        (this.compensationTime + this.compensationDistTime);
+    var time = this.sailedTime - this.compensationTime;
     if (time > 0) {
         speed = this.sailedDist * 60 / time;
     }

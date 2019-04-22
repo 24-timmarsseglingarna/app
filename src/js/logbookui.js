@@ -241,19 +241,21 @@ function refreshLogBook(options) {
         if (other != '') {
             notes.push(other);
         }
-        if (e.comment) {
-            if (e.class == 'AdminLog') {
-                var s = '';
-                if (e.type == 'adminDist') {
-                    s += 'Avdrag plakettdistans: ' + e.admin_dist + 'M.<br/>';
-                } else if (e.type == 'adminDSQ') {
-                    s += 'Ogiltig segling<br/> ';
-                }
-                s += e.comment;
-                notes.push('<em>' + s + '</em>');
-            } else {
-                notes.push(e.comment);
+        if (e.class == 'AdminLog') {
+            var s = '';
+            if (e.type == 'adminDist') {
+                s += 'Avdrag plakettdistans: ' + e.admin_dist + 'M<br/>';
+            } else if (e.type == 'adminTime') {
+                s += 'Tidstillägg: ' + e.admin_time + ' minuter<br/>';
+            } else if (e.type == 'adminDSQ') {
+                s += 'Ogiltig segling<br/> ';
             }
+            if (e.comment) {
+                s += e.comment;
+            }
+            notes.push('<em>' + s + '</em>');
+        } else if (e.comment) {
+            notes.push(e.comment);
         }
         var note = notes.join('<br/>');
 
@@ -408,13 +410,13 @@ function refreshLogBook(options) {
     // footer
     $('#log-book-sailed-dist2').text(dist.toFixed(1) + ' M');
     $('#log-book-net-dist2').text(netdist.toFixed(1) + ' M');
-    $('#log-book-early-dist').text('-' + earlydist.toFixed(1) + ' M' +
+    $('#log-book-early-dist').text(earlydist.toFixed(1) + ' M' +
                                   ' (' + earlytime + ' min)');
-    $('#log-book-late-dist').text('-' + latedist.toFixed(1) + ' M' +
+    $('#log-book-late-dist').text(latedist.toFixed(1) + ' M' +
                                   ' (' + latetime + ' min)');
     $('#log-book-comp-dist').text(compdist.toFixed(1) + ' M');
     $('#log-book-approved-dist').text(approveddist.toFixed(1) + ' M');
-    $('#log-book-admin-dist').text('-' + admindist.toFixed(1) + ' M');
+    $('#log-book-admin-dist').text(admindist.toFixed(1) + ' M');
     $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);

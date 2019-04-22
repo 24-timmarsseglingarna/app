@@ -108,7 +108,7 @@ export function fmtOther(e) {
  *        | 'changeSails' | 'engine' | 'lanterns'
  *        | 'retire' | 'sign'
  *        | 'other'
- *        | 'adminNote' | 'adminDSQ' | 'adminDist'
+ *        | 'adminNote' | 'adminDSQ' | 'adminDist' | 'adminTime'
  *        | 'seeOtherBoats' // OBSOLETE, not used anymore
  *  index  -- either type or index MUST be given
  *  point
@@ -182,6 +182,7 @@ function openLogEntry2(options) {
     $('#log-entry-time').removeClass('is-invalid');
     $('#log-entry-date').removeClass('is-invalid');
     $('#log-entry-admin-dist').removeClass('is-invalid');
+    $('#log-entry-admin-time').removeClass('is-invalid');
     // if a point was clicked, make this field read-only
     if (options.point) {
         //$('#log-entry-point').prop('type', 'text');
@@ -276,6 +277,10 @@ function openLogEntry2(options) {
     case 'adminDist':
         title = 'Distansavdrag';
         $('#log-entry-form-admin-dist').show();
+        break;
+    case 'adminTime':
+        title = 'Tidstillägg';
+        $('#log-entry-form-admin-time').show();
         break;
     case 'adminDSQ':
         title = 'Ogiltig segling';
@@ -373,6 +378,10 @@ function openLogEntry2(options) {
 
         if (entry.admin_dist != undefined) {
             $('#log-entry-admin-dist').val(entry.admin_dist);
+        }
+
+        if (entry.admin_time != undefined) {
+            $('#log-entry-admin-time').val(entry.admin_time);
         }
 
         var teamElement;
@@ -818,6 +827,15 @@ function logEntrySave() {
         }
         logEntry.admin_dist = dist;
         break;
+    case 'adminTime':
+        var atime = parseInt($('#log-entry-admin-time').val());
+        if (isNaN(atime)) {
+            alert('<p>Du måste ange ett tidstillägg som' +
+                  ' ett tal (minuter).</p>');
+            return false;
+        }
+        logEntry.admin_time = atime;
+        break;
     }
 
     // save the current logbook in the page
@@ -828,7 +846,8 @@ function logEntrySave() {
 var adminLog = {
     'adminNote': true,
     'adminDSQ': true,
-    'adminDist': true
+    'adminDist': true,
+    'adminTime': true
 };
 
 function getLogClass(type) {
@@ -999,6 +1018,14 @@ $(document).ready(function() {
             $('#log-entry-admin-dist').addClass('is-invalid');
         } else {
             $('#log-entry-admin-dist').removeClass('is-invalid');
+        }
+    });
+    $('#log-entry-admin-time').blur(function() {
+        var atime = parseInt($('#log-entry-admin-time').val());
+        if (isNaN(atime)) {
+            $('#log-entry-admin-time').addClass('is-invalid');
+        } else {
+            $('#log-entry-admin-time').removeClass('is-invalid');
         }
     });
 });

@@ -582,6 +582,10 @@ function mkServerLogData(r, teamId) {
         break;
     case 'adminDist':
         data.admin_dist = r.admin_dist;
+        break;
+    case 'adminTime':
+        data.admin_time = r.admin_time;
+        break;
     }
     s.data = JSON.stringify(data);
     return s;
