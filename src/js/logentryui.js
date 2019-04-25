@@ -4,7 +4,7 @@ import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
 import {pushPage, popPage} from './pageui.js';
 import {getTeamsData} from './serverdata.js';
-import {isOrganizerRights, isTouch} from './util.js';
+import {isOfficerRights, isTouch} from './util.js';
 import {getSetting} from './storage.js';
 
 var onclose = undefined;
@@ -196,11 +196,11 @@ function openLogEntry2(options) {
     $('#log-entry-form-time').show();
     $('#log-entry-form-comment').show();
 
-    $('#log-book-help').hide();
+    $('#log-entry-help').hide();
     $('#log-entry-admin-round-help').hide();
-    if (options.logBook.standaloneUI) {
+    if (options.logBook.standaloneUI && !isTouch) {
         $('#log-entry-help').show();
-        if (type == 'round' && isOrganizerRights(getSetting('role'))) {
+        if (type == 'round' && isOfficerRights(getSetting('role'))) {
             $('#log-entry-admin-round-help').show();
         }
     }

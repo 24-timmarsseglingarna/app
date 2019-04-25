@@ -54,8 +54,8 @@ export function numberToName(n) {
     return String.fromCharCode(64 + n);
 };
 
-export function isOrganizerRights(role) {
-    if (role == 'organizer' || role == 'admin') {
+export function isOfficerRights(role) {
+    if (role == 'officer' || role == 'admin') {
         return true;
     } else {
         return false;

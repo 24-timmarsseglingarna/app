@@ -70,7 +70,7 @@ export function init(doClear) {
         'password': null, // string()
         'token': null, // string()
         'personId': null, // integer()
-        'role': null, // 'user' | 'assistant' | 'organizer' | 'admin'
+        'role': null, // 'user' | 'assistant' | 'officer' | 'admin'
 
         /*
          * Configuration parameters
@@ -127,6 +127,10 @@ export function init(doClear) {
             // we shouldn't end up here except during development
             if (settings['clientId'] == null) {
                 settings.clientId = defaultClientId();
+            }
+            // organizer is changed to officer
+            if (settings['role'] == 'organizer') {
+                settings['role'] == 'officer';
             }
             setSettings({});
         }

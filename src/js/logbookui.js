@@ -13,7 +13,7 @@ import {getRaceP, getRegattaTeamsP,
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
-import {isOrganizerRights} from './util.js';
+import {isOfficerRights, isTouch} from './util.js';
 
 export function openLogBook(options) {
     refreshLogBook(options);
@@ -100,7 +100,7 @@ function refreshLogBook(options) {
     var rows = '';
 
     $('#log-book-help').hide();
-    if (logBook.standaloneUI) {
+    if (logBook.standaloneUI && !isTouch) {
         $('#log-book-cancel').hide();
         if (logBook.signed != 'signed-sync') {
             $('#log-book-help').show();
@@ -267,8 +267,8 @@ function refreshLogBook(options) {
 
         rows += '<tr data-logid="' + e.id + '">';
         if (isReadOnly &&
-            !(e.class == 'AdminLog' && hasOrganizerRights())) {
-            // An organizer can edit Admin entries
+            !(e.class == 'AdminLog' && hasOfficerRights())) {
+            // An officer can edit Admin entries
             rows += '<td></td>';
         } else {
             rows +=
@@ -301,8 +301,8 @@ function refreshLogBook(options) {
             '<td>' + note + '</td>' +
             '</tr>';
     }
-    if (!isReadOnly || hasOrganizerRights()) {
-        // An organizer can modify a signed loggbook by adding
+    if (!isReadOnly || hasOfficerRights()) {
+        // An officer can modify a signed loggbook by adding
         // entries of type 'admin'
         var args = '';
         if (isReadOnly) {
@@ -350,7 +350,7 @@ function refreshLogBook(options) {
         $('#log-book-net-elem2').show();
     }
 
-    if (isSkipper(logBook) || hasOrganizerRights()) {
+    if (isSkipper(logBook) || hasOfficerRights()) {
         $('#log-book-sign').show();
     } else {
         $('#log-book-sign').hide();
@@ -714,6 +714,6 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
         });
 };
 
-function hasOrganizerRights() {
-    return isOrganizerRights(getSetting('role'));
+function hasOfficerRights() {
+    return isOfficerRights(getSetting('role'));
 };
