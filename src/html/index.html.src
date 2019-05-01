@@ -45,7 +45,7 @@
         Controlled by ui.js.
     -->
     <div id="map" class="map"></div>
-    <div id="tf-spinner" class="text-center pt-5">
+    <div id="tf-spinner" class="text-center pt-5 tf-spinner-hide">
       <h1>24-timmars Loggbok</h1>
       <div class="spinner-border mt-3">
         <span class="sr-only">Loading...</span>
