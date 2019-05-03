@@ -27,7 +27,8 @@ import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
 import {basePodSpec} from '../../build/pod.js';
-import {isTouch} from './util.js';
+import {isTouch, isCordova} from './util.js';
+import {URL} from './serverapi.js';
 
 /**
  * Font for point labels on zoom levels 1-3
@@ -1129,6 +1130,26 @@ $(document).ready(function() {
         popPage();
         return false;
     });
+    var url = URL + '/agreements/latest';
+    if (isCordova) {
+        $('#privacy-policy').on('click', function() {
+            SafariViewController.isAvailable(function(available) {
+                if (available) {
+                    SafariViewController.show({
+                        url: url,
+                        hidden: false,
+                        animated: false
+                        //barColor: "#0000ff", // default is white (iOS 10 only)
+                        //tintColor: "#ffffff" // default is ios blue
+                    });
+                } else {
+                    window.open(url);
+                }
+            });
+        });
+    } else {
+        $('#privacy-policy').attr('href', url);
+    }
 });
 
 export function initMapUI() {
