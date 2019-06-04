@@ -54,7 +54,7 @@ function fmtTeam(teamid, teams, colortype) {
         ' mr-1 align-middle">' + t.start_number + '</span>';
         s += t.boat_type_name + ' ';
         if (media == '"md+"') {
-            s += t.boat_sail_number + ' ';
+            s += (t.boat_sail_number || '') + ' ';
         }
         s += t.boat_name;
     }
@@ -77,7 +77,7 @@ function fmtBoat(sn, teams, colortype) {
     if (t) {
         s += t.boat_type_name + ' ';
         if (media == '"md+"') {
-            s += t.boat_sail_number + ' ';
+            s += (t.boat_sail_number || '') + ' ';
         }
         s += t.boat_name;
     }
