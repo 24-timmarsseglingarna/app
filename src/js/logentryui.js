@@ -709,9 +709,7 @@ function getSails() {
 function logEntrySave() {
     var logEntryPage = $('#log-entry-page')[0];
     var type = logEntryPage.logEntryType;
-    var isStart = false;
     if (type == 'start') {
-        isStart = true;
         type = 'round';
     }
     var point = $('#log-entry-point').val();
@@ -779,10 +777,8 @@ function logEntrySave() {
             return false;
         }
         logEntry.wind = wind;
-        if (isStart) {
-            logEntry.sails = sails;
-            logEntry.teams = teams;
-        }
+        logEntry.sails = sails;
+        logEntry.teams = teams;
         logEntry.finish = finish;
         break;
     case 'endOfRace':
