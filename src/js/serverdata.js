@@ -551,9 +551,6 @@ function mkServerLogData(r, teamId) {
         data.protest = r.protest;
         break;
     case 'interrupt':
-        // FIXME: patch log_type to interrupt_start vs interrupt_end?
-        // Useful if the server is going to be able to calculate proper
-        // SXK distance.  rescue-time / rescue-dist is also needed.
         data.position = r.position;
         data.interrupt = r.interrupt;
         break;
