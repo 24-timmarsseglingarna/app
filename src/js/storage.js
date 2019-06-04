@@ -50,6 +50,7 @@ export function init(doClear) {
     try {
         settings = JSON.parse(window.localStorage.getItem('settings'));
     } catch (err) {
+        debugInfo['bad-settings'] = window.localStorage.getItem('settings');
         settings = null;
     }
     var defaultSettings = {
