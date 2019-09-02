@@ -62,6 +62,14 @@ export function isOfficerRights(role) {
     }
 };
 
+export function isAdminRights(role) {
+    if (role == 'admin') {
+        return true;
+    } else {
+        return false;
+    }
+};
+
 /**
  * Detect environment
  */

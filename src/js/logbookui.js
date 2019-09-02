@@ -13,7 +13,7 @@ import {getRaceP, getRegattaTeamsP,
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
-import {isOfficerRights, isTouch} from './util.js';
+import {isOfficerRights, isAdminRights, isTouch} from './util.js';
 
 export function openLogBook(options) {
     refreshLogBook(options);
@@ -267,8 +267,10 @@ function refreshLogBook(options) {
 
         rows += '<tr data-logid="' + e.id + '">';
         if (isReadOnly &&
-            !(e.class == 'AdminLog' && hasOfficerRights())) {
-            // An officer can edit Admin entries
+            !(e.class == 'AdminLog' && hasOfficerRights()) &&
+            !hasAdminRights()) {
+            // An officer can edit Admin entries, and an admin can edit
+            // everything
             rows += '<td></td>';
         } else {
             rows +=
@@ -716,4 +718,8 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
 
 function hasOfficerRights() {
     return isOfficerRights(getSetting('role'));
+};
+
+function hasAdminRights() {
+    return isAdminRights(getSetting('role'));
 };
