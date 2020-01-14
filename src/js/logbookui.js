@@ -8,10 +8,11 @@ import {fmtInterrupt, fmtSails, fmtOther, openLogEntry} from './logentryui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
 import {getSetting, setSettings} from './storage.js';
 import {setServerURL} from './serverapi.js';
-import {getRaceP, getRegattaTeamsP,
+import {getRaceP, getTerrainP, getRegattaTeamsP,
         getTeamLogP, getTeamData, getTeamsData} from './serverdata.js';
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
+import {Pod} from './pod.js';
 import {LogBook} from './logbook.js';
 import {isOfficerRights, isAdminRights, isTouch} from './util.js';
 
@@ -679,14 +680,18 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
             return getRegattaTeamsP(raceData.regatta_id);
         })
         .then(function() {
+            // get pod for this regatta
+            return getTerrainP(r.raceData.terrain_id);
+        })
+        .then(function(terrainData) {
+            r['pod'] = new Pod(terrainData);
             // get current logbook for this team
             return getTeamLogP(teamId);
         })
         .then(function(log) {
-            var tmpPod = curState.defaultPod;
             var curRegatta = new Regatta(r.raceData.regatta_id,
                                          r.raceData.regatta_name,
-                                         [], tmpPod);
+                                         [], r.pod);
             var curRace = new Race(curRegatta, r.raceData);
             // get our team data from app storage
             var teamData = getTeamData(r.raceData.regatta_id, teamId);

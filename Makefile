@@ -154,11 +154,11 @@ mrproper: clean deps-clean
 	rm -f start_points.xml
 	rm -rf cordova-template/template_src/res
 
-JQUERY_VSN=3.3.1
+JQUERY_VSN=3.4.1
 node_modules/jquery:
 	npm install jquery@$(JQUERY_VSN)
 
-OL_VSN=5.3.0
+OL_VSN=6.1.0
 node_modules/ol:
 	npm install ol@$(OL_VSN)
 
@@ -178,7 +178,7 @@ TEMPUSDOMINUS_VSN=5.1.2
 node_modules/tempusdominus-bootstrap-4:
 	npm install tempusdominus-bootstrap-4@$(TEMPUSDOMINUS_VSN)
 
-TEMPUSDOMINUS_CORE_VSN=5.1.2
+TEMPUSDOMINUS_CORE_VSN=5.0.3
 node_modules/tempusdominus-core:
 	npm install tempusdominus-core@$(TEMPUSDOMINUS_CORE_VSN)
 

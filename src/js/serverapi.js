@@ -9,14 +9,23 @@ import {debugInfo} from './debug.js';
 var stagingURL = 'https://segla-stage.24-timmars.nu';
 var productionURL = 'https://segla.24-timmars.nu';
 
+var stagingS3URL = 'https://gionastage.s3.amazonaws.com';
+var productionS3URL = 'https://gionaprod.s3.amazonaws.com';
+
 export var URL = productionURL;
+export var S3URL = productionS3URL;
+
+// FIXME - dev
+S3URL = 'https://gionadev.s3.amazonaws.com';
 
 export function setProductionServer() {
     URL = productionURL;
+    //S3URL = productionS3URL;
 };
 
 export function setStagingServer() {
     URL = stagingURL;
+    //S3URL = stagingS3URL;
 };
 
 export function setServerURL(url) {
@@ -160,6 +169,12 @@ export function getRace(raceId, prevetag) {
     return getJSON('/api/v1/races/' + raceId, prevetag);
 };
 
+export function getTerrain(terrainId) {
+    return getS3JSON('/terrain-' + terrainId + '.json.gz');
+};
+
+window.gt = getTerrain;
+
 
 /**
  * regattaIds :: [regattaId :: integer()]
@@ -273,12 +288,12 @@ export function getNewRegattaLog(regattaId, teamId,
     if (updatedAfter) {
         url += '&updated_after=' + updatedAfter;
     }
-    getJSON(url, null, responsefn);
+    return getJSON(url, null, responsefn);
 };
 
 export function getFullRegattaLog(regattaId, responsefn) {
     var url = '/api/v1/logs?from_regatta=' + regattaId;
-    getJSON(url, null, responsefn);
+    return getJSON(url, null, responsefn);
 };
 
 export function postLogEntry(data, responsefn) {
@@ -345,6 +360,20 @@ function getAJAX(urlpath, etag, opaque) {
                 jqXHR.tfOpaque = opaque;
             }
             return true;
+        }
+    });
+};
+
+function getS3JSON(urlpath) {
+    return $.ajax({
+        url: S3URL + urlpath,
+        dataType: 'json',
+        error: function(jqXHR) {
+            var errorstr = 'req error for ' + S3URL + urlpath +
+                ': ' + jqXHR.status;
+            console.log(errorstr);
+            debugInfo['gets3error'] = errorstr + ' ' +
+                moment().format();
         }
     });
 };

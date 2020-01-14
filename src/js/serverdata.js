@@ -12,6 +12,7 @@ var racesETags;
 var teams;
 var teamsETags;
 var clientId;
+var terrains;
 
 /**
  * Note that this is not an object b/c this a global property.
@@ -28,6 +29,8 @@ export function init(clientIdV) {
     m = getCachedRaces() || {data: {}, etags: {}};
     races = m.data;
     racesETags = m.etags;
+    //
+    terrains = {};
     // All teams in the regattas I am participating in.
     m = getCachedTeams() || {data: {}, etags: {}};
     teams = m.data;
@@ -110,6 +113,14 @@ export function getRaceP(raceId) {
             var race = mkRaceData(r);
             races[race.regatta_id] = race;
             return race;
+        });
+};
+
+export function getTerrainP(terrainId) {
+    return serverAPI.getTerrain(terrainId)
+        .then(function(data) {
+            terrains[terrainId] = data;
+            return data;
         });
 };
 
@@ -256,13 +267,14 @@ export function updateServerData(personId, continueFn) {
 
 export function updateServerDataP(personId) {
     return serverAPI.getActiveTeams(
-        personId, myTeamsETag,
-        function(srvTeams, newMyTeamsETag) {
+        personId, myTeamsETag)
+        .then(function(srvTeams, _status, jqXHR) {
+            var newMyTeamsETag = jqXHR.getResponseHeader('ETag');
             var newMyTeams = null;
             if (srvTeams == null) {
                 // error, maybe network issues
                 return;
-            } else if (srvTeams == 'notmodified') {
+            } else if (jqXHR.status == 304) {
                 newMyTeams = myTeams;
             } else {
                 newMyTeams = srvTeams.map(mkTeamData);
@@ -277,8 +289,6 @@ export function updateServerDataP(personId) {
                 var rIds = getRegattaIds(newMyTeams);
                 myRegattaIds = rIds;
             }
-        })
-        .then(function() {
             return serverAPI.getRacesPerRegatta(
                 myRegattaIds,
                 racesETags);
@@ -310,6 +320,8 @@ export function updateServerDataP(personId) {
             return updateTeams();
         });
 };
+
+// HERE: fetch pod
 
 function updateTeams(continueFn) {
     return serverAPI.getTeamsPerRegatta(
@@ -448,6 +460,7 @@ function mkRaceData(s) {
         organizer_name: s.organizer_name,      // string
         regatta_name:   s.regatta_name,        // string
         regatta_id:     s.regatta_id,          // int
+        terrain_id:     s.terrain_id,          // int
         start_from:     moment(s.start_from),  // date and time
         start_to:       moment(s.start_to),    // date and time
         common_finish:  s.common_finish,       // null | int (point)
