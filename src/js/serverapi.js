@@ -16,15 +16,16 @@ export var URL = productionURL;
 export var S3URL = productionS3URL;
 
 // FIXME - dev
-S3URL = 'https://gionadev.s3.amazonaws.com';
+S3URL = 'http://gionadev.s3.amazonaws.com';
+URL = 'http://localhost:3000';
 
 export function setProductionServer() {
-    URL = productionURL;
+//    URL = productionURL;
     //S3URL = productionS3URL;
 };
 
 export function setStagingServer() {
-    URL = stagingURL;
+//    URL = stagingURL;
     //S3URL = stagingS3URL;
 };
 
@@ -61,47 +62,49 @@ export function getAPIVersion() {
         });
 };
 
-export function login(email, password, responsefn) {
-    $.ajax({
-        url: URL + '/users/sign_in.json',
-        method: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify({
-            user: {
-                email: email,
-                password: password
-            }
-        }),
-        cache: false,
-        success: function(data) {
-            var token = data.authentication_token;
-            if (token) {
-                APIstate.email = email;
-                APIstate.token = token;
-                responsefn({
+export function login(email, password) {
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            url: URL + '/users/sign_in.json',
+            method: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+                user: {
                     email: email,
-                    password: password,
-                    token: token,
-                    personId: data.person_id,
-                    role: data.role
-                });
-            } else if (data.error) {
-                responsefn({
-                    errorCode: -1,
-                    errorStr: data.error
-                });
-            } else {
-                console.log('login: bad response from server');
-                responsefn({
-                    errorCode: -2,
-                    errorStr: 'Okänt fel från servern'
-                });
+                    password: password
+                }
+            }),
+            cache: false,
+            success: function(data) {
+                var token = data.authentication_token;
+                if (token) {
+                    APIstate.email = email;
+                    APIstate.token = token;
+                    resolve({
+                        email: email,
+                        password: password,
+                        token: token,
+                        personId: data.person_id,
+                        role: data.role
+                    });
+                } else if (data.error) {
+                    resolve({
+                        errorCode: -1,
+                        errorStr: data.error
+                    });
+                } else {
+                    console.log('login: bad response from server');
+                    resolve({
+                        errorCode: -2,
+                        errorStr: 'Okänt fel från servern'
+                    });
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(mkError(jqXHR, textStatus, errorThrown));
             }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            responsefn(mkError(jqXHR, textStatus, errorThrown));
-        }
+        });
     });
 };
 

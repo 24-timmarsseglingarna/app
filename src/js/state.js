@@ -266,7 +266,9 @@ function timeout() {
  *         } ]
  *  }
  *
- * This function calls responseFn(true | { errorStr: <string> })
+ * @promise
+ * @resolve true
+ * @reject {errorStr: <string>}
  */
 export function checkServerCompatible() {
     if (curState.isServerCompatible == true) {
@@ -412,12 +414,10 @@ function onAuthenticatedOnline(personId) {
     curState.loggedInPersonId.set(personId);
 };
 
-// FIXME: rename and move from state.js
-// this function is called from ui.js
-export function setupContinue(continueFn) {
+export function setupContinue() {
     var activeRaceId = getSetting('activeRaceId');
     forceTimeout();
-    setActiveRace2(activeRaceId, continueFn);
+    setActiveRace2(activeRaceId);
 };
 
 function serverDataUpdateDone() {
@@ -439,13 +439,12 @@ export function activateRace(raceId) {
     if (raceId == getSetting('activeRaceId')) {
         return;
     }
-    setActiveRace2(raceId, function() {
-        // force an update of serverdata when a new race is activated
-        forceTimeout();
-    });
+    setActiveRace2(raceId);
+    // force an update of serverdata when a new race is activated
+    forceTimeout();
 };
 
-function setActiveRace2(raceId, continueFn) {
+function setActiveRace2(raceId) {
 
     setSettings({activeRaceId: raceId});
 
@@ -492,9 +491,6 @@ function setActiveRace2(raceId, continueFn) {
         curState.curRegatta.set(curRegatta);
         curState.curRace.set(curRace);
         curState.curLogBook.set(curLogBook);
-        if (continueFn) {
-            continueFn();
-        }
     } else {
         if (curState.mode.get() != 'showRegatta') {
             // FIXME: tmp code
@@ -505,16 +501,12 @@ function setActiveRace2(raceId, continueFn) {
         curState.boatState.engine = false;
         curState.boatState.lanterns = false;
         curState.activeInterrupt = false;
-        if (continueFn) {
-            continueFn();
-        }
     }
 };
 
-export function login(email, password, savepassword, responsefn) {
-    serverAPILogin(
-        email, password,
-        function(response) {
+export function login(email, password, savepassword) {
+    return serverAPILogin(email, password)
+        .then(function(response) {
             if (response.token) {
                 var props = {
                     email: response.email,
@@ -529,9 +521,9 @@ export function login(email, password, savepassword, responsefn) {
                 setSettings(props);
                 onAuthenticatedOnline(props.personId);
                 setupContinue();
-                responsefn(true);
+                return true;
             } else {
-                responsefn(response);
+                return response;
             }
         });
 };
@@ -585,9 +577,10 @@ export function reset(keepauth, doLoginFn) {
     curState.immediateSendToServer.set(getSetting('immediateSendToServer'));
     curState.serverId.set(getSetting('serverId'));
 
-    setupLogin(function(response) {
-        if (response == false) {
-            doLoginFn();
-        }
-    });
+    setupLogin()
+        .catch(function(reason) {
+            if (reason == false) {
+                doLoginFn();
+            }
+        });
 };

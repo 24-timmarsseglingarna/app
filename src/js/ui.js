@@ -1256,7 +1256,8 @@ export function initMapUI() {
 
     setupLogin()
         .then(function() {
-            setupContinue(stateSetupDone);
+            setupContinue();
+            stateSetupDone();
         })
         .catch(function(response) {
             if (response == false) {
@@ -1270,23 +1271,6 @@ export function initMapUI() {
                 alertUpgrade(response);
             }
         });
-
-/*
-    setupLogin(function(response) {
-        if (response == true) {
-            setupContinue(stateSetupDone);
-        } else if (response == false) {
-            openLoginPage();
-            stateSetupDone(); // FIXME
-        } else if (response == 'nonetwork') {
-            alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
-                  'du har nätverk.</p>');
-            stateSetupDone();
-        } else {
-            alertUpgrade(response);
-        }
-    });
-*/
 };
 
 var showTeams;

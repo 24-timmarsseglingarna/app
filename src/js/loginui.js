@@ -1,6 +1,6 @@
 /* -*- js -*- */
 
-import {curState, checkServerCompatible, login} from './state.js';
+import {checkServerCompatible, login} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {alertUpgrade} from './alertui.js';
 import {URL} from './serverapi.js';
@@ -8,17 +8,13 @@ import {isCordova} from './util.js';
 import {getSetting} from './storage.js';
 
 export function openPage() {
-    if (curState.isServerCompatible != true) {
-        checkServerCompatible()
-            .then(function() {
-                openPage2();
-            })
-            .catch(function(response) {
-                alertUpgrade(response.errorStr);
-            });
-    } else {
-        openPage2();
-    }
+    checkServerCompatible()
+        .then(function() {
+            openPage2();
+        })
+        .catch(function(response) {
+            alertUpgrade(response.errorStr);
+        });
 };
 
 function openPage2() {
@@ -49,8 +45,9 @@ function submit() {
     $('#login-submit').val('Loggar in...');
     login($('#login-email').val(),
           $('#login-password').val(),
-          $('#login-save-password').prop('checked'),
-          loginResponseFn);
+          $('#login-save-password').prop('checked'))
+        .then(loginResponseFn)
+        .catch(loginResponseFn);
 };
 
 $(document).ready(function() {
