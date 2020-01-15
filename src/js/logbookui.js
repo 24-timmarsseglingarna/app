@@ -2,7 +2,7 @@
 
 import {alert} from './alertui.js';
 import {confirm} from './confirmui.js';
-import {curState, setupLogin} from './state.js';
+import {curState, setupLoginP} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {fmtInterrupt, fmtSails, fmtOther, openLogEntry} from './logentryui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
@@ -662,7 +662,7 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
     $('#map').hide();
     $('#tf-spinner').removeClass('tf-spinner-hide');
     var r = {};
-    setupLogin()
+    setupLoginP()
         .catch(function(error) {
             alert('<p>Kunde inte logga in, vilket tyder på att något ' +
                   'har gått fel!</p>' +

@@ -1,6 +1,6 @@
 /* -*- js -*- */
 
-import {checkServerCompatible, login} from './state.js';
+import {checkServerCompatibleP, loginP} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {alertUpgrade} from './alertui.js';
 import {URL} from './serverapi.js';
@@ -8,7 +8,7 @@ import {isCordova} from './util.js';
 import {getSetting} from './storage.js';
 
 export function openPage() {
-    checkServerCompatible()
+    checkServerCompatibleP()
         .then(function() {
             openPage2();
         })
@@ -28,26 +28,23 @@ function openPage2() {
     document.activeElement.blur();
 };
 
-function loginResponseFn(response) {
-    $('#login-submit').val('Login');
-    if (response == true) {
-        console.log('loginPage response == true');
-        popPage();
-    } else {
-        console.log('loginPage response != true');
-        $('#login-error-btn').val(response.errorStr);
-        $('#login-error-btn').show();
-    }
-};
-
 function submit() {
     $('#login-error-btn').hide();
     $('#login-submit').val('Loggar in...');
-    login($('#login-email').val(),
-          $('#login-password').val(),
-          $('#login-save-password').prop('checked'))
-        .then(loginResponseFn)
-        .catch(loginResponseFn);
+    loginP($('#login-email').val(),
+           $('#login-password').val(),
+           $('#login-save-password').prop('checked'))
+        .then(function() {
+            $('#login-submit').val('Login');
+            console.log('loginPage response == true');
+            popPage();
+        })
+        .catch(function(response) {
+            $('#login-submit').val('Login');
+            console.log('loginPage response != true');
+            $('#login-error-btn').val(response.errorStr);
+            $('#login-error-btn').show();
+        });
 };
 
 $(document).ready(function() {

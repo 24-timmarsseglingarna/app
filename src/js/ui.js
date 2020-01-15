@@ -15,7 +15,7 @@ import {Popup} from './ol-popup.js';
 import {Pod} from './pod.js';
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
-import {curState, setupLogin, setupContinue} from './state.js';
+import {curState, setupLoginP, setupContinue} from './state.js';
 import {getRegattaLogs, getRegattaTeams,
         getRegattaRaces} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
@@ -1254,12 +1254,14 @@ export function initMapUI() {
     }
 */
 
-    setupLogin()
-        .then(function() {
+    setupLoginP()
+        .then(function(res) {
+            console.log('ui - login done: ' + res);
             setupContinue();
             stateSetupDone();
         })
         .catch(function(response) {
+            console.log('ui - login fail: ' + response);
             if (response == false) {
                 openLoginPage();
                 stateSetupDone(); // FIXME
@@ -1268,7 +1270,7 @@ export function initMapUI() {
                       'du har nätverk.</p>');
                 stateSetupDone();
             } else {
-                alertUpgrade(response);
+                alertUpgrade(response.errorStr);
             }
         });
 };

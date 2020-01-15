@@ -8,9 +8,9 @@ import {LogBook} from './logbook.js';
 import {defineVariable, numberToName, isCordova} from './util.js';
 import {init as initStorage,
         getSetting, setSettings, getRaceLog, setRaceLog} from './storage.js';
-import {login as serverAPILogin, logout as serverAPILogout,
+import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
-        getAPIVersion, validateToken} from './serverapi';
+        getAPIVersionP, validateToken} from './serverapi';
 import {init as initServerData, updateServerData,
         getMyRaces, getRaceData, getMyTeamData, getRacesData,
         clearCache as clearServerDataCache} from './serverdata.js';
@@ -266,17 +266,17 @@ function timeout() {
  *         } ]
  *  }
  *
- * @promise
- * @resolve true
+ * @returns Promise
+ * @resolve true | null
  * @reject {errorStr: <string>}
  */
-export function checkServerCompatible() {
+export function checkServerCompatibleP() {
     if (curState.isServerCompatible == true) {
         return new Promise(function(resolve) {
             resolve(true);
         });
     } else {
-        return getAPIVersion()
+        return getAPIVersionP()
             .then(function(data) {
                 // check for platform / upgrade match
                 if (data.app_info && data.app_info.require_upgrade) {
@@ -319,26 +319,17 @@ export function checkServerCompatible() {
     }
 };
 
-/*
- * responseFn is called with:
- *    true - if we're successfully logged in with the stored credentials
- *    false - if we need to log in
- *    'nonetwork' - if there is no network
- *    <errorstring>
+/**
+ * @returns Promise
+ * @resolve true
+ * @reject  false | 'nonetwork' | {errorStr: <string>}
  */
-
-/*
- * continueFn is always called, regardless of result, after
- *              all communication is done.
- *            it *may* be called with a parameter 'result', which
- *              in that case is an object: { errorStr: <string> }
- * doLoginFn is called if the saved values for email/token/password
- *           were not valid.  it is supposed to display a login page
- */
-export function setupLogin() {
+export function setupLoginP() {
     if (hasNetwork() && curState.isServerCompatible == null) {
-        return checkServerCompatible()
-            .then(setupLogin2);
+        return checkServerCompatibleP()
+            .then(function() {
+                return setupLogin2();
+            });
     } else {
         return new Promise(function(resolve) {
             resolve(setupLogin2());
@@ -371,28 +362,26 @@ function setupLogin2() {
                 return true;
             })
             .catch(function() {
-                console.log('has network, invalid token');
+                //console.log('has network, invalid token');
                 // token invalid, check if the password is stored
                 var password = getSetting('password');
                 if (password) {
                     //console.log('has stored passwd, login');
-                    return serverAPILogin(
-                        email, password,
-                        function(response) {
-                            if (response.token) {
-                                //console.log('login ok');
-                                var props = {
-                                    token: response.token,
-                                    personId: response.personId,
-                                    role: response.role
-                                };
-                                setSettings(props);
-                                onAuthenticatedOnline(props.personId);
-                                return true;
-                            } else {
-                                // saved login not ok
-                                throw false;
-                            }
+                    return serverAPILoginP(email, password)
+                        .then(function(response) {
+                            //console.log('login ok');
+                            var props = {
+                                token: response.token,
+                                personId: response.personId,
+                                role: response.role
+                            };
+                            setSettings(props);
+                            onAuthenticatedOnline(props.personId);
+                            return true;
+                        })
+                        .catch(function() {
+                            //console.log('apilogin failed ' + err.errorStr);
+                            throw false;
                         });
                 } else {
                     // invalid token and no stored password.  try to login
@@ -504,27 +493,28 @@ function setActiveRace2(raceId) {
     }
 };
 
-export function login(email, password, savepassword) {
-    return serverAPILogin(email, password)
+/**
+ * @returns Promise
+ * @resolve true
+ * @reject  { errorCode, errorStr }
+ */
+export function loginP(email, password, savepassword) {
+    return serverAPILoginP(email, password)
         .then(function(response) {
-            if (response.token) {
-                var props = {
-                    email: response.email,
-                    password: response.password,
-                    token: response.token,
-                    personId: response.personId,
-                    savePassword: savepassword
-                };
-                if (!savepassword) {
-                    props.password = null;
-                }
-                setSettings(props);
-                onAuthenticatedOnline(props.personId);
-                setupContinue();
-                return true;
-            } else {
-                return response;
+            var props = {
+                email: response.email,
+                password: response.password,
+                token: response.token,
+                personId: response.personId,
+                savePassword: savepassword
+            };
+            if (!savepassword) {
+                props.password = null;
             }
+            setSettings(props);
+            onAuthenticatedOnline(props.personId);
+            setupContinue();
+            return true;
         });
 };
 
@@ -577,7 +567,7 @@ export function reset(keepauth, doLoginFn) {
     curState.immediateSendToServer.set(getSetting('immediateSendToServer'));
     curState.serverId.set(getSetting('serverId'));
 
-    setupLogin()
+    setupLoginP()
         .catch(function(reason) {
             if (reason == false) {
                 doLoginFn();

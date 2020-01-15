@@ -46,23 +46,36 @@ function setCredentials(email, token) {
     APIstate.token = token;
 };
 
-export function getAPIVersion() {
-    return $.ajax({
-        url: URL + '/api_version.json',
-        dataType: 'json',
-        beforeSend: function(jqXHR) {
-            // make sure we don't use the browser's cache
-            jqXHR.setRequestHeader('If-None-Match', '');
-            return true;
-        }
-    })
-        .catch(function(jqXHR, textStatus, errorThrown) {
-            console.log('req error api_version: ' + jqXHR.status);
-            return mkError(jqXHR, textStatus, errorThrown);
+/**
+ * @returns Promise
+ * @resolve data
+ * @reject  { errorCode, errorStr }
+ */
+export function getAPIVersionP() {
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            url: URL + '/api_version.json',
+            dataType: 'json',
+            beforeSend: function(jqXHR) {
+                // make sure we don't use the browser's cache
+                jqXHR.setRequestHeader('If-None-Match', '');
+            },
+            success: function(data) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(mkError(jqXHR, textStatus, errorThrown));
+            }
         });
+    });
 };
 
-export function login(email, password) {
+/**
+ * @returns Promise
+ * @resolve { email, password, token, personId, role }
+ * @reject  { errorCode, errorStr }
+ */
+export function loginP(email, password) {
     return new Promise(function(resolve, reject) {
         $.ajax({
             url: URL + '/users/sign_in.json',
@@ -89,13 +102,13 @@ export function login(email, password) {
                         role: data.role
                     });
                 } else if (data.error) {
-                    resolve({
+                    reject({
                         errorCode: -1,
                         errorStr: data.error
                     });
                 } else {
                     console.log('login: bad response from server');
-                    resolve({
+                    reject({
                         errorCode: -2,
                         errorStr: 'Okänt fel från servern'
                     });
