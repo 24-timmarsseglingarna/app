@@ -3,7 +3,7 @@
 import {curState, activateRace} from './state.js';
 import {pushPage} from './pageui.js';
 import {getSetting} from './storage.js';
-import {getMyRaces, updateServerData} from './serverdata.js';
+import {getMyRaces, updateServerDataP} from './serverdata.js';
 import {URL} from './serverapi.js';
 
 export function openPage() {
@@ -115,7 +115,9 @@ window.tfUiActivateRaceButtonClick = function(raceId) {
  */
 $(document).ready(function() {
     $('#activate-update-btn').on('click', function() {
-        updateServerData(getSetting('personId'),
-                         populateRaces);
+        updateServerDataP(getSetting('personId'))
+            .then(function() {
+                populateRaces();
+            });
     });
 });

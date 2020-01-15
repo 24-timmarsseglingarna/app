@@ -10,8 +10,8 @@ import {init as initStorage,
         getSetting, setSettings, getRaceLog, setRaceLog} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
-        getAPIVersionP, validateToken} from './serverapi';
-import {init as initServerData, updateServerData,
+        getAPIVersionP, validateTokenP} from './serverapi';
+import {init as initServerData, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData,
         clearCache as clearServerDataCache} from './serverdata.js';
 import {debugInfo} from './debug.js';
@@ -193,18 +193,27 @@ function timeout() {
     }
     debugInfo['poll-timer-n'] = n;
 
-    /*
-    updateServerData(getSetting('personId'))
+    updateServerDataP(getSetting('personId'))
+        .then(function() {
+            serverDataUpdateDone();
+            var curRegatta = curState.curRegatta.get();
+            if (curRegatta) {
+                var curLogBook = curState.curLogBook.get();
+                return curRegatta.updateLogFromServerP(curLogBook);
+            } else {
+                return true;
+            }
+        })
         .then(function() {
             var curLogBook = curState.curLogBook.get();
             if (curLogBook && curState.sendLogToServer.get()) {
-                return curLogBook.sendToServer();
+                return curLogBook.sendToServerP();
             }
         })
         .then(function() {
             var curLogBook = curState.curLogBook.get();
             if (curLogBook) {
-                return curLogBook.updateFromServer();
+                return curLogBook.updateFromServerP();
             }
         })
         .then(function() {
@@ -214,42 +223,6 @@ function timeout() {
             // reset timer also on error
             setTimer();
         });
-    */
-
-
-    var cfn3 = function() {
-        setTimer();
-    };
-
-    var cfn2 = function() {
-        var curLogBook = curState.curLogBook.get();
-        if (curLogBook) {
-            curLogBook.updateFromServer(cfn3);
-        } else {
-            cfn3();
-        }
-    };
-
-    var cfn1 = function() {
-        var curLogBook = curState.curLogBook.get();
-        if (curLogBook && curState.sendLogToServer.get()) {
-            curLogBook.sendToServer(cfn2);
-        } else {
-            cfn2();
-        }
-    };
-
-    var cfn0 = function() {
-        serverDataUpdateDone();
-        var curRegatta = curState.curRegatta.get();
-        if (curRegatta) {
-            curRegatta.updateLogFromServer(cfn1, curState.curLogBook.get());
-        } else {
-            cfn1();
-        }
-    };
-
-    updateServerData(getSetting('personId'), cfn0);
 };
 
 /**
@@ -266,9 +239,9 @@ function timeout() {
  *         } ]
  *  }
  *
- * @returns Promise
- * @resolve true | null
- * @reject {errorStr: <string>}
+ * Returns Promise
+ * @resolve :: true | null
+ * @reject :: { errorStr :: string() }
  */
 export function checkServerCompatibleP() {
     if (curState.isServerCompatible == true) {
@@ -320,9 +293,9 @@ export function checkServerCompatibleP() {
 };
 
 /**
- * @returns Promise
- * @resolve true
- * @reject  false | 'nonetwork' | {errorStr: <string>}
+ * Returns Promise
+ * @resolve :: true
+ * @reject :: false | 'nonetwork' | { errorStr :: string() }
  */
 export function setupLoginP() {
     if (hasNetwork() && curState.isServerCompatible == null) {
@@ -339,23 +312,23 @@ export function setupLoginP() {
 
 function setupLogin2() {
     // check if we're authenticated and possibly login
-    var hasNetworkP = hasNetwork();
+    var hasNet = hasNetwork();
     var token = getSetting('token');
     var email = getSetting('email');
     var personId = getSetting('personId');
-    if (hasNetworkP && !token) {
+    if (hasNet && !token) {
         //console.log('has network, no stored token');
         // we haven't logged in
         throw false;
-    } else if (hasNetworkP) {
+    } else if (hasNet) {
         //console.log('has network and stored token, validate it');
         // validate the token
-        return validateToken(email, token, personId)
-            .then(function(response) {
+        return validateTokenP(email, token, personId)
+            .then(function(data) {
                 // token is valid
-                //console.log('valid token!');
+                console.log('valid token! role:' + data.role);
                 var props = {
-                    role: response.role
+                    role: data.role
                 };
                 setSettings(props);
                 onAuthenticatedOnline(personId);
@@ -494,9 +467,9 @@ function setActiveRace2(raceId) {
 };
 
 /**
- * @returns Promise
- * @resolve true
- * @reject  { errorCode, errorStr }
+ * Returns Promise
+ * @resolve :: true
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function loginP(email, password, savepassword) {
     return serverAPILoginP(email, password)

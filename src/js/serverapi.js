@@ -47,9 +47,9 @@ function setCredentials(email, token) {
 };
 
 /**
- * @returns Promise
- * @resolve data
- * @reject  { errorCode, errorStr }
+ * Returns Promise
+ * @resolve :: object()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function getAPIVersionP() {
     return new Promise(function(resolve, reject) {
@@ -71,9 +71,13 @@ export function getAPIVersionP() {
 };
 
 /**
- * @returns Promise
- * @resolve { email, password, token, personId, role }
- * @reject  { errorCode, errorStr }
+ * Returns Promise
+ * @resolve :: { email :: string(),
+ *               password :: string(),
+ *               token :: string(),
+ *               personId :: integer(),
+ *               role :: string() }
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function loginP(email, password) {
     return new Promise(function(resolve, reject) {
@@ -140,11 +144,19 @@ function mkError(jqXHR, textStatus, errorThrown) {
     };
 };
 
-export function validateToken(email, token, personId) {
+/**
+ * Returns Promise
+ * @resolve :: { role :: string() }
+ * @reject :: null
+ */
+export function validateTokenP(email, token, personId) {
     // we get the person as a way to validate the token.  on success,
     // the response will contain the user's role.
     setCredentials(email, token);
-    return getJSON('/api/v1/people/' + personId, null);
+    return getJSONP('/api/v1/people/' + personId, null)
+        .then(function(response) {
+            return response.data;
+        });
 };
 
 export function logout() {
@@ -162,9 +174,9 @@ export function logout() {
  * Return the teams in the active races that `personId` is registered for.
  * A race becomes inactive when the results are final.
  */
-export function getActiveTeams(personId, prevetag, responsefn) {
-    return getJSON('/api/v1/teams?has_person=' + personId +
-                   '&is_active=true', prevetag, responsefn);
+export function getActiveTeamsP(personId, prevetag) {
+    return getJSONP('/api/v1/teams?has_person=' + personId +
+                    '&is_active=true', prevetag);
 };
 
 /**
@@ -357,6 +369,46 @@ function getJSON(urlpath, etag, responsefn) {
         }
     });
 };
+
+/**
+ * Returns Promise
+ * @resolve :: { etag :: string(), modified :: boolean(), data :: any() }
+ * @reject :: null
+ */
+function getJSONP(urlpath, etag) {
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            url: URL + urlpath,
+            dataType: 'json',
+            beforeSend: function(jqXHR) {
+                jqXHR.setRequestHeader('X-User-Email', APIstate.email);
+                jqXHR.setRequestHeader('X-User-Token', APIstate.token);
+                if (etag) {
+                    jqXHR.setRequestHeader('If-None-Match', etag);
+                } else {
+                    // make sure we don't use the browser's cache
+                    jqXHR.setRequestHeader('If-None-Match', '');
+                }
+                return true;
+            },
+            success: function(data, _status, jqXHR) {
+                resolve({
+                    etag: jqXHR.getResponseHeader('ETag'),
+                    modified: (jqXHR.status != 304),
+                    data: data
+                });
+            },
+            error: function(jqXHR) {
+                var errorstr = 'req error for ' + urlpath + ': ' + jqXHR.status;
+                console.log(errorstr);
+                debugInfo['getjsonerror'] = errorstr + ' ' +
+                    moment().format();
+                reject();
+            }
+        });
+    });
+};
+
 
 function getAJAX(urlpath, etag, opaque) {
     //console.log('req: ' + urlpath);

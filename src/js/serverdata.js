@@ -210,71 +210,14 @@ function getRegattaIds(myTeams) {
     return rIds;
 };
 
-export function updateServerData(personId, continueFn) {
-    serverAPI.getActiveTeams(
-        personId, myTeamsETag,
-        function(srvTeams, newMyTeamsETag) {
-            var newMyTeams = null;
-            if (srvTeams == null) {
-                // error, maybe network issues
-                continueFn();
-                return;
-            } else if (srvTeams == 'notmodified') {
-                newMyTeams = myTeams;
-            } else {
-                newMyTeams = srvTeams.map(mkTeamData);
-                if (newMyTeams) {
-                    myTeams = newMyTeams;
-                    myTeamsETag = newMyTeamsETag;
-                    setCachedMyTeams({data: newMyTeams,
-                                      etag: newMyTeamsETag});
-                }
-            }
-            if (newMyTeams != null) {
-                var rIds = getRegattaIds(newMyTeams);
-                myRegattaIds = rIds;
-                serverAPI.getRacesPerRegatta(
-                    rIds,
-                    racesETags,
-                    function(r, newRacesETags) {
-                        var newRaces = null;
-                        if (r) {
-                            newRaces = {};
-                            for (var regattaId in r) {
-                                if (r[regattaId] == 'notmodified') {
-                                    newRaces[regattaId] =
-                                        races[regattaId];
-                                } else {
-                                    newRaces[regattaId] =
-                                        r[regattaId].map(
-                                            mkRaceData);
-                                }
-                            }
-                        }
-                        if (newRaces) {
-                            races = newRaces;
-                            racesETags = newRacesETags;
-                            setCachedRaces({
-                                data: races,
-                                etags: racesETags});
-                        }
-                        updateTeams(continueFn);
-                    }
-                );
-            }
-        });
-};
-
 export function updateServerDataP(personId) {
-    return serverAPI.getActiveTeams(
+    return serverAPI.getActiveTeamsP(
         personId, myTeamsETag)
-        .then(function(srvTeams, _status, jqXHR) {
-            var newMyTeamsETag = jqXHR.getResponseHeader('ETag');
+        .then(function(response) {
+            var newMyTeamsETag = response.etag;
             var newMyTeams = null;
-            if (srvTeams == null) {
-                // error, maybe network issues
-                return;
-            } else if (jqXHR.status == 304) {
+            var srvTeams = response.data;
+            if (!response.modified) {
                 newMyTeams = myTeams;
             } else {
                 newMyTeams = srvTeams.map(mkTeamData);
