@@ -1,7 +1,7 @@
 /* -*- js -*- */
 
 import {uuid, legName} from './util.js';
-import {getTeamLog, postLogEntry, patchLogEntry} from './serverdata.js';
+import {getTeamLogP, postLogEntryP, patchLogEntryP} from './serverdata.js';
 
 /**
  * Log Entry states, local property, not sent to server.
@@ -654,20 +654,16 @@ LogBook.prototype.deleteAllLogEntries = function() {
     this._updateLog('delete');
 };
 
-LogBook.prototype.updateFromServer = function(continueFn) {
+LogBook.prototype.updateFromServerP = function() {
     var logBook = this;
     var lastUpdate = null;
     if (this.lastServerUpdate) {
         lastUpdate = this.lastServerUpdate.toISOString();
     }
-    getTeamLog(this.teamData.id,
-               lastUpdate,
-               function(res) {
-                   if (res) {
-                       logBook.addLogFromServer(res);
-                   }
-                   continueFn();
-               });
+    return getTeamLogP(this.teamData.id, lastUpdate)
+        .then(function(log) {
+            return logBook.addLogFromServer(log);
+        });
 };
 
 // returns false if the logentry already exists
@@ -722,6 +718,8 @@ LogBook.prototype.addLogFromServer = function(log) {
                     // the user about this.
                     // FIXME: how to notify the user?
                     console.log('both modified log entry w/ id ' + new_.id);
+                    console.log(JSON.stringify(old));
+                    console.log(JSON.stringify(new_));
                 }
                 new_.state = 'conflict';
                 del.push(old.id);
@@ -755,37 +753,38 @@ LogBook.prototype.addLogFromServer = function(log) {
     }
 };
 
-LogBook.prototype.sendToServer = function(continueFn, updated) {
+LogBook.prototype.sendToServerP = function(updated) {
     var logBook = this;
+    console.log('send to server!');
     for (var i = 0; i < this.log.length; i++) {
         var e = this.log[i];
         if (e.state == 'dirty' && !e.gen) {
             // new log entry
             e.state = 'syncing';
-            postLogEntry(
-                this.teamData.id, e,
-                function(id, gen) {
-                    if (id == null) {
-                        // error; wait and try later
-                        e.state = 'dirty';
-                        if (updated) {
-                            logBook._updateLog('syncError');
-                        }
-                        continueFn(false);
-                        return;
-                    } else {
-                        // update ok; store id and generation id
-                        e.oldid = e.id; // remember old (generated uuid) id
-                                        // so that we can find it if we have
-                                        // references to it
-                        e.id = id;
-                        e.gen = gen;
-                        e.state = 'sync';
-                    }
+            console.log('posting');
+            return postLogEntryP(this.teamData.id, e)
+                .then(function(res) {
+                    // update ok; store id and generation id
+                    e.oldid = e.id; // remember old (generated uuid) id
+                                    // so that we can find it if we have
+                                    // references to it
+                    e.id = res.id;
+                    e.gen = res.gen;
+                    e.state = 'sync';
                     // continue
-                    logBook.sendToServer(continueFn, true);
+                    return logBook.sendToServerP(true);
+                })
+                .catch(function() {
+                    // error; wait and try later
+                    console.log('post error: ' + x);
+                    console.log(x.stack);
+                    e.state = 'dirty';
+                    if (updated) {
+                        logBook._updateLog('syncError');
+                    }
+                    // return from the call chain
+                    return false;
                 });
-            return;
         } else if (e.state == 'dirty') {
             // modification of existing log entry
             var data;
@@ -798,18 +797,10 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
                 data = e;
             }
             e.state = 'syncing';
-            patchLogEntry(
-                e.id, data,
-                function(res) {
-                    if (res == null) {
-                        // error; wait and try later
-                        e.state = 'dirty';
-                        if (updated) {
-                            logBook._updateLog('syncError');
-                        }
-                        continueFn(false);
-                        return;
-                    } else if (res == 'conflict') {
+            console.log('patching');
+            return patchLogEntryP(e.id, data)
+                .then(function(res) {
+                    if (res == 'conflict') {
                         // someone modified this entry before us; ignore
                         // and handle this in 'updateFromServer' later.
                         e.state = 'conflict';
@@ -818,21 +809,31 @@ LogBook.prototype.sendToServer = function(continueFn, updated) {
                         // we continue, and will then send the new
                         // entry again.  update the generation id though,
                         // so that the server accepts the new entry.
-                        e.gen = res;
+                        e.gen = res.gen;
                     } else {
                         // update ok; store new generation id
-                        e.gen = res;
+                        e.gen = res.gen;
                         e.state = 'sync';
                     }
                     // continue
-                    logBook.sendToServer(continueFn, true);
+                    return logBook.sendToServerP(true);
+                })
+                .catch(function(x) {
+                    // error; wait and try later
+                    console.log('patch error: ' + x);
+                    console.log(x.stack);
+                    e.state = 'dirty';
+                    if (updated) {
+                        logBook._updateLog('syncError');
+                    }
+                    // return from the call chain
+                    return false;
                 });
-            return;
         }
     }
     // no more log entries to send
     if (updated) {
         this._updateLog('syncDone');
     }
-    continueFn(true);
+    return true;
 };

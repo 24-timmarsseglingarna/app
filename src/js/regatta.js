@@ -2,7 +2,7 @@
 
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
-import {getNewRegattaLog, getTeamData, getRaceData} from './serverdata.js';
+import {getNewRegattaLogP, getTeamData, getRaceData} from './serverdata.js';
 
 /**
  * Regatta data
@@ -64,7 +64,7 @@ Regatta.prototype.getPod = function() {
     return this.pod;
 };
 
-Regatta.prototype.updateLogFromServer = function(continueFn, curLogBook) {
+Regatta.prototype.updateLogFromServerP = function(curLogBook) {
     var regatta = this;
     var lastLogUpdate = null;
     if (this.last_log_entry_time) {
@@ -74,11 +74,10 @@ Regatta.prototype.updateLogFromServer = function(continueFn, curLogBook) {
     if (curLogBook) {
         teamId = curLogBook.teamData.id;
     }
-    getNewRegattaLog(
-        this.id, teamId, lastLogUpdate,
-        function(log) {
+    return getNewRegattaLogP(this.id, teamId, lastLogUpdate)
+        .then(function(log) {
             regatta._setLogData(log);
-            continueFn();
+            return true;
         });
 };
 

@@ -13,7 +13,7 @@ export function openPage() {
             openPage2();
         })
         .catch(function(response) {
-            alertUpgrade(response.errorStr);
+            alertUpgrade(response);
         });
 };
 

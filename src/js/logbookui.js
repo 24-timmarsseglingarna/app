@@ -578,31 +578,33 @@ $(document).ready(function() {
                     'Signera',
                     function() {
                         logBook.sign();
-                        logBook.sendToServer(function(result) {
-                            if (result) {
-                                alert('<p>Loggboken är nu signerad och' +
-                                      ' inskickad.</p>',
-                                      function() {
-                                          refreshLogBook({
-                                              logBook: logBook
+                        logBook.sendToServerP()
+                            .then(function(result) {
+                                if (result) {
+                                    alert('<p>Loggboken är nu signerad och' +
+                                          ' inskickad.</p>',
+                                          function() {
+                                              refreshLogBook({
+                                                  logBook: logBook
+                                              });
                                           });
-                                      });
-                            }
-                            refreshLogBook({
-                                logBook: logBook
+                                }
+                                refreshLogBook({
+                                    logBook: logBook
+                                });
                             });
-                        });
                     });
         }
     });
     $('#log-book-send').on('click', function() {
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
-        logBook.sendToServer(function() {
-            refreshLogBook({
-                logBook: logBook
+        logBook.sendToServerP()
+            .then(function() {
+                refreshLogBook({
+                    logBook: logBook
+                });
             });
-        });
     });
     $(document).on('click', '#log-book-btn-edit', function(event) {
         var id = $(event.currentTarget.parentElement).data('logid');
@@ -702,7 +704,7 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
                 // communicate with server if the logBook has changed,
                 // but not if the update was triggered by server communication!
                 if (reason != 'syncError' && reason != 'syncDone') {
-                    logBook.sendToServer(function() {});
+                    logBook.sendToServerP();
                 }
             }, 120);
             $('#tf-spinner').hide();
@@ -715,7 +717,7 @@ export function initLogbookUI(url, email, token, raceId, personId, teamId) {
             $('#tf-spinner').hide();
             if (error != 'handled') {
                 alert('<p>Kunde inte hämta data från servern.</p>' +
-                      '<p>Fel: ' + error + '</p>' +
+                      '<p>Fel: ' + error.errorStr + '</p>' +
                       '<p>Kontakta arrangören.</p>');
             }
         });

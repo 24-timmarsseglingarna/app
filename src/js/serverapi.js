@@ -147,7 +147,7 @@ function mkError(jqXHR, textStatus, errorThrown) {
 /**
  * Returns Promise
  * @resolve :: { role :: string() }
- * @reject :: null
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function validateTokenP(email, token, personId) {
     // we get the person as a way to validate the token.  on success,
@@ -167,12 +167,15 @@ export function logout() {
 /**
  * personId :: integer()
  * prevetag :: null || opaque()
- * responsefn :: (teams :: 'notmodified' | [teamData :: json()],
- *                etags :: opaque)
- * On error, `teams` = `etags` = null.
- *
- * Return the teams in the active races that `personId` is registered for.
+
+ * Get the teams in the active races that `personId` is registered for.
  * A race becomes inactive when the results are final.
+ *
+ * Returns Promise
+ * @resolve :: { data :: [teamData :: json()],
+ *               modified :: boolean(),
+ *               etag :: opaque }
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function getActiveTeamsP(personId, prevetag) {
     return getJSONP('/api/v1/teams?has_person=' + personId +
@@ -182,27 +185,32 @@ export function getActiveTeamsP(personId, prevetag) {
 /**
  * teamId :: integer()
  * prevetag :: null || opaque()
- * responsefn :: (team :: 'notmodified' | teamData :: json(),
- *                etag :: opaque)
- * On error, `team` = `etag` = null.
  *
- * Return the teams in the active races that `personId` is registered for.
+ * Get the teams in the active races that `personId` is registered for.
  * A race becomes inactive when the results are final.
+ *
+ * Returns Promise
+ * @resolve :: { data :: json(),
+ *               modified :: boolean(),
+ *               etag :: opaque }
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
-export function getTeam(teamId, prevetag, responsefn) {
-    return getJSON('/api/v1/teams/' + teamId, prevetag, responsefn);
+export function getTeamP(teamId, prevetag) {
+    return getJSONP('/api/v1/teams/' + teamId, prevetag);
 };
 
 export function getRace(raceId, prevetag) {
     return getJSON('/api/v1/races/' + raceId, prevetag);
 };
 
-export function getTerrain(terrainId) {
-    return getS3JSON('/terrain-' + terrainId + '.json.gz');
+/**
+ * Returns Promise
+ * @resolve :: json()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getTerrainP(terrainId) {
+    return getS3JSONP('/terrain-' + terrainId + '.json.gz');
 };
-
-window.gt = getTerrain;
-
 
 /**
  * regattaIds :: [regattaId :: integer()]
@@ -296,7 +304,12 @@ export function getTeamsPerRegatta(regattaIds, prevetags, responsefn) {
               function() { if (responsefn) { responsefn(null, null); } });
 };
 
-export function getTeamLog(teamId, client, updatedAfter, responsefn) {
+/**
+ * Returns Promise
+ * @resolve :: data :: any()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getTeamLogP(teamId, client, updatedAfter) {
     var url = '/api/v1/logs?from_team=' + teamId;
     if (client) {
         url += '&not_client=' + client;
@@ -304,11 +317,13 @@ export function getTeamLog(teamId, client, updatedAfter, responsefn) {
     if (updatedAfter) {
         url += '&updated_after=' + updatedAfter;
     }
-    return getJSON(url, null, responsefn);
+    return getJSONP(url, null)
+        .then(function(result) {
+            return result.data;
+        });
 };
 
-export function getNewRegattaLog(regattaId, teamId,
-                                 updatedAfter, responsefn) {
+export function getNewRegattaLogP(regattaId, teamId, updatedAfter) {
     var url = '/api/v1/logs?from_regatta=' + regattaId + '&has_type=round';
     if (teamId) {
         url += '&not_team=' + teamId;
@@ -316,20 +331,31 @@ export function getNewRegattaLog(regattaId, teamId,
     if (updatedAfter) {
         url += '&updated_after=' + updatedAfter;
     }
-    return getJSON(url, null, responsefn);
+    return getJSON(url, null)
+        .then(function(result) {
+            return result.data;
+        });
 };
 
-export function getFullRegattaLog(regattaId, responsefn) {
+/**
+ * Returns Promise
+ * @resolve :: data :: any()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getFullRegattaLogP(regattaId) {
     var url = '/api/v1/logs?from_regatta=' + regattaId;
-    return getJSON(url, null, responsefn);
+    return getJSONP(url, null)
+        .then(function(result) {
+            return result.data;
+        });
 };
 
-export function postLogEntry(data, responsefn) {
-    postJSON('/api/v1/logs', data, responsefn);
+export function postLogEntryP(data) {
+    return postJSONP('/api/v1/logs', data);
 };
 
-export function patchLogEntry(logid, data, responsefn) {
-    patchJSON('/api/v1/logs/' + logid, data, responsefn);
+export function patchLogEntryP(logid, data) {
+    return patchJSONP('/api/v1/logs/' + logid, data);
 };
 
 function getJSON(urlpath, etag, responsefn) {
@@ -373,7 +399,7 @@ function getJSON(urlpath, etag, responsefn) {
 /**
  * Returns Promise
  * @resolve :: { etag :: string(), modified :: boolean(), data :: any() }
- * @reject :: null
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 function getJSONP(urlpath, etag) {
     return new Promise(function(resolve, reject) {
@@ -392,18 +418,19 @@ function getJSONP(urlpath, etag) {
                 return true;
             },
             success: function(data, _status, jqXHR) {
+                console.log(urlpath + ' -> ' + JSON.stringify(data));
                 resolve({
                     etag: jqXHR.getResponseHeader('ETag'),
                     modified: (jqXHR.status != 304),
                     data: data
                 });
             },
-            error: function(jqXHR) {
-                var errorstr = 'req error for ' + urlpath + ': ' + jqXHR.status;
+            error: function(jqXHR, textStatus, errorThrown) {
+                var errorstr = 'req error for ' + urlpath + ': ' +jqXHR.status;
                 console.log(errorstr);
                 debugInfo['getjsonerror'] = errorstr + ' ' +
                     moment().format();
-                reject();
+                reject(mkError(jqXHR, textStatus, errorThrown));
             }
         });
     });
@@ -432,58 +459,71 @@ function getAJAX(urlpath, etag, opaque) {
     });
 };
 
-function getS3JSON(urlpath) {
-    return $.ajax({
-        url: S3URL + urlpath,
-        dataType: 'json',
-        error: function(jqXHR) {
-            var errorstr = 'req error for ' + S3URL + urlpath +
-                ': ' + jqXHR.status;
-            console.log(errorstr);
-            debugInfo['gets3error'] = errorstr + ' ' +
-                moment().format();
-        }
-    });
-};
-
-function postJSON(urlpath, data, responsefn) {
-    setJSON('POST', urlpath, data, responsefn);
-};
-
-function patchJSON(urlpath, data, responsefn) {
-    setJSON('PATCH', urlpath, data, responsefn);
-};
-
-function setJSON(method, urlpath, data, responsefn) {
-    $.ajax({
-        url: URL + urlpath,
-        method: method,
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        beforeSend: function(jqXHR) {
-            jqXHR.setRequestHeader('X-User-Email', APIstate.email);
-            jqXHR.setRequestHeader('X-User-Token', APIstate.token);
-            return true;
-        },
-        success: function(data) {
-            responsefn(data);
-        },
-        error: function(jqXHR) {
-            if (jqXHR.status == 409) {
-                //console.log(method + ' ' + urlpath + 'returns 409  conflict');
-                responsefn('conflict');
-            } else {
-                var errorstr = method + ' error for ' + urlpath + ': ' +
-                    jqXHR.status;
+function getS3JSONP(urlpath) {
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            url: S3URL + urlpath,
+            dataType: 'json',
+            success: function(data) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                var errorstr = 'req error for ' + urlpath + ': ' +jqXHR.status;
                 console.log(errorstr);
-                debugInfo['setjsonerr'] = errorstr + ' ' +
+                debugInfo['gets3error'] = errorstr + ' ' +
                     moment().format();
-                responsefn(null);
+                reject(mkError(jqXHR, textStatus, errorThrown));
             }
-        }
+        });
     });
 };
+
+function postJSONP(urlpath, data) {
+    return setJSONP('POST', urlpath, data);
+};
+
+function patchJSONP(urlpath, data) {
+    return setJSONP('PATCH', urlpath, data);
+};
+
+function setJSONP(method, urlpath, data) {
+    return new Promise(function(resolve, reject) {
+        console.log(urlpath + ' <- ' + JSON.stringify(data));
+        $.ajax({
+            url: URL + urlpath,
+            method: method,
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            beforeSend: function(jqXHR) {
+                jqXHR.setRequestHeader('X-User-Email', APIstate.email);
+                jqXHR.setRequestHeader('X-User-Token', APIstate.token);
+                return true;
+            },
+            success: function(data) {
+                if (data) {
+                    resolve(data);
+                } else {
+                    reject(data);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (jqXHR.status == 409) {
+                    //console.log(method+' '+urlpath+'returns 409 conflict');
+                    resolve('conflict');
+                } else {
+                    var errorstr = method + ' error for ' + urlpath + ': ' +
+                        jqXHR.status;
+                    console.log(errorstr);
+                    debugInfo['setjsonerr'] = errorstr + ' ' +
+                        moment().format();
+                    reject(mkError(jqXHR, textStatus, errorThrown));
+                }
+            }
+        });
+    });
+};
+
 
 /*
 function delObj(urlpath, responsefn) {

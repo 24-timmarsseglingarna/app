@@ -195,6 +195,7 @@ function timeout() {
 
     updateServerDataP(getSetting('personId'))
         .then(function() {
+            console.log('updated from server 1');
             serverDataUpdateDone();
             var curRegatta = curState.curRegatta.get();
             if (curRegatta) {
@@ -219,8 +220,10 @@ function timeout() {
         .then(function() {
             setTimer();
         })
-        .catch(function() {
+        .catch(function(x) {
             // reset timer also on error
+            console.log('log sync error: ' + x);
+            console.log(x.stack);
             setTimer();
         });
 };
@@ -241,7 +244,7 @@ function timeout() {
  *
  * Returns Promise
  * @resolve :: true | null
- * @reject :: { errorStr :: string() }
+ * @reject :: errorStr :: string()
  */
 export function checkServerCompatibleP() {
     if (curState.isServerCompatible == true) {
@@ -260,7 +263,7 @@ export function checkServerCompatibleP() {
                             var re = new RegExp(r[i].app_version);
                             if (re.test(tfAppVsn)) {
                                 curState.isServerCompatible = false;
-                                throw { errorStr: r[i].upgrade_text };
+                                throw r[i].upgrade_text;
                             }
                         }
                     }
@@ -274,7 +277,7 @@ export function checkServerCompatibleP() {
                     } else {
                         // new major version on server
                         curState.isServerCompatible = false;
-                        throw { errorStr: '' };
+                        throw '';
                     }
                 } else if (data.errorCode == 0) {
                     // connection error, keep going
@@ -283,10 +286,10 @@ export function checkServerCompatibleP() {
                 } else if (data.errorStr) {
                     // some other error, treat as non-compatible
                     curState.isServerCompatible = false;
-                    throw data;
+                    throw data.errorStr;
                 } else {
                     curState.isServerCompatible = false;
-                    throw { errorStr: '' };
+                    throw '';
                 }
             });
     }
@@ -295,7 +298,7 @@ export function checkServerCompatibleP() {
 /**
  * Returns Promise
  * @resolve :: true
- * @reject :: false | 'nonetwork' | { errorStr :: string() }
+ * @reject :: false | 'nonetwork' | string()
  */
 export function setupLoginP() {
     if (hasNetwork() && curState.isServerCompatible == null) {

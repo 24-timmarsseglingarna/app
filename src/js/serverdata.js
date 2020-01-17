@@ -44,30 +44,29 @@ export function clearCache() {
     myRegattaIds = [];
 };
 
-export function getNewRegattaLog(regattaId, teamId,
-                                 lastUpdate, responsefn) {
-    serverAPI.getNewRegattaLog(
-        regattaId, teamId, lastUpdate,
-        function(data) {
+export function getNewRegattaLogP(regattaId, teamId, lastUpdate) {
+    return serverAPI.getNewRegattaLogP(regattaId, teamId, lastUpdate)
+        .then(function(data) {
             if (data) {
-                var log = data.map(mkLogSummaryData);
-                responsefn(log);
+                return data.map(mkLogSummaryData);
             } else {
-                responsefn(null);
+                return [];
             }
         });
 };
 
 export function getRegattaLogs(regattaId, responsefn) {
-    serverAPI.getFullRegattaLog(
-        regattaId,
-        function(data) {
+    return serverAPI.getFullRegattaLogP(regattaId)
+        .then(function(data) {
             if (data) {
-                var log = data.map(mkLogData);
-                responsefn(log);
+                return data.map(mkLogData);
             } else {
-                responsefn(null);
+                return [];
             }
+        })
+        .then(function(tmpresult) {
+            // FIXME, temporary; don't pass responsefn!
+            responsefn(tmpresult);
         });
 };
 
@@ -117,85 +116,45 @@ export function getRaceP(raceId) {
 };
 
 export function getTerrainP(terrainId) {
-    return serverAPI.getTerrain(terrainId)
+    return serverAPI.getTerrainP(terrainId)
         .then(function(data) {
             terrains[terrainId] = data;
             return data;
         });
 };
 
-export function getTeam(teamId, responsefn) {
-    serverAPI.getTeam(
-        teamId,
-        null,
-        function(r) {
-            var team = null;
-            if (r) {
-                team = mkTeamData(r);
-            }
-            responsefn(team);
-        });
-};
-
 export function getTeamP(teamId) {
-    return serverAPI.getTeam(teamId, null)
-        .then(function(r) {
-            var teamData = mkTeamData(r);
-            myTeams = [teamData];
-            return teamData;
+    return serverAPI.getTeamP(teamId, null)
+        .then(function(response) {
+            return mkTeamData(response.data);
         });
 };
 
-export function getTeamLog(teamId, lastUpdate, responsefn) {
+/**
+ * Returns Promise
+ * @resolve :: [ logData() ]
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getTeamLogP(teamId, lastUpdate) {
     var client;
     if (lastUpdate) {
         client = clientId.get();
     }
-    serverAPI.getTeamLog(
-        teamId, client, lastUpdate,
-        function(data) {
-            if (data) {
-                var log = data.map(mkLogData);
-                responsefn(log);
-            } else {
-                responsefn(null);
-            }
-        });
-};
-
-export function getTeamLogP(teamId, lastUpdate) {
-    return serverAPI.getTeamLog(
-        teamId, null, lastUpdate)
+    return serverAPI.getTeamLogP(teamId, client, lastUpdate)
         .then(function(data) {
             return data.map(mkLogData);
         });
 };
 
-export function postLogEntry(teamId, data, responsefn) {
-    serverAPI.postLogEntry(
-        mkServerLogData(data, teamId),
-        function(res) {
-            if (res && res.id) {
-                responsefn(res.id, res.gen);
-            } else {
-                responsefn(null, null);
-            }
-        });
+export function postLogEntryP(teamId, data) {
+    return serverAPI.postLogEntryP(mkServerLogData(data, teamId));
 };
 
-export function patchLogEntry(logId, data, responsefn) {
-    serverAPI.patchLogEntry(
-        logId,
-        mkServerLogData(data),
-        function(res) {
-            if (res == 'conflict') {
-                responsefn('conflict');
-            } else if (res && res.gen) {
-                responsefn(res.gen);
-            } else {
-                // error
-                responsefn(null);
-            }
+export function patchLogEntryP(logId, data) {
+    return serverAPI.patchLogEntryP(logId, mkServerLogData(data))
+        .then(function(x) {
+            console.log('patch ok ' + x);
+            return x;
         });
 };
 
@@ -211,8 +170,7 @@ function getRegattaIds(myTeams) {
 };
 
 export function updateServerDataP(personId) {
-    return serverAPI.getActiveTeamsP(
-        personId, myTeamsETag)
+    return serverAPI.getActiveTeamsP(personId, myTeamsETag)
         .then(function(response) {
             var newMyTeamsETag = response.etag;
             var newMyTeams = null;
