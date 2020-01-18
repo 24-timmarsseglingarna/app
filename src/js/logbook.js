@@ -774,10 +774,10 @@ LogBook.prototype.sendToServerP = function(updated) {
                     // continue
                     return logBook.sendToServerP(true);
                 })
-                .catch(function() {
+                .catch(function(e) {
                     // error; wait and try later
-                    console.log('post error: ' + x);
-                    console.log(x.stack);
+                    console.log('post error: ' + e);
+                    console.log(e.stack);
                     e.state = 'dirty';
                     if (updated) {
                         logBook._updateLog('syncError');
@@ -818,10 +818,10 @@ LogBook.prototype.sendToServerP = function(updated) {
                     // continue
                     return logBook.sendToServerP(true);
                 })
-                .catch(function(x) {
+                .catch(function(e) {
                     // error; wait and try later
-                    console.log('patch error: ' + x);
-                    console.log(x.stack);
+                    console.log('patch error: ' + e);
+                    console.log(e.stack);
                     e.state = 'dirty';
                     if (updated) {
                         logBook._updateLog('syncError');

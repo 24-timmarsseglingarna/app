@@ -107,9 +107,9 @@ export function getRegattaRaces(regattaId, responsefn) {
 };
 
 export function getRaceP(raceId) {
-    return serverAPI.getRace(raceId, null)
-        .then(function(r) {
-            var race = mkRaceData(r);
+    return serverAPI.getRaceP(raceId, null)
+        .then(function(response) {
+            var race = mkRaceData(response.data);
             races[race.regatta_id] = race;
             return race;
         });

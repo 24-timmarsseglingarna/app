@@ -154,8 +154,8 @@ export function validateTokenP(email, token, personId) {
     // the response will contain the user's role.
     setCredentials(email, token);
     return getJSONP('/api/v1/people/' + personId, null)
-        .then(function(response) {
-            return response.data;
+        .then(function(result) {
+            return result.data;
         });
 };
 
@@ -199,8 +199,15 @@ export function getTeamP(teamId, prevetag) {
     return getJSONP('/api/v1/teams/' + teamId, prevetag);
 };
 
-export function getRace(raceId, prevetag) {
-    return getJSON('/api/v1/races/' + raceId, prevetag);
+/**
+ * Returns Promise
+ * @resolve :: { data :: json(),
+ *               modified :: boolean(),
+ *               etag :: opaque }
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+*/
+export function getRaceP(raceId, prevetag) {
+    return getJSONP('/api/v1/races/' + raceId, prevetag);
 };
 
 /**
@@ -331,7 +338,7 @@ export function getNewRegattaLogP(regattaId, teamId, updatedAfter) {
     if (updatedAfter) {
         url += '&updated_after=' + updatedAfter;
     }
-    return getJSON(url, null)
+    return getJSONP(url, null)
         .then(function(result) {
             return result.data;
         });
@@ -356,44 +363,6 @@ export function postLogEntryP(data) {
 
 export function patchLogEntryP(logid, data) {
     return patchJSONP('/api/v1/logs/' + logid, data);
-};
-
-function getJSON(urlpath, etag, responsefn) {
-    //console.log('req: ' + urlpath);
-    if (!responsefn) {
-        // FIXME: remove when we use promises everywhere
-        responsefn = function() {};
-    }
-    return $.ajax({
-        url: URL + urlpath,
-        dataType: 'json',
-        beforeSend: function(jqXHR) {
-            jqXHR.setRequestHeader('X-User-Email', APIstate.email);
-            jqXHR.setRequestHeader('X-User-Token', APIstate.token);
-            if (etag) {
-                jqXHR.setRequestHeader('If-None-Match', etag);
-            } else {
-                // make sure we don't use the browser's cache
-                jqXHR.setRequestHeader('If-None-Match', '');
-            }
-            return true;
-        },
-        success: function(data, _status, jqXHR) {
-            var etag = jqXHR.getResponseHeader('ETag');
-            if (jqXHR.status == 304) {
-                responsefn('notmodified', etag);
-            } else {
-                responsefn(data, etag);
-            }
-        },
-        error: function(jqXHR) {
-            var errorstr = 'req error for ' + urlpath + ': ' + jqXHR.status;
-            console.log(errorstr);
-            debugInfo['getjsonerror'] = errorstr + ' ' +
-                moment().format();
-            responsefn(null, null);
-        }
-    });
 };
 
 /**
@@ -523,31 +492,3 @@ function setJSONP(method, urlpath, data) {
         });
     });
 };
-
-
-/*
-function delObj(urlpath, responsefn) {
-    $.ajax({
-        url: URL + urlpath,
-        method: 'DELETE',
-        beforeSend: function(jqXHR) {
-            jqXHR.setRequestHeader('X-User-Email', APIstate.email);
-            jqXHR.setRequestHeader('X-User-Token', APIstate.token);
-            return true;
-        },
-        success: function() {
-            responsefn(true);
-        },
-        error: function(jqXHR) {
-            console.log('delete error for ' + urlpath + ': ' + jqXHR.status);
-            if (jqXHR.status == 404) {
-                // The object doesn't exists on the server, good.
-                responsefn(true);
-            } else {
-                // The object might not have been deleted
-                responsefn(false);
-            }
-        }
-    });
-}
-*/
