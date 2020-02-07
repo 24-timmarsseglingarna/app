@@ -1,6 +1,6 @@
 /* -*- js -*- */
 
-import {init as initState, curState} from './state.js';
+import {initP as initStateP, curState} from './state.js';
 import {isCordova, isTouch} from './util.js';
 import {initMapUI} from './ui.js';
 import {basePodSpec} from '../../build/pod.js';
@@ -24,8 +24,13 @@ function initRace() {
 };
 
 function onDeviceReady() {
-    initState();
+    initStateP().
+        then(function() {
+            init();
+        });
+};
 
+function init() {
     if (!isTouch) {
         /* Prevent ESC from making whole page blank */
         $(':input').on('keydown', function(e) {

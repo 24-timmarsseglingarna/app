@@ -1,8 +1,11 @@
 /* -*- js -*- */
 
-import {getCachedMyTeams, getCachedTeams, getCachedRaces,
-        setCachedMyTeams, setCachedTeams, setCachedRaces} from './storage.js';
+import {getCachedMyTeams, getCachedTeams,
+        getCachedRaces, getCachedTerrain,
+        setCachedMyTeams, setCachedTeams,
+        setCachedRaces, setCachedTerrain} from './storage.js';
 import * as serverAPI from './serverapi';
+import {Pod} from './pod.js';
 
 var myTeams;
 var myTeamsETag;
@@ -12,12 +15,12 @@ var racesETags;
 var teams;
 var teamsETags;
 var clientId;
-var terrains;
+var pods = {};
 
 /**
  * Note that this is not an object b/c this a global property.
  */
-export function init(clientIdV) {
+export function initP(clientIdV) {
     var m;
     // My teams in the races I am participating in.
     m = getCachedMyTeams() || {data: [], etags: null};
@@ -29,13 +32,13 @@ export function init(clientIdV) {
     m = getCachedRaces() || {data: {}, etags: {}};
     races = m.data;
     racesETags = m.etags;
-    //
-    terrains = {};
     // All teams in the regattas I am participating in.
     m = getCachedTeams() || {data: {}, etags: {}};
     teams = m.data;
     teamsETags = m.etags;
     clientId = clientIdV;
+    // All pods for the regattas I am participating in.
+    return setCachedPodsP();
 };
 
 export function clearCache() {
@@ -44,6 +47,12 @@ export function clearCache() {
     myRegattaIds = [];
 };
 
+/**
+ * Fetch all 'round' logentries from all teams except `teamId` in `regattaId`.
+ * Returns Promise
+ * @resolve :: [ logSummaryData() ]
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
 export function getNewRegattaLogP(regattaId, teamId, lastUpdate) {
     return serverAPI.getNewRegattaLogP(regattaId, teamId, lastUpdate)
         .then(function(data) {
@@ -55,7 +64,13 @@ export function getNewRegattaLogP(regattaId, teamId, lastUpdate) {
         });
 };
 
-export function getRegattaLogs(regattaId, responsefn) {
+/**
+ * Fetch all logentries from all teams in `regattaId`.
+ * Returns Promise
+ * @resolve :: [ logData() ]
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getRegattaLogsP(regattaId) {
     return serverAPI.getFullRegattaLogP(regattaId)
         .then(function(data) {
             if (data) {
@@ -63,49 +78,47 @@ export function getRegattaLogs(regattaId, responsefn) {
             } else {
                 return [];
             }
-        })
-        .then(function(tmpresult) {
-            // FIXME, temporary; don't pass responsefn!
-            responsefn(tmpresult);
         });
 };
 
-export function getRegattaTeams(regattaId, responsefn) {
-    serverAPI.getTeamsPerRegatta(
-        [regattaId],
-        [null],
-        function(r) {
-            var teams = null;
-            if (r) {
-                teams = r[regattaId].map(mkTeamData);
-            }
-            responsefn(teams);
-        });
-};
-
+/**
+ * Fetch team data for all teams in `regattaId`.
+ * Returns Promise
+ * @resolve :: teamData()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
 export function getRegattaTeamsP(regattaId) {
-    return serverAPI.getTeamsPerRegatta(
-        [regattaId],
-        [null])
+    return serverAPI.getTeamsPerRegattaP([regattaId], [null])
         .then(function(r) {
             teams[regattaId] = r.teams[regattaId].map(mkTeamData);
             return teams[regattaId];
         });
 };
 
-export function getRegattaRaces(regattaId, responsefn) {
-    serverAPI.getRacesPerRegatta(
-        [regattaId],
-        [null],
-        function(r) {
+/**
+ * Fetch race data for all races in `regattaId`.
+ * Returns Promise
+ * @resolve :: [raceData()]
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getRegattaRacesP(regattaId) {
+    serverAPI.getRacesPerRegattaP([regattaId], [null])
+        .then(function(r) {
+            console.log('racesPer: ' + JSON.stringify(r));
             var races = null;
-            if (r) {
-                races = r[regattaId].map(mkRaceData);
+            if (r.races) {
+                races = r.races[regattaId].map(mkRaceData);
             }
-            responsefn(races);
+            return races;
         });
 };
 
+/**
+ * Fetch race data for the given race `raceId`.
+ * Returns Promise
+ * @resolve :: raceData()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
 export function getRaceP(raceId) {
     return serverAPI.getRaceP(raceId, null)
         .then(function(response) {
@@ -115,14 +128,72 @@ export function getRaceP(raceId) {
         });
 };
 
-export function getTerrainP(terrainId) {
+/**
+ * Fetch a Pod for the given terrain `terrainId`.
+ * Returns Promise
+ * @resolve :: Pod()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getPodP(terrainId) {
+    var pod = getPod(terrainId);
+    if (pod) {
+        return new Promise(function(resolve) {
+            resolve(pod);
+        });
+    }
     return serverAPI.getTerrainP(terrainId)
         .then(function(data) {
-            terrains[terrainId] = data;
-            return data;
+            setCachedTerrain(data);
+            pods[terrainId] = new Pod(data);
+            return pods[terrainId];
         });
 };
 
+function getAllPodsP(terrainIds, idx) {
+    if (idx >= terrainIds.length) {
+        return new Promise(function(resolve) {
+            resolve(true);
+        });
+    }
+    return getPodP(terrainIds[idx])
+        .then(function() {
+            return getAllPodsP(terrainIds, idx + 1);
+        });
+};
+
+function setCachedPodsP() {
+    var terrainIds = [];
+    for (var id in races) {
+        if (!terrainIds.includes(races[id][0].terrain_id)) {
+            terrainIds.push(races[id][0].terrain_id);
+        }
+    }
+    return getAllPodsP(terrainIds, 0);
+};
+
+/**
+ * Returns locally stored Pod for the given terrain, if it exists.
+ */
+export function getPod(terrainId) {
+    if (pods[terrainId]) {
+        return pods[terrainId];
+    } else {
+        var t = getCachedTerrain(terrainId);
+        if (t) {
+            pods[terrainId] = new Pod(t);
+            return pods[terrainId];
+        } else {
+            return undefined;
+        }
+    }
+};
+
+/**
+ * Fetch team data for the given team `teamId`.
+ * Returns Promise
+ * @resolve :: teamData()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
 export function getTeamP(teamId) {
     return serverAPI.getTeamP(teamId, null)
         .then(function(response) {
@@ -190,9 +261,10 @@ export function updateServerDataP(personId) {
                 var rIds = getRegattaIds(newMyTeams);
                 myRegattaIds = rIds;
             }
-            return serverAPI.getRacesPerRegatta(
-                myRegattaIds,
-                racesETags);
+            return myRegattaIds;
+        })
+        .then(function() {
+            return serverAPI.getRacesPerRegattaP(myRegattaIds, racesETags);
         })
         .then(function(result) {
             var r = result.races;
@@ -218,17 +290,12 @@ export function updateServerDataP(personId) {
                     data: races,
                     etags: racesETags});
             }
-            return updateTeams();
-        });
-};
-
-// HERE: fetch pod
-
-function updateTeams(continueFn) {
-    return serverAPI.getTeamsPerRegatta(
-        myRegattaIds,
-        teamsETags,
-        function(r, newTeamsETags) {
+            return serverAPI.getTeamsPerRegattaP(myRegattaIds, teamsETags);
+        })
+        .then(function(result) {
+            console.log('teamsPer: ' + JSON.stringify(result));
+            var r = result.teams;
+            var newTeamsETags = result.etags;
             var newTeams = null;
             if (r) {
                 newTeams = {};
@@ -249,9 +316,17 @@ function updateTeams(continueFn) {
                     data: teams,
                     etags: teamsETags});
             }
-            if (continueFn) {
-                continueFn();
+            return true;
+        })
+        .then(function() {
+            var terrainIds = [];
+            for (var regattaId in races) {
+                var t = races[regattaId][0].terrain_id;
+                if (t && !(terrainIds.includes(t))) {
+                    terrainIds.push(t);
+                }
             }
+            return getAllPodsP(terrainIds, 0);
         });
 };
 

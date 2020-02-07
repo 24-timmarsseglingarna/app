@@ -15,18 +15,14 @@ var productionS3URL = 'https://gionaprod.s3.amazonaws.com';
 export var URL = productionURL;
 export var S3URL = productionS3URL;
 
-// FIXME - dev
-S3URL = 'http://gionadev.s3.amazonaws.com';
-URL = 'http://localhost:3000';
-
 export function setProductionServer() {
-//    URL = productionURL;
-    //S3URL = productionS3URL;
+    URL = productionURL;
+    S3URL = productionS3URL;
 };
 
 export function setStagingServer() {
-//    URL = stagingURL;
-    //S3URL = stagingS3URL;
+    URL = stagingURL;
+    S3URL = stagingS3URL;
 };
 
 export function setServerURL(url) {
@@ -227,32 +223,7 @@ export function getTerrainP(terrainId) {
  *                etags :: opaque())
  * On error, races = etags = null.
  */
-export function getRacesPerRegatta(regattaIds, prevetags, responsefn) {
-    var cfn = function() {
-        var responses = [].slice.call(arguments);
-        var races = {};
-        var etags = {};
-        // NOTE:  It seems arguments is not an Array of
-        // 3-Arrays if there is just one reply - in that case it is just
-        // a 3-Array directly.
-        if (typeof responses[1] == 'string') {
-            responses = [responses];
-        }
-        for (var i = 0; i < responses.length; i++) {
-            // each response is a list of 3 items [data, status, jqXHR]
-            // each data is a list of zero or more races
-            var regattaId = responses[i][2].tfOpaque;
-            var etag = responses[i][2].getResponseHeader('ETag');
-            if (responses[i][2].status == 304) {
-                races[regattaId] = 'notmodified';
-            } else {
-                races[regattaId] = responses[i][0];
-            }
-            etags[regattaId] = etag;
-        }
-        if (responsefn) { responsefn(races, etags); }
-        return {races: races, etags: etags};
-    };
+export function getRacesPerRegattaP(regattaIds, prevetags) {
     var requests = [];
     for (var i = 0; i < regattaIds.length; i++) {
         var etag = prevetags[regattaIds[i]];
@@ -261,8 +232,30 @@ export function getRacesPerRegatta(regattaIds, prevetags, responsefn) {
     }
     // wait for all requests to finish
     return $.when.apply($, requests)
-        .then(cfn,
-              function() { if (responsefn) { responsefn(null, null); } });
+        .then(function() {
+            var responses = [].slice.call(arguments);
+            var races = {};
+            var etags = {};
+            // NOTE:  It seems arguments is not an Array of
+            // 3-Arrays if there is just one reply - in that case it is just
+            // a 3-Array directly.
+            if (typeof responses[1] == 'string') {
+                responses = [responses];
+            }
+            for (var i = 0; i < responses.length; i++) {
+                // each response is a list of 3 items [data, status, jqXHR]
+                // each data is a list of zero or more races
+                var regattaId = responses[i][2].tfOpaque;
+                var etag = responses[i][2].getResponseHeader('ETag');
+                if (responses[i][2].status == 304) {
+                    races[regattaId] = 'notmodified';
+                } else {
+                    races[regattaId] = responses[i][0];
+                }
+                etags[regattaId] = etag;
+            }
+            return {races: races, etags: etags};
+        });
 };
 
 /**
@@ -273,32 +266,7 @@ export function getRacesPerRegatta(regattaIds, prevetags, responsefn) {
  *                etags :: opaque())
  * On error, teams = etags = null.
  */
-export function getTeamsPerRegatta(regattaIds, prevetags, responsefn) {
-    var cfn = function() {
-        var responses = [].slice.call(arguments);
-        var teams = {};
-        var etags = {};
-        // FIXME: temp hack - it seems arguments is not an Array of
-        // 3-Arrays if there is just one reply - in that case it is just
-        // a 3-Array directly.
-        if (typeof responses[1] == 'string') {
-            responses = [responses];
-        }
-        for (var i = 0; i < responses.length; i++) {
-            // each response is a list of 3 items [data, status, jqXHR]
-            // each data is a list of zero or more teams
-            var regattaId = responses[i][2].tfOpaque;
-            var etag = responses[i][2].getResponseHeader('ETag');
-            if (responses[i][2].status == 304) {
-                teams[regattaId] = 'notmodified';
-            } else {
-                teams[regattaId] = responses[i][0];
-            }
-            etags[regattaId] = etag;
-        }
-        if (responsefn) { responsefn(teams, etags); }
-        return {teams: teams, etags: etags};
-    };
+export function getTeamsPerRegattaP(regattaIds, prevetags) {
     var requests = [];
     for (var i = 0; i < regattaIds.length; i++) {
         var etag = prevetags[regattaIds[i]];
@@ -307,8 +275,30 @@ export function getTeamsPerRegatta(regattaIds, prevetags, responsefn) {
     }
     // wait for all requests to finish
     return $.when.apply($, requests)
-        .then(cfn,
-              function() { if (responsefn) { responsefn(null, null); } });
+        .then(function() {
+            var responses = [].slice.call(arguments);
+            var teams = {};
+            var etags = {};
+            // FIXME: temp hack - it seems arguments is not an Array of
+            // 3-Arrays if there is just one reply - in that case it is just
+            // a 3-Array directly.
+            if (typeof responses[1] == 'string') {
+                responses = [responses];
+            }
+            for (var i = 0; i < responses.length; i++) {
+                // each response is a list of 3 items [data, status, jqXHR]
+                // each data is a list of zero or more teams
+                var regattaId = responses[i][2].tfOpaque;
+                var etag = responses[i][2].getResponseHeader('ETag');
+                if (responses[i][2].status == 304) {
+                    teams[regattaId] = 'notmodified';
+                } else {
+                    teams[regattaId] = responses[i][0];
+                }
+                etags[regattaId] = etag;
+            }
+            return {teams: teams, etags: etags};
+        });
 };
 
 /**
@@ -434,6 +424,7 @@ function getS3JSONP(urlpath) {
             url: S3URL + urlpath,
             dataType: 'json',
             success: function(data) {
+                console.log(urlpath + ' -> (data)');
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {

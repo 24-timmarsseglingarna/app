@@ -1,6 +1,6 @@
 /* -*- js -*- */
 
-import {defaultClientId} from './util.js';
+import {defaultClientId, isCordova} from './util.js';
 import {debugInfo} from './debug.js';
 
 /**
@@ -20,8 +20,12 @@ var keys = [];
 var cachedRaces = null;
 var cachedMyTeams = null;
 var cachedTeams = null;
+// this will be empty in a browser, since it doesn't have file
+// storage, and the terrains are too big to be stored in localStorage.
+// this is ok; we'll always fetch them.
+var cachedTerrains = {};
 
-export function init(doClear) {
+export function initP(doClear) {
     var i, key, raceId;
 
     if (doClear) {
@@ -201,6 +205,15 @@ export function init(doClear) {
         //console.log('removing old stored key ' + key);
         window.localStorage.removeItem(removedKeys[i]);
     }
+
+    if (isCordova) {
+        // read terrains from file storage
+    }
+
+    // in preparation for async file storage api we return a promise
+    return new Promise(function(resolve) {
+        resolve(true);
+    });
 };
 
 export function getSetting(key) {
@@ -279,6 +292,15 @@ export function setCachedTeams(teams) {
     cachedTeams = teams;
     window.localStorage.setItem('cachedTeams', JSON.stringify(teams));
 };
+
+export function getCachedTerrain(terrainId) {
+    return cachedTerrains[terrainId];
+};
+
+export function setCachedTerrain(terrain) {
+    cachedTerrains[terrain.id] = terrain;
+};
+
 
 function mkRace(r) {
     r.start_from = moment(r.start_from);

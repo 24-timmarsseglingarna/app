@@ -16,8 +16,8 @@ import {Pod} from './pod.js';
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
 import {curState, setupLoginP, setupContinue} from './state.js';
-import {getRegattaLogs, getRegattaTeams,
-        getRegattaRaces} from './serverdata.js';
+import {getRegattaLogsP, getRegattaTeamsP,
+        getRegattaRacesP} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
 import {openLogBook} from './logbookui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
@@ -745,8 +745,10 @@ function planModeActivate(active) {
     } else {
         $('#tf-nav-plan-mode').removeClass('tf-plan-active');
     }
-    inshoreLegsLayer.changed();
-    offshoreLegsLayer.changed();
+    if (inshoreLegsLayer) {
+        inshoreLegsLayer.changed();
+        offshoreLegsLayer.changed();
+    }
     updateStatusBar();
 };
 
@@ -755,8 +757,10 @@ function showLegsActivate(active) {
     // the logged and planned legs are just styles in these layers;
     // if we made the layer invisible, we wouldn't see the plan.
     showLegs = active;
-    inshoreLegsLayer.changed();
-    offshoreLegsLayer.changed();
+    if (inshoreLegsLayer) {
+        inshoreLegsLayer.changed();
+        offshoreLegsLayer.changed();
+    }
 };
 
 function initNavbar() {
@@ -784,8 +788,10 @@ function initNavbar() {
             forceLegDistances = -1;
             break;
         }
-        inshoreLegsLayer.changed();
-        offshoreLegsLayer.changed();
+        if (inshoreLegsLayer) {
+            inshoreLegsLayer.changed();
+            offshoreLegsLayer.changed();
+        }
     });
 
     $('#tf-nav-boats').on('click', function() {
@@ -1016,8 +1022,10 @@ var headerTimer = null;
 
 export function updateAll() {
     updateStatusBar();
-    inshoreLegsLayer.changed();
-    offshoreLegsLayer.changed();
+    if (inshoreLegsLayer) {
+        inshoreLegsLayer.changed();
+        offshoreLegsLayer.changed();
+    }
 };
 
 function setFontSize(val) {
@@ -1048,28 +1056,44 @@ function setFontSize(val) {
 };
 
 /**
- * Add the view and layers to the map
+ * Add the PoD to the map
  */
 
-function initLayers() {
-    var podSpec = basePodSpec;
-    turningPointsLayer =
-        mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
-                      TURN_POINT_COLOR);
-    startPointsLayer =
-        mkPointsLayer(podSpec.startPoints, 'StartPoints',
-                      START_POINT_COLOR);
+function setPodLayers(pod) {
+    map.removeLayer(inshoreLegsLayer);
+    map.removeLayer(offshoreLegsLayer);
+    map.removeLayer(turningPointsLayer);
+    map.removeLayer(startPointsLayer);
 
-    inshoreLegsLayer =
-        mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs',
-                    INSHORE_LEG_COLOR);
-    offshoreLegsLayer =
-        mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
-                    OFFSHORE_LEG_COLOR);
+    if (pod) {
+        var podSpec = pod.getSpec();
+        turningPointsLayer =
+            mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
+                          TURN_POINT_COLOR);
+        startPointsLayer =
+            mkPointsLayer(podSpec.startPoints, 'StartPoints',
+                          START_POINT_COLOR);
+        inshoreLegsLayer =
+            mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs',
+                        INSHORE_LEG_COLOR);
+        offshoreLegsLayer =
+            mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
+                        OFFSHORE_LEG_COLOR);
 
+        map.addLayer(inshoreLegsLayer);
+        map.addLayer(offshoreLegsLayer);
+        map.addLayer(turningPointsLayer);
+        map.addLayer(startPointsLayer);
+    } else {
+        inshoreLegsLayer = undefined;
+        offshoreLegsLayer = undefined;
+        turningPointsLayer = undefined;
+        startPointsLayer = undefined;
+    }
 };
 
 function stateSetupDone() {
+    setPodLayers(curState.defaultPod);
     if (curState.mode.get() == 'showRegatta') {
         showRegatta(curState.showRegattaId.get());
         return;
@@ -1093,12 +1117,14 @@ function stateSetupDone() {
         }
         if (p) {
             var pod = curState.curRace.get().getPod();
-            var point = pod.getPoint(p);
-            if (point && !initialCenterChanged) {
-                var center = transform(point.coords,
-                                       'EPSG:4326', 'EPSG:3857');
-                view.setCenter(center);
-                centerSet = true;
+            if (pod) {
+                var point = pod.getPoint(p);
+                if (point && !initialCenterChanged) {
+                    var center = transform(point.coords,
+                                           'EPSG:4326', 'EPSG:3857');
+                    view.setCenter(center);
+                    centerSet = true;
+                }
             }
         }
     }
@@ -1156,19 +1182,12 @@ export function initMapUI() {
     initMap();
     initPopup();
     initNavbar();
-    initLayers();
 
     var mapLayer = mkMapLayer();
 
     //tf.ui.patchTileUrls();
 
     map.addLayer(mapLayer);
-
-    map.addLayer(inshoreLegsLayer);
-    map.addLayer(offshoreLegsLayer);
-
-    map.addLayer(turningPointsLayer);
-    map.addLayer(startPointsLayer);
 
     map.addOverlay(pointPopup);
     map.addOverlay(plannedPointPopup);
@@ -1193,6 +1212,11 @@ export function initMapUI() {
     });
 
     curState.curRace.onChange(function() {
+        if (curState.curRace.get()) {
+            setPodLayers(curState.curRace.get().getPod());
+        } else {
+            setPodLayers(curState.defaultPod);
+        }
         updateAll();
     });
 
@@ -1262,6 +1286,7 @@ export function initMapUI() {
         })
         .catch(function(response) {
             console.log('ui - login fail: ' + response);
+            console.log(response.stack);
             if (response == false) {
                 openLoginPage();
                 stateSetupDone(); // FIXME
@@ -1279,22 +1304,6 @@ var showTeams;
 var showRaces;
 
 function showRegatta(regattaId) {
-    var cfn2 = function(logs) {
-        var regatta = new Regatta(regattaId, showRaces[0].regatta_name,
-                                  showRaces,
-                                  new Pod(basePodSpec),
-                                  showTeams, logs);
-        $('#tf-nav-boats-badge').show();
-        curState.curRegatta.set(regatta);
-    };
-    var cfn1 = function(teams) {
-        showTeams = teams;
-        getRegattaLogs(regattaId, cfn2);
-    };
-    var cfn0 = function(races) {
-        showRaces = races;
-        getRegattaTeams(regattaId, cfn1);
-    };
     // tmp hack - don't set cur* and boat state when we show the regatta
     curState.curRegatta.set(null);
     curState.curRace.set(null);
@@ -1303,5 +1312,22 @@ function showRegatta(regattaId) {
     curState.boatState.lanterns = false;
     curState.activeInterrupt = false;
 
-    getRegattaRaces(regattaId, cfn0);
-}
+    getRegattaRacesP(regattaId)
+        .then(function(races) {
+            showRaces = races;
+            return getRegattaTeamsP(regattaId);
+        })
+        .then(function(teams) {
+            showTeams = teams;
+            return getRegattaLogsP(regattaId);
+        })
+        .then(function(logs) {
+            var regatta = new Regatta(regattaId, showRaces[0].regatta_name,
+                                      showRaces,
+                                      new Pod(basePodSpec),
+                                      showTeams, logs);
+            $('#tf-nav-boats-badge').show();
+            curState.curRegatta.set(regatta);
+        });
+};
+

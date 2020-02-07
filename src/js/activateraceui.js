@@ -5,6 +5,7 @@ import {pushPage} from './pageui.js';
 import {getSetting} from './storage.js';
 import {getMyRaces, updateServerDataP} from './serverdata.js';
 import {URL} from './serverapi.js';
+import {alert} from './alertui.js';
 
 export function openPage() {
 
@@ -107,7 +108,9 @@ window.tfUiActivateRaceButtonClick = function(raceId) {
     btn.parent().find('button').removeClass('active');
     btn.addClass('active');
 
-    activateRace(raceId);
+    if (!activateRace(raceId)) {
+        alert('<p>Något gick fel.  Kunde inte aktivera seglingen.</p>');
+    }
 };
 
 /**

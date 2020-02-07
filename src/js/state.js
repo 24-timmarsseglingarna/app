@@ -6,13 +6,13 @@ import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
 import {defineVariable, numberToName, isCordova} from './util.js';
-import {init as initStorage,
+import {initP as initStorageP,
         getSetting, setSettings, getRaceLog, setRaceLog} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
         getAPIVersionP, validateTokenP} from './serverapi';
-import {init as initServerData, updateServerDataP,
-        getMyRaces, getRaceData, getMyTeamData, getRacesData,
+import {initP as initServerDataP, updateServerDataP,
+        getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
         clearCache as clearServerDataCache} from './serverdata.js';
 import {debugInfo} from './debug.js';
 import {basePodSpec} from '../../build/pod.js';
@@ -81,10 +81,18 @@ debugInfo['timer'] = function() {
 };
 
 // must be called after device ready since it accesses local files
-export function init() {
+export function initP() {
     // initialize local storage handler
-    initStorage(false);
+    return initStorageP(false)
+        .then(function() {
+            init();
+            // initialize server data; doesn't read from the server, but will
+            // read cached data from local storage.
+            return initServerDataP(curState.clientId);
+        });
+};
 
+function init() {
     if (isCordova) {
         platform = device.platform;
     } else {
@@ -145,10 +153,6 @@ export function init() {
     }
 
     document.addEventListener('resume', onResume, false);
-
-    // initialize server data; doesn't read from the server, but will
-    // read cached data from local storage.
-    initServerData(curState.clientId);
 };
 
 function hasNetwork() {
@@ -404,9 +408,10 @@ export function activateRace(raceId) {
     if (raceId == getSetting('activeRaceId')) {
         return;
     }
-    setActiveRace2(raceId);
+    var r = setActiveRace2(raceId);
     // force an update of serverdata when a new race is activated
     forceTimeout();
+    return r;
 };
 
 function setActiveRace2(raceId) {
@@ -421,13 +426,15 @@ function setActiveRace2(raceId) {
 
     var raceData = getRaceData(raceId);
     var teamData = getMyTeamData(raceId);
-    if (raceData && teamData) {
-        // FIXME: the pod should be more dynamic; it can change on the server
-        var tmpPod = curState.defaultPod;
+    var pod;
+    if (raceData) {
+        pod = getPod(raceData.terrain_id);
+    }
+    if (raceData && teamData && pod) {
         var racesData = getRacesData(raceData.regatta_id);
         var curRegatta = new Regatta(raceData.regatta_id,
                                      raceData.regatta_name,
-                                     racesData, tmpPod);
+                                     racesData, pod);
         var curRace = new Race(curRegatta, raceData);
         // get the stored log from the app storage
         var raceLog = getRaceLog(raceId) || {};
@@ -456,6 +463,7 @@ function setActiveRace2(raceId) {
         curState.curRegatta.set(curRegatta);
         curState.curRace.set(curRace);
         curState.curLogBook.set(curLogBook);
+        return true;
     } else {
         if (curState.mode.get() != 'showRegatta') {
             // FIXME: tmp code
@@ -466,6 +474,7 @@ function setActiveRace2(raceId) {
         curState.boatState.engine = false;
         curState.boatState.lanterns = false;
         curState.activeInterrupt = false;
+        return false;
     }
 };
 
@@ -523,30 +532,33 @@ export function reset(keepauth, doLoginFn) {
     var personId = getSetting('personId');
     var clientId = getSetting('clientId');
     logout();
-    initStorage(true);
-    if (keepauth) {
-        var props = {
-            email: email,
-            password: password,
-            token: token,
-            personId: personId,
-            clientId: clientId
-        };
-    }
-    setSettings(props, true);
-
-    curState.numberOfPlans.set(getSetting('numberOfPlans'));
-    curState.clientId.set(getSetting('clientId'));
-    curState.fontSize.set(getSetting('fontSize'));
-    curState.pollInterval.set(getSetting('pollInterval'));
-    curState.sendLogToServer.set(getSetting('sendLogToServer'));
-    curState.immediateSendToServer.set(getSetting('immediateSendToServer'));
-    curState.serverId.set(getSetting('serverId'));
-
-    setupLoginP()
-        .catch(function(reason) {
-            if (reason == false) {
-                doLoginFn();
+    initStorageP(true)
+        .then(function() {
+            if (keepauth) {
+                var props = {
+                    email: email,
+                    password: password,
+                    token: token,
+                    personId: personId,
+                    clientId: clientId
+                };
             }
+            setSettings(props, true);
+
+            curState.numberOfPlans.set(getSetting('numberOfPlans'));
+            curState.clientId.set(getSetting('clientId'));
+            curState.fontSize.set(getSetting('fontSize'));
+            curState.pollInterval.set(getSetting('pollInterval'));
+            curState.sendLogToServer.set(getSetting('sendLogToServer'));
+            curState.immediateSendToServer.set(
+                getSetting('immediateSendToServer'));
+            curState.serverId.set(getSetting('serverId'));
+
+            return setupLoginP()
+                .catch(function(reason) {
+                    if (reason == false) {
+                        doLoginFn();
+                    }
+                });
         });
 };
