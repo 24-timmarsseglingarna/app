@@ -17,10 +17,11 @@ var teamsETags = {};
 var clientId;
 var pods = {};
 
+
 /**
  * Note that this is not an object b/c this a global property.
  */
-export function initP(clientIdV) {
+export function initP(clientIdV, defaultPod) {
     var m;
     // My teams in the races I am participating in.
     m = getCachedMyTeams() || {data: [], etags: null};
@@ -38,6 +39,7 @@ export function initP(clientIdV) {
     teamsETags = m.etags;
     clientId = clientIdV;
     // All pods for the regattas I am participating in.
+    pods[defaultPod.getTerrain().id] = defaultPod;
     return setCachedPodsP();
 };
 
@@ -102,7 +104,7 @@ export function getRegattaTeamsP(regattaId) {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function getRegattaRacesP(regattaId) {
-    serverAPI.getRacesPerRegattaP([regattaId], [null])
+    return serverAPI.getRacesPerRegattaP([regattaId], [null])
         .then(function(r) {
             console.log('racesPer: ' + JSON.stringify(r));
             var races = null;

@@ -12,11 +12,10 @@ import {transform} from 'ol/proj.js';
 
 import {Popup} from './ol-popup.js';
 
-import {Pod} from './pod.js';
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
 import {curState, setupLoginP, setupContinue} from './state.js';
-import {getRegattaLogsP, getRegattaTeamsP,
+import {getRegattaLogsP, getRegattaTeamsP, getPodP,
         getRegattaRacesP} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
 import {openLogBook} from './logbookui.js';
@@ -26,7 +25,6 @@ import {openPage as openPlanMenuPage} from './planmenuui.js';
 import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
-import {basePodSpec} from '../../build/pod.js';
 import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
 
@@ -1066,7 +1064,7 @@ function setPodLayers(pod) {
     map.removeLayer(startPointsLayer);
 
     if (pod) {
-        var podSpec = pod.getSpec();
+        var podSpec = pod.getTerrain();
         turningPointsLayer =
             mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
                           TURN_POINT_COLOR);
@@ -1294,14 +1292,18 @@ export function initMapUI() {
                 alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
                       'du har nätverk.</p>');
                 stateSetupDone();
+            } else if (typeof(response) == 'string') {
+                alertUpgrade(response);
             } else {
-                alertUpgrade(response.errorStr);
+                alert('<p>Något gick fel.</p>' +
+                      '<pre>' + response.stack + '</pre>');
             }
         });
 };
 
 var showTeams;
 var showRaces;
+var showPod;
 
 function showRegatta(regattaId) {
     // tmp hack - don't set cur* and boat state when we show the regatta
@@ -1315,6 +1317,13 @@ function showRegatta(regattaId) {
     getRegattaRacesP(regattaId)
         .then(function(races) {
             showRaces = races;
+            if (races.length == 0) {
+                throw false;
+            }
+            return getPodP(races[0].terrain_id);
+        })
+        .then(function(pod) {
+            showPod = pod;
             return getRegattaTeamsP(regattaId);
         })
         .then(function(teams) {
@@ -1323,11 +1332,8 @@ function showRegatta(regattaId) {
         })
         .then(function(logs) {
             var regatta = new Regatta(regattaId, showRaces[0].regatta_name,
-                                      showRaces,
-                                      new Pod(basePodSpec),
-                                      showTeams, logs);
+                                      showRaces, showPod, showTeams, logs);
             $('#tf-nav-boats-badge').show();
             curState.curRegatta.set(regatta);
         });
 };
-

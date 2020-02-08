@@ -16,7 +16,7 @@ var TURNING_POINT = 2;
 /**
  * @constructor
  */
-export function Pod(spec) {
+export function Pod(terrain) {
     /**
      * The `type` is one of START_POINT or TURNING_POINT
      * The `legs` maps a point to a distance
@@ -26,16 +26,16 @@ export function Pod(spec) {
      *         }}
      */
     this.points = {};
-    this.spec = spec;
+    this.terrain = terrain;
 
-    this._addPoints(spec.startPoints, START_POINT);
-    this._addPoints(spec.turningPoints, TURNING_POINT);
-    this._addLegs(spec.inshoreLegs);
-    this._addLegs(spec.offshoreLegs);
+    this._addPoints(terrain.startPoints, START_POINT);
+    this._addPoints(terrain.turningPoints, TURNING_POINT);
+    this._addLegs(terrain.inshoreLegs);
+    this._addLegs(terrain.offshoreLegs);
 };
 
-Pod.prototype.getSpec = function() {
-    return this.spec;
+Pod.prototype.getTerrain = function() {
+    return this.terrain;
 };
 
 Pod.prototype.getPoint = function(a) {

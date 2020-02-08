@@ -88,7 +88,7 @@ export function initP() {
             init();
             // initialize server data; doesn't read from the server, but will
             // read cached data from local storage.
-            return initServerDataP(curState.clientId);
+            return initServerDataP(curState.clientId, curState.defaultPod);
         });
 };
 
@@ -286,7 +286,7 @@ export function checkServerCompatibleP() {
                 } else if (data.errorCode == 0) {
                     // connection error, keep going
                     curState.isServerCompatible = null;
-                    return null;
+                    return true;
                 } else if (data.errorStr) {
                     // some other error, treat as non-compatible
                     curState.isServerCompatible = false;

@@ -3,7 +3,7 @@
 import {curState, activateRace} from './state.js';
 import {pushPage} from './pageui.js';
 import {getSetting} from './storage.js';
-import {getMyRaces, updateServerDataP} from './serverdata.js';
+import {getMyRaces, updateServerDataP, getPod} from './serverdata.js';
 import {URL} from './serverapi.js';
 import {alert} from './alertui.js';
 
@@ -44,14 +44,12 @@ function populateRaces() {
             '<strong>Ingen segling aktiverad</strong>' +
             '</button>';
 
-        // FIXME: read pod from server
-        var pod = curState.defaultPod;
-
         for (var i = 0; i < races.length; i++) {
             var r = races[i].raceData;
             var t = races[i].teamData;
             var isActive = (r.id == curActiveRaceId);
             var p;
+            var pod = getPod(r.terrain_id);
             s += '<button type="button" autocomplete="off"' +
                 ' id="activate-race-button-' + r.id + '"' +
                 ' onclick="window.tfUiActivateRaceButtonClick(' + r.id + ')"' +
@@ -70,7 +68,7 @@ function populateRaces() {
             }
             if (r.common_finish) {
                 s += ', gemensamt mål ' + r.common_finish;
-                p = pod.getPoint(r.common_finish);
+                p = pod ? pod.getPoint(r.common_finish) : null;
                 if (p) {
                     s += ' ' + p.name;
                 }
@@ -89,7 +87,7 @@ function populateRaces() {
                 }
             }
             s += ' från ' + t.start_point;
-            p = pod.getPoint(t.start_point);
+            p = pod ? pod.getPoint(t.start_point) : null;
             if (p) {
                 s += ' ' + p.name;
             }
