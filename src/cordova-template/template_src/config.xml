@@ -53,6 +53,14 @@
     <preference name="AutoHideSplashScreen" value="false" />
     <preference name="SplashMaintainAspectRatio" value="true"/>
 
+    <!-- store files (terrains) on internal disk -->
+    <preference name="AndroidPersistentFileLocation" value="Internal"/>
+    <!-- store files (terrains) in non-iTunes visible dir -->
+    <preference name="iosPersistentFileLocation" value="Library" />
+    <!-- mount the filesystems we need -->
+    <preference name="AndroidExtraFilesystems" value="files"/>
+    <preference name="iosExtraFilesystems" value="library,library-nosync"/>
+
     <!-- build for android >= 4.4 -->
     <!--preference name="android-minSdkVersion" value="19" -->
 <platform name="android">

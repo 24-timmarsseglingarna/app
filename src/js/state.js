@@ -199,7 +199,6 @@ function timeout() {
 
     updateServerDataP(getSetting('personId'))
         .then(function() {
-            console.log('updated from server 1');
             serverDataUpdateDone();
             var curRegatta = curState.curRegatta.get();
             if (curRegatta) {
@@ -227,6 +226,7 @@ function timeout() {
         .catch(function(x) {
             // reset timer also on error
             console.log('log sync error: ' + x);
+            window.xxx = x;
             console.log(x.stack);
             setTimer();
         });

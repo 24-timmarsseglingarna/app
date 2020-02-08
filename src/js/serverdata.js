@@ -7,13 +7,13 @@ import {getCachedMyTeams, getCachedTeams,
 import * as serverAPI from './serverapi';
 import {Pod} from './pod.js';
 
-var myTeams;
-var myTeamsETag;
-var myRegattaIds;
-var races;
-var racesETags;
-var teams;
-var teamsETags;
+var myTeams = [];
+var myTeamsETag = null;
+var myRegattaIds = [];
+var races = {};
+var racesETags = {};
+var teams = {};
+var teamsETags = {};
 var clientId;
 var pods = {};
 
@@ -149,15 +149,15 @@ export function getPodP(terrainId) {
         });
 };
 
-function getAllPodsP(terrainIds, idx) {
+function getAllPodsP(terrainIds, idx, retval) {
     if (idx >= terrainIds.length) {
         return new Promise(function(resolve) {
-            resolve(true);
+            resolve(retval);
         });
     }
     return getPodP(terrainIds[idx])
         .then(function() {
-            return getAllPodsP(terrainIds, idx + 1);
+            return getAllPodsP(terrainIds, idx + 1, retval);
         });
 };
 
@@ -168,7 +168,7 @@ function setCachedPodsP() {
             terrainIds.push(races[id][0].terrain_id);
         }
     }
-    return getAllPodsP(terrainIds, 0);
+    return getAllPodsP(terrainIds, 0, true);
 };
 
 /**
@@ -266,11 +266,23 @@ export function updateServerDataP(personId) {
         .then(function() {
             return serverAPI.getRacesPerRegattaP(myRegattaIds, racesETags);
         })
-        .then(function(result) {
-            var r = result.races;
-            var newRacesETags = result.etags;
+        .then(function(racesResult) {
+            // ensure we have the pods before we handle the races result
+            var r = racesResult.races;
+            var terrainIds = [];
+            for (var regattaId in r) {
+                var t = r[regattaId][0].terrain_id;
+                if (t && !(terrainIds.includes(t))) {
+                    terrainIds.push(t);
+                }
+            }
+            return getAllPodsP(terrainIds, 0, racesResult);
+        })
+        .then(function(racesResult) {
+            var r = racesResult.races;
+            var newRacesETags = racesResult.etags;
             var newRaces = null;
-            if (result.races) {
+            if (r) {
                 newRaces = {};
                 for (var regattaId in r) {
                     if (r[regattaId] == 'notmodified') {
@@ -292,10 +304,9 @@ export function updateServerDataP(personId) {
             }
             return serverAPI.getTeamsPerRegattaP(myRegattaIds, teamsETags);
         })
-        .then(function(result) {
-            console.log('teamsPer: ' + JSON.stringify(result));
-            var r = result.teams;
-            var newTeamsETags = result.etags;
+        .then(function(teamsResult) {
+            var r = teamsResult.teams;
+            var newTeamsETags = teamsResult.etags;
             var newTeams = null;
             if (r) {
                 newTeams = {};
@@ -317,16 +328,6 @@ export function updateServerDataP(personId) {
                     etags: teamsETags});
             }
             return true;
-        })
-        .then(function() {
-            var terrainIds = [];
-            for (var regattaId in races) {
-                var t = races[regattaId][0].terrain_id;
-                if (t && !(terrainIds.includes(t))) {
-                    terrainIds.push(t);
-                }
-            }
-            return getAllPodsP(terrainIds, 0);
         });
 };
 
@@ -339,7 +340,7 @@ export function getMyRaces() {
     for (var i = 0; i < myTeams.length; i++) {
         var t = myTeams[i];
         var rs = races[t.regatta_id];
-        for (var j = 0; j < rs.length; j++) {
+        for (var j = 0; rs && j < rs.length; j++) {
             if (rs[j].id == t.race_id) {
                 r.push({raceData: rs[j],
                         teamData: t});
@@ -362,7 +363,7 @@ export function getRacesData(regattaId) {
 export function getRaceData(raceId) {
     for (var regattaId in races) {
         var rs = races[regattaId];
-        for (var i = 0; i < rs.length; i++) {
+        for (var i = 0; rs && i < rs.length; i++) {
             if (rs[i].id == raceId) {
                 return rs[i];
             }

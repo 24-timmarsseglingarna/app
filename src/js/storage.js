@@ -2,12 +2,15 @@
 
 import {defaultClientId, isCordova} from './util.js';
 import {debugInfo} from './debug.js';
+import {CordovaPromiseFS} from './CordovaPromiseFS.js';
 
 /**
  * This module handles all configuration parameters, state data, and
  * cached data.
  *
  * Note that this is not an object b/c this a global property.
+ *
+ * FIXME: we need a way to gc terrains on disk.
  */
 
 // version 1: app <= 1.0.3
@@ -24,6 +27,8 @@ var cachedTeams = null;
 // storage, and the terrains are too big to be stored in localStorage.
 // this is ok; we'll always fetch them.
 var cachedTerrains = {};
+
+var fs = null;
 
 export function initP(doClear) {
     var i, key, raceId;
@@ -206,14 +211,33 @@ export function initP(doClear) {
         window.localStorage.removeItem(removedKeys[i]);
     }
 
+    /*
+     * Try to get a pointer to a filesystem, this will succeed on
+     * on cordova and chrome.
+     */
+    var fileSystem = null;
     if (isCordova) {
-        // read terrains from file storage
-    }
-
-    // in preparation for async file storage api we return a promise
-    return new Promise(function(resolve) {
-        resolve(true);
+        fileSystem = window['cordova'].file.dataDirectory;
+    };
+    var cfs = CordovaPromiseFS({
+        persistent: true,
+        fileSystem: fileSystem
     });
+    return cfs.fs
+        .then(function() {
+            // we have a file system!
+            fs = cfs;
+            return fs.ensure('terrains')
+                .then(function() {
+                    return readTerrainsP();
+                });
+        })
+        .catch(function() {
+            // no file storage :(
+            return new Promise(function(resolve) {
+                resolve(true);
+            });
+        });
 };
 
 export function getSetting(key) {
@@ -299,8 +323,45 @@ export function getCachedTerrain(terrainId) {
 
 export function setCachedTerrain(terrain) {
     cachedTerrains[terrain.id] = terrain;
+    if (fs) {
+        fs.write('terrains/' + terrain.id, terrain)
+            .then(function() {
+                console.log('wrote file terrains/' + terrain.id);
+            })
+            .catch(function(e) {
+                var estr = 'error writing terrains/' + terrain.id + ' ' + e;
+                debugInfo['fserror'] = estr;
+                console.log(estr);
+            });
+    }
 };
 
+var tmpTerrainFiles = [];
+
+function readTerrainsP() {
+    return fs.list('terrains/', 'f')
+        .then(function(files) {
+            tmpTerrainFiles = files;
+            return readTerrainFilesP();
+        })
+        .catch(function(e) {
+            var estr = 'error reading terrains ' + e;
+            debugInfo['fserror'] = estr;
+            console.log(estr);
+        });
+};
+
+function readTerrainFilesP() {
+    if (tmpTerrainFiles.length == 0) {
+        return true;
+    }
+    var fname = tmpTerrainFiles.pop();
+    return fs.readJSON(fname)
+        .then(function(terrain) {
+            cachedTerrains[terrain.id] = terrain;
+            return readTerrainFilesP();
+        });
+};
 
 function mkRace(r) {
     r.start_from = moment(r.start_from);

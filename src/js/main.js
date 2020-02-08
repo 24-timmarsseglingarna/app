@@ -24,8 +24,11 @@ function initRace() {
 };
 
 function onDeviceReady() {
-    initStateP().
-        then(function() {
+    initStateP()
+        .then(function() {
+            init();
+        })
+        .catch(function() {
             init();
         });
 };

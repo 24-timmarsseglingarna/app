@@ -15,14 +15,18 @@ var productionS3URL = 'https://gionaprod.s3.amazonaws.com';
 export var URL = productionURL;
 export var S3URL = productionS3URL;
 
+// FIXME - dev
+S3URL = 'http://gionadev.s3.amazonaws.com';
+URL = 'http://localhost:3000';
+
 export function setProductionServer() {
-    URL = productionURL;
-    S3URL = productionS3URL;
+//    URL = productionURL;
+    //S3URL = productionS3URL;
 };
 
 export function setStagingServer() {
-    URL = stagingURL;
-    S3URL = stagingS3URL;
+//    URL = stagingURL;
+    //S3URL = stagingS3URL;
 };
 
 export function setServerURL(url) {
