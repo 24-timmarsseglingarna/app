@@ -106,7 +106,7 @@ window.tfUiActivateRaceButtonClick = function(raceId) {
     btn.parent().find('button').removeClass('active');
     btn.addClass('active');
 
-    if (!activateRace(raceId)) {
+    if (!activateRace(raceId) && raceId != 0) {
         alert('<p>Något gick fel.  Kunde inte aktivera seglingen.</p>');
     }
 };

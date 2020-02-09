@@ -13,7 +13,9 @@
         <p>
           I kartan ligger en PoD för hela Sverige.  Om man klickar på
           en punkt så får man information om punkten.  Om man zoomar
-          in så visas distansen för varje sträcka.
+          in så visas distansen för varje sträcka.  När man är anmäld
+          till en segling laddas den PoD som gäller för seglingen ned
+          och sparas, om den inte redan finns sparad.
         </p>
         <p>
           I huvudmenyn <span class="icon-ellipsis-v"></span> kan man
@@ -141,14 +143,30 @@
           rundade punkten; appen kommer då välja "närmaste" vägen.
         </p>
         <p>
-          Man kan dubbelklicka på en planerad punkt för att ta bort
-          punkten från planen eller ta bort hela planen.
-        </p>
-        <p>
           När man planerar en punkt så visas planerad sträcka i
           statusfältet i övre kanten.  Där visas också den målfart som
           krävs för att hinna med den planerade sträckan på
           kvarvarande tid.
+        </p>
+        <p>
+          I planeringsläget kan man dubbelklicka på en planerad punkt
+          för att ta bort punkten från planen eller ta bort hela
+          planen.
+        </p>
+        <p>
+          Om man återgår till normalläget med en plan aktiverad så
+          visas planens bokstav i anslutning till "rutt-symbolen"
+          <span class="icon-plan"></span>.  De planerade sträckorna
+          som man ännu inte har seglat visas streckade.
+        </p>
+        <p>
+          Om man i normalläget klickar på en punkt som ingår i den
+          aktiva planen så visas "Planerad rundningstid".  Denna tid
+          beräknas utifrån den medelfart man har loggat hittills.  Om
+          planen sträcker sig hela vägen till målpunkten så visas
+          dessutom "Rundningstid för målgång i tid", dvs den tid man
+          måste runda den punkten för att hinna i mål i tid.  Denna
+          tid beräknas utifrån den beräknade målfarten.
         </p>
         <p>
           En plan hör normalt till en viss segling.  Om man inte har

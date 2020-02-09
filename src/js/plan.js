@@ -2,6 +2,8 @@
 
 import {legName} from './util.js';
 
+// TODO: save plans to localstoreage
+
 /**
  * A Plan is a representation of an intended list of legs
  * to sail.
@@ -230,7 +232,7 @@ Plan.prototype.getPlannedDistance = function() {
  * Return the speed necessary to sail to finish in time.
  */
 Plan.prototype.getPlannedSpeed = function() {
-    if (this.logbook == undefined || this.entries.firstPlanned < 1) {
+    if (this.logbook == undefined || this.firstPlanned < 1) {
         return -1;
     }
     var lastPlannedPoint = this.entries[this.entries.length - 1].point;
@@ -366,10 +368,12 @@ Plan.prototype._updateState = function(informSubscribers) {
         var avgSpeed = this.logbook.getAverageSpeed();
         var planDist = 0;
         for (j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
-            planDist += this.entries[j].dist;
-            offset = 60 * planDist / avgSpeed;
-            // clone the moment time
-            this.entries[j].eta = moment(time).add(offset, 'minutes');
+            if (avgSpeed > 0) {
+                planDist += this.entries[j].dist;
+                offset = 60 * planDist / avgSpeed;
+                // clone the moment time
+                this.entries[j].eta = moment(time).add(offset, 'minutes');
+            }
             if (planSpeed > 0) {
                 offset = 60 * planDist / planSpeed;
                 // clone the moment time
