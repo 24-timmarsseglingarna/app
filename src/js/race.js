@@ -47,6 +47,10 @@ Race.prototype.getStartTimes = function() {
     return this.startTimes;
 };
 
+Race.prototype.getCommonFinish = function() {
+    return this.raceData.common_finish;
+};
+
 Race.prototype.getPlan = function(name) {
     if (!this.plans[name]) {
         this.plans[name] = new Plan(name, this.regatta.getPod(), undefined);

@@ -248,14 +248,21 @@ var styleCache = {};
 var pointPopup;
 var plannedPointPopup;
 
-function mkPointPopupHTML(number, name, descr, footnote, eta) {
+function mkPointPopupHTML(number, name, descr, footnote, times) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p>' + descr + '</p>';
     if (footnote) {
         s += '<p class="font-italic">' + footnote + '</p>';
     }
-    for (var i = 0; i < eta.length; i++) {
-        s += '<p>Planerad rundningstid: ' + eta[i] + '</p>';
+    for (var i = 0; i < times.length; i++) {
+        if (times[i].eta) {
+            s += '<p>Planerad rundningstid:<br/>' +
+                times[i].eta.format('HH:mm D MMM') + '</p>';
+        }
+        if (times[i].rta) {
+            s += '<p>Rundning för målgång i tid:<br/>' +
+                times[i].rta.format('HH:mm D MMM') + '</p>';
+        }
     }
     var curLogBook = curState.curLogBook.get();
     if (curLogBook && !curLogBook.isReadOnly()) {
@@ -353,9 +360,9 @@ function handleMapClick(event) {
                             // react directly to the click
                             return;
                         }
-                        var eta = [];
+                        var times = [];
                         if (curState.curPlan.get()) {
-                            eta = curState.curPlan.get().getETA(number);
+                            times = curState.curPlan.get().getTimes(number);
                         }
                         // show the popup from the center of the point
                         coord = geom.getCoordinates();
@@ -363,7 +370,7 @@ function handleMapClick(event) {
                         pointPopup.show(
                             coord,
                             mkPointPopupHTML(number, name, descr,
-                                             footnote, eta));
+                                             footnote, times));
                     }
                 }
             }
@@ -1296,6 +1303,8 @@ export function initMapUI() {
                 alertUpgrade(response);
             } else {
                 alert('<p>Något gick fel.</p>' +
+                      '<p>' + response.errorStr + '</p>' +
+                      '<p>' + response.url + '</p>' +
                       '<pre>' + response.stack + '</pre>');
             }
         });

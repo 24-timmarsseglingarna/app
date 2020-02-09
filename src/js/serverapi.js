@@ -52,9 +52,10 @@ function setCredentials(email, token) {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function getAPIVersionP() {
+    var url = URL + '/api_version.json';
     return new Promise(function(resolve, reject) {
         $.ajax({
-            url: URL + '/api_version.json',
+            url: url,
             dataType: 'json',
             beforeSend: function(jqXHR) {
                 // make sure we don't use the browser's cache
@@ -64,7 +65,7 @@ export function getAPIVersionP() {
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(mkError(jqXHR, textStatus, errorThrown));
+                reject(mkError(jqXHR, url, textStatus, errorThrown));
             }
         });
     });
@@ -80,9 +81,10 @@ export function getAPIVersionP() {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function loginP(email, password) {
+    var url = URL + '/users/sign_in.json';
     return new Promise(function(resolve, reject) {
         $.ajax({
-            url: URL + '/users/sign_in.json',
+            url: url,
             method: 'POST',
             contentType: 'application/json',
             dataType: 'json',
@@ -119,13 +121,13 @@ export function loginP(email, password) {
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(mkError(jqXHR, textStatus, errorThrown));
+                reject(mkError(jqXHR, url, textStatus, errorThrown));
             }
         });
     });
 };
 
-function mkError(jqXHR, textStatus, errorThrown) {
+function mkError(jqXHR, url, textStatus, errorThrown) {
     var errorStr = undefined;
     if (jqXHR.status == 0) {
         // unknown connection error
@@ -139,6 +141,7 @@ function mkError(jqXHR, textStatus, errorThrown) {
     debugInfo['reqerror'] = errorStr + ' ' + moment().format();
     console.log('mkerror ' + errorStr);
     return {
+        url: url,
         errorCode: jqXHR.status,
         errorStr: errorStr
     };
@@ -365,9 +368,10 @@ export function patchLogEntryP(logid, data) {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 function getJSONP(urlpath, etag) {
+    var url = URL + urlpath;
     return new Promise(function(resolve, reject) {
         $.ajax({
-            url: URL + urlpath,
+            url: url,
             dataType: 'json',
             beforeSend: function(jqXHR) {
                 jqXHR.setRequestHeader('X-User-Email', APIstate.email);
@@ -393,7 +397,7 @@ function getJSONP(urlpath, etag) {
                 console.log(errorstr);
                 debugInfo['getjsonerror'] = errorstr + ' ' +
                     moment().format();
-                reject(mkError(jqXHR, textStatus, errorThrown));
+                reject(mkError(jqXHR, url, textStatus, errorThrown));
             }
         });
     });
@@ -423,9 +427,10 @@ function getAJAX(urlpath, etag, opaque) {
 };
 
 function getS3JSONP(urlpath) {
+    var url = S3URL + urlpath;
     return new Promise(function(resolve, reject) {
         $.ajax({
-            url: S3URL + urlpath,
+            url: url,
             dataType: 'json',
             success: function(data) {
                 //console.log(urlpath + ' -> (data)');
@@ -436,7 +441,7 @@ function getS3JSONP(urlpath) {
                 console.log(errorstr);
                 debugInfo['gets3error'] = errorstr + ' ' +
                     moment().format();
-                reject(mkError(jqXHR, textStatus, errorThrown));
+                reject(mkError(jqXHR, url, textStatus, errorThrown));
             }
         });
     });
@@ -451,10 +456,11 @@ function patchJSONP(urlpath, data) {
 };
 
 function setJSONP(method, urlpath, data) {
+    var url = URL + urlpath;
     return new Promise(function(resolve, reject) {
         //console.log(urlpath + ' <- ' + JSON.stringify(data));
         $.ajax({
-            url: URL + urlpath,
+            url: url,
             method: method,
             contentType: 'application/json',
             dataType: 'json',
@@ -481,7 +487,7 @@ function setJSONP(method, urlpath, data) {
                     console.log(errorstr);
                     debugInfo['setjsonerr'] = errorstr + ' ' +
                         moment().format();
-                    reject(mkError(jqXHR, textStatus, errorThrown));
+                    reject(mkError(jqXHR, url, textStatus, errorThrown));
                 }
             }
         });

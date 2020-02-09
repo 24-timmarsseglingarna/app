@@ -194,6 +194,7 @@ LogBook.prototype._updateLog = function(reason) {
     var prev; // last entry w/ rounded point
     var startPoint;
     var startTime;
+    var realStartTime;
     var finishTime;
     var earlyFinish = false;
     var npoints = {};
@@ -219,6 +220,7 @@ LogBook.prototype._updateLog = function(reason) {
             if (p) {
                 startPoint = e.point;
                 startTime = e.time;
+                realStartTime = e.time;
                 points.push({point: e.point, time: e.time});
                 prev = e;
             }
@@ -241,7 +243,7 @@ LogBook.prototype._updateLog = function(reason) {
     // code below
 
     // ignore any log items before the start point
-    for (i = 0; i < this.log.length; i++) {
+    for (; i < this.log.length; i++) {
         e = this.log[i];
         if (e.deleted) continue;
 
@@ -375,6 +377,7 @@ LogBook.prototype._updateLog = function(reason) {
     this.sailedDist = Math.round(sailedDist) / 10;
     this.sailedTime = sailedTime;
     this.startTime = startTime;
+    this.realStartTime = realStartTime;
     this.finishTime = finishTime;
     this.earlyStartTime = earlyStartTime;
     this.lateFinishTime = lateFinishTime;
@@ -429,6 +432,14 @@ LogBook.prototype.getStartPoint = function() {
     return this.teamData.start_point;
 };
 
+LogBook.prototype.getFinishPoint = function() {
+    if (this.race.getCommonFinish()) {
+        return this.race.getCommonFinish();
+    } else {
+        return this.teamData.start_point;
+    }
+};
+
 LogBook.prototype.isReadOnly = function() {
     if (this.readOnly || this.signed != false) {
         return true;
@@ -449,6 +460,10 @@ LogBook.prototype.getLegSailed = function(pointA, pointB) {
 
 LogBook.prototype.getStartTime = function() {
     return this.startTime;
+};
+
+LogBook.prototype.getRealStartTime = function() {
+    return this.realStartTime;
 };
 
 LogBook.prototype.hasFinished = function() {

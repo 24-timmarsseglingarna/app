@@ -226,23 +226,40 @@ Plan.prototype.getPlannedDistance = function() {
     return Math.round(this.totalDist) / 10;
 };
 
+/**
+ * Return the speed necessary to sail to finish in time.
+ */
 Plan.prototype.getPlannedSpeed = function() {
-    if (this.logbook == undefined) {
+    if (this.logbook == undefined || this.entries.firstPlanned < 1) {
+        return -1;
+    }
+    var lastPlannedPoint = this.entries[this.entries.length - 1].point;
+    if (this.logbook.getFinishPoint() != lastPlannedPoint) {
         return -1;
     }
     var dist = this.totalDist / 10;
     var raceLengthMinutes = this.logbook.race.getRaceLengthHours() * 60;
     var raceLeftMinutes = raceLengthMinutes - this.logbook.getSailedTime();
-
+    var startTime = this.logbook.getRealStartTime();
+    if (startTime) {
+        var startTimes = this.logbook.race.getStartTimes();
+        if (startTime.isAfter(startTimes.start_to)) {
+            // too late start
+            raceLeftMinutes -= startTime.diff(startTimes.start_to, 'minutes');
+        } else if (startTime.isBefore(startTimes.start_from)) {
+            // too early start
+            raceLeftMinutes -= startTimes.start_from.diff(startTime, 'minutes');
+        }
+    }
     return dist * 60 / raceLeftMinutes;
 };
 
-Plan.prototype.getETA = function(point) {
+Plan.prototype.getTimes = function(point) {
     var r = [];
     for (var i = 0; i < this.entries.length; i++) {
         var e = this.entries[i];
-        if (e.point == point && e.eta) {
-            r.push(e.eta.format('HH:mm D MMM'));
+        if (e.point == point) {
+            r.push({eta: e.eta, rta: e.rta});
         }
     }
     return r;
@@ -310,11 +327,13 @@ Plan.prototype._logBookChanged = function() {
 };
 
 /**
- * Calculate planned ETA for each point, totalDist, and legs.
- * We can only have an ETA if we know the time of the last logged point;
- * i.e., if there is at least one logged point; i.e., if the race has
- * started.  An alternative could be to calculate ETA after first legal
- * start time in the race in this case.
+ * Calculate ETA (based on current average speed) and RTA (Required
+ * Time of Arrival, based on required speed) for each point,
+ * totalDist, and legs.  We can only have an ETA if we know the time
+ * of the last logged point; i.e., if there is at least one logged
+ * point; i.e., if the race has started.  An alternative could be to
+ * calculate ETA after first legal start time in the race in this
+ * case.
  */
 Plan.prototype._updateState = function(informSubscribers) {
     var nlegs = {};
@@ -322,6 +341,7 @@ Plan.prototype._updateState = function(informSubscribers) {
     var j;
     for (j = 0; j < this.entries.length; j++) {
         this.entries[j].eta = undefined;
+        this.entries[j].rta = undefined;
         var dist = this.entries[j].dist;
         if (dist != undefined) {
             totalDist += dist * 10;
@@ -343,11 +363,18 @@ Plan.prototype._updateState = function(informSubscribers) {
         var time = loggedPoints[loggedPoints.length - 1].time;
         var offset;
         var planSpeed = this.getPlannedSpeed();
+        var avgSpeed = this.logbook.getAverageSpeed();
+        var planDist = 0;
         for (j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
-            dist += this.entries[j].dist;
-            offset = 60 * dist / planSpeed;
+            planDist += this.entries[j].dist;
+            offset = 60 * planDist / avgSpeed;
             // clone the moment time
             this.entries[j].eta = moment(time).add(offset, 'minutes');
+            if (planSpeed > 0) {
+                offset = 60 * planDist / planSpeed;
+                // clone the moment time
+                this.entries[j].rta = moment(time).add(offset, 'minutes');
+            }
         }
     }
 
