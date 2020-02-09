@@ -274,7 +274,12 @@ export function updateServerDataP(personId) {
             var r = racesResult.races;
             var terrainIds = [];
             for (var regattaId in r) {
-                var t = r[regattaId][0].terrain_id;
+                var t;
+                if (r[regattaId] == 'notmodified') {
+                    t = races[regattaId][0].terrain_id;
+                } else {
+                    t = r[regattaId][0].terrain_id;
+                }
                 if (t && !(terrainIds.includes(t))) {
                     terrainIds.push(t);
                 }

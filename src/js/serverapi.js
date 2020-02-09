@@ -381,7 +381,7 @@ function getJSONP(urlpath, etag) {
                 return true;
             },
             success: function(data, _status, jqXHR) {
-                console.log(urlpath + ' -> ' + JSON.stringify(data));
+                //console.log(urlpath + ' -> ' + JSON.stringify(data));
                 resolve({
                     etag: jqXHR.getResponseHeader('ETag'),
                     modified: (jqXHR.status != 304),
@@ -428,7 +428,7 @@ function getS3JSONP(urlpath) {
             url: S3URL + urlpath,
             dataType: 'json',
             success: function(data) {
-                console.log(urlpath + ' -> (data)');
+                //console.log(urlpath + ' -> (data)');
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -452,7 +452,7 @@ function patchJSONP(urlpath, data) {
 
 function setJSONP(method, urlpath, data) {
     return new Promise(function(resolve, reject) {
-        console.log(urlpath + ' <- ' + JSON.stringify(data));
+        //console.log(urlpath + ' <- ' + JSON.stringify(data));
         $.ajax({
             url: URL + urlpath,
             method: method,

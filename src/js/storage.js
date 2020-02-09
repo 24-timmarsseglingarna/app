@@ -226,6 +226,13 @@ export function initP(doClear) {
         .then(function() {
             // we have a file system!
             fs = cfs;
+            debugInfo['filesystem'] = function() {
+                var tids = [];
+                for (var id in cachedTerrains) {
+                    tids.push(id);
+                }
+                return [{key: 'terrain-files', val: tids.join(', ')}];
+            };
             return fs.ensure('terrains/')
                 .then(function() {
                     return readTerrainsP();
@@ -369,10 +376,16 @@ function readTerrainFilesP() {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function gcTerrainsP(keepTerrainIds, retval) {
-    console.log('gc terrains ' + keepTerrainIds);
     var removeTerrainIds = [];
     for (var id in cachedTerrains) {
-        if (!keepTerrainIds.includes(id)) {
+        // NOTE: cachedTerrains is an object and the key of an object is
+        // converted to string, so we need to convert it back to an int
+        // for "includes" to work
+        var i = id;
+        if (typeof(id) == 'string') {
+            i = parseInt(id);
+        }
+        if (!keepTerrainIds.includes(i)) {
             removeTerrainIds.push(id);
         }
     }
@@ -392,6 +405,8 @@ function removeTerrainIdsP(removeTerrainIds, retval) {
         var id = removeTerrainIds.pop();
         return fs.remove('terrains/' + id)
             .then(function() {
+                console.log('successfully removed terrain ' + id);
+                delete cachedTerrains[id];
                 return removeTerrainIdsP(removeTerrainIds, retval);
             });
     }
