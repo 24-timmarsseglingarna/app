@@ -10,7 +10,6 @@ import {CordovaPromiseFS} from './CordovaPromiseFS.js';
  *
  * Note that this is not an object b/c this a global property.
  *
- * FIXME: we need a way to gc terrains on disk.
  */
 
 // version 1: app <= 1.0.3
@@ -227,7 +226,7 @@ export function initP(doClear) {
         .then(function() {
             // we have a file system!
             fs = cfs;
-            return fs.ensure('terrains')
+            return fs.ensure('terrains/')
                 .then(function() {
                     return readTerrainsP();
                 });
@@ -362,6 +361,44 @@ function readTerrainFilesP() {
             return readTerrainFilesP();
         });
 };
+
+/**
+ * Removes "old" terrain files from disk.
+ * Returns Promise
+ * @resolve :: `retval`
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function gcTerrainsP(keepTerrainIds, retval) {
+    console.log('gc terrains ' + keepTerrainIds);
+    var removeTerrainIds = [];
+    for (var id in cachedTerrains) {
+        if (!keepTerrainIds.includes(id)) {
+            removeTerrainIds.push(id);
+        }
+    }
+    // sort the terrains to remove in ascending order
+    removeTerrainIds.sort(function(a, b) { return a-b; });
+    // then pop the last one; this means that we keep all the ones that
+    // we need to keep + one more
+    removeTerrainIds.pop();
+    if (removeTerrainIds.length > 0) {
+        console.log('removing terrains ' + removeTerrainIds);
+    }
+    return removeTerrainIdsP(removeTerrainIds, retval);
+};
+
+function removeTerrainIdsP(removeTerrainIds, retval) {
+    if (removeTerrainIds.length > 0) {
+        var id = removeTerrainIds.pop();
+        return fs.remove('terrains/' + id)
+            .then(function() {
+                return removeTerrainIdsP(removeTerrainIds, retval);
+            });
+    }
+    return new Promise(function(resolve) {
+        resolve(retval);
+    });
+}
 
 function mkRace(r) {
     r.start_from = moment(r.start_from);

@@ -3,7 +3,8 @@
 import {getCachedMyTeams, getCachedTeams,
         getCachedRaces, getCachedTerrain,
         setCachedMyTeams, setCachedTeams,
-        setCachedRaces, setCachedTerrain} from './storage.js';
+        setCachedRaces, setCachedTerrain,
+        gcTerrainsP} from './storage.js';
 import * as serverAPI from './serverapi';
 import {Pod} from './pod.js';
 
@@ -40,7 +41,7 @@ export function initP(clientIdV, defaultPod) {
     clientId = clientIdV;
     // All pods for the regattas I am participating in.
     pods[defaultPod.getTerrain().id] = defaultPod;
-    return setCachedPodsP();
+    return initCachedPodsP();
 };
 
 export function clearCache() {
@@ -163,7 +164,7 @@ function getAllPodsP(terrainIds, idx, retval) {
         });
 };
 
-function setCachedPodsP() {
+function initCachedPodsP() {
     var terrainIds = [];
     for (var id in races) {
         if (!terrainIds.includes(races[id][0].terrain_id)) {
@@ -278,7 +279,10 @@ export function updateServerDataP(personId) {
                     terrainIds.push(t);
                 }
             }
-            return getAllPodsP(terrainIds, 0, racesResult);
+            return getAllPodsP(terrainIds, 0, {r: racesResult, t: terrainIds});
+        })
+        .then(function(data) {
+            return gcTerrainsP(data.t, data.r);
         })
         .then(function(racesResult) {
             var r = racesResult.races;

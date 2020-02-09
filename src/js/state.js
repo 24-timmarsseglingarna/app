@@ -406,7 +406,7 @@ function serverDataUpdateDone() {
 
 export function activateRace(raceId) {
     if (raceId == getSetting('activeRaceId')) {
-        return;
+        return true;
     }
     var r = setActiveRace2(raceId);
     // force an update of serverdata when a new race is activated
