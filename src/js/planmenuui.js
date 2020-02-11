@@ -70,6 +70,9 @@ function itemClick(event) {
         }
     } else {
         $('#tf-plan-plan').removeClass('disabled');
+        // FIXME: keep track of these 'anonymous' plans; re-use instead
+        // of re-create.  Also, when a race is activated, attach them to
+        // a logbook.
         plan = new Plan(name, curState.defaultPod, undefined);
         curState.curPlan.set(plan);
     }

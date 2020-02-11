@@ -3,9 +3,7 @@
 import {initP as initStateP, curState} from './state.js';
 import {isCordova, isTouch} from './util.js';
 import {initMapUI} from './ui.js';
-import {basePodSpec} from '../../build/pod.js';
 import {Plan} from './plan.js';
-import {Pod} from './pod.js';
 import {initLogbookUI} from './logbookui.js';
 
 export var state = curState; // for debugging; access as tf.state
@@ -81,8 +79,7 @@ function init() {
             // Experimental feature - show a given plan
             var plan = params['plan'];
             var points = plan.split(',');
-            var planX = new Plan('Plan X', new Pod(basePodSpec),
-                                 undefined);
+            var planX = new Plan('Plan X', curState.defaultPod, undefined);
             for (i = 0; i < points.length; i++) {
                 planX.addPoint(points[i]);
             }

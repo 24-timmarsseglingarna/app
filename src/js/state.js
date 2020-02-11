@@ -463,6 +463,7 @@ function setActiveRace2(raceId) {
         curState.curRegatta.set(curRegatta);
         curState.curRace.set(curRace);
         curState.curLogBook.set(curLogBook);
+        curState.curPlan.set(null);
         return true;
     } else {
         if (curState.mode.get() != 'showRegatta') {
@@ -471,6 +472,7 @@ function setActiveRace2(raceId) {
         }
         curState.curRace.set(null);
         curState.curLogBook.set(null);
+        curState.curPlan.set(null);
         curState.boatState.engine = false;
         curState.boatState.lanterns = false;
         curState.activeInterrupt = false;

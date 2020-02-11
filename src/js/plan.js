@@ -3,6 +3,8 @@
 import {legName} from './util.js';
 
 // TODO: save plans to localstoreage
+//       look at how plans are connected to races; when new race is
+//       activated, the plan shouldn't be kept
 
 /**
  * A Plan is a representation of an intended list of legs

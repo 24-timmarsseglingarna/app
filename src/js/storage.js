@@ -22,9 +22,9 @@ var keys = [];
 var cachedRaces = null;
 var cachedMyTeams = null;
 var cachedTeams = null;
-// this will be empty in a browser, since it doesn't have file
-// storage, and the terrains are too big to be stored in localStorage.
-// this is ok; we'll always fetch them.
+// this will be empty in a browser (except chrome), since it doesn't
+// have file storage, and the terrains are too big to be stored in
+// localStorage.  this is ok; we'll always fetch them.
 var cachedTerrains = {};
 
 var fs = null;
