@@ -1238,6 +1238,7 @@ export function initMapUI() {
             planModeActivate(false);
         } else {
             $('#tf-nav-plan-name').html(plan.name);
+            updateAll();
             plan.onPlanUpdate(updateAll);
         }
     });

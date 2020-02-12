@@ -2,10 +2,6 @@
 
 import {legName} from './util.js';
 
-// TODO: save plans to localstoreage
-//       look at how plans are connected to races; when new race is
-//       activated, the plan shouldn't be kept
-
 /**
  * A Plan is a representation of an intended list of legs
  * to sail.
@@ -28,13 +24,13 @@ import {legName} from './util.js';
  *
  * @constructor
  */
-export function Plan(name, pod, logbook) {
+export function Plan(name, pod, logbook, entries = []) {
     this.pod = pod;
     this.onPlanUpdateFns = [];
     this.name = name;
     /* keep track of the first entry that is not logged */
     this.firstPlanned = -1;
-    this.entries = [];
+    this.entries = entries;
     /* keep track of how many times a leg is planned */
     this.nlegs = {};
     /* total planned distance, in 1/10 M */
@@ -47,9 +43,14 @@ Plan.prototype.onPlanUpdate = function(fn) {
 };
 
 Plan.prototype.attachLogBook = function(logbook) {
+    if (this.logbook == logbook) {
+        return;
+    }
     this.logbook = logbook;
     if (logbook != undefined) {
-        this._resetPlan(false);
+        this.pod = logbook.getRace().getPod();
+        this._podChanged();
+        this._logBookChanged();
         var self = this;
         logbook.onLogUpdate(function() {
             self._logBookChanged();
@@ -293,6 +294,22 @@ Plan.prototype._resetPlan = function(nomatch) {
         }
     }
 };
+
+Plan.prototype._podChanged = function() {
+    var prev = this.entries[0];
+    for (var i = 1; i < this.entries.length; i++) {
+        var d = this.pod.getDistance(prev.point, this.entries[i].point);
+        if (d == -1) {
+            // this planned leg doesn't exist anymore; truncate the plan
+            this.entries.splice(i, this.entries.length - i);
+            break;
+        }
+        this.entries[i].dist = d;
+        prev = this.entries[i];
+    }
+    this._updateState();
+};
+
 
 Plan.prototype._logBookChanged = function() {
     var i;

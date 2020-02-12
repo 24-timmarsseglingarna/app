@@ -2,12 +2,15 @@
 
 import {tfAppVsn} from '../../deps/vsn.js';
 import {Pod} from './pod.js';
+import {Plan} from './plan.js';
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
 import {defineVariable, numberToName, isCordova} from './util.js';
 import {initP as initStorageP,
-        getSetting, setSettings, getRaceLog, setRaceLog} from './storage.js';
+        getSetting, setSettings,
+        getRaceLog, setRaceLog,
+        getRacePlan, setRacePlan} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
         getAPIVersionP, validateTokenP} from './serverapi';
@@ -226,7 +229,6 @@ function timeout() {
         .catch(function(x) {
             // reset timer also on error
             console.log('log sync error: ' + x);
-            window.xxx = x;
             console.log(x.stack);
             setTimer();
         });
@@ -437,9 +439,13 @@ function setActiveRace2(raceId) {
                                      racesData, pod);
         var curRace = new Race(curRegatta, raceData);
         // get the stored log from the app storage
-        var raceLog = getRaceLog(raceId) || {};
-        var log = raceLog.log || [];
+        var log = getRaceLog(raceId) || [];
         var curLogBook = new LogBook(teamData, curRace, log, false);
+        // get the stored plans from the app storage
+        var plans = getRacePlan(raceId) || [];
+        for (var i = 0; i < plans.length; i++) {
+            mkNewPlan(plans[i].name, curRace, curLogBook, plans[i].entries);
+        }
 
         curState.boatState.engine = curLogBook.getEngine();
         curState.boatState.lanterns = curLogBook.getLanterns();
@@ -479,6 +485,38 @@ function setActiveRace2(raceId) {
         return false;
     }
 };
+
+export function mkNewPlan(name, race, logbook, entries = []) {
+    var plan = new Plan(name, race.getPod(), logbook, entries);
+    race.setPlan(plan);
+    // add a function that checks if the plan no longer matches
+    // the logbook, and the plan is current, then we no longer
+    // use the plan as current.
+    plan.onPlanUpdate(function(plan, how) {
+        if (how == 'nomatch') {
+            if (curState.curPlan.get() == plan) {
+                // FIXME: test this!
+                curState.curPlan.set(null);
+            }
+        }
+    });
+    // store plans on any change
+    plan.onPlanUpdate(function(plan) {
+        var r = plan.logbook.getRace();
+        setRacePlan(r.getId(), mkRacePlans(r));
+    });
+    return plan;
+};
+
+function mkRacePlans(race) {
+    var p = [];
+    var plans = race.getPlans();
+    for (var name in plans) {
+        p.push({name: name, entries: plans[name].entries});
+    }
+    return p;
+};
+
 
 /**
  * Returns Promise

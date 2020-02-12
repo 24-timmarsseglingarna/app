@@ -17,6 +17,7 @@ var curVersion = 2;
 
 var raceIds = {};
 var raceLogs = {};
+var racePlans = {};
 var settings = {};
 var keys = [];
 var cachedRaces = null;
@@ -164,6 +165,16 @@ export function initP(doClear) {
             window.localStorage.removeItem(key);
         }
     }
+    for (raceId in raceIds) {
+        key = 'raceplan-' + raceId;
+        try {
+            var racePlan = JSON.parse(window.localStorage.getItem(key));
+            racePlans[raceId] = racePlan;
+        } catch (err) {
+            // bad data, remove from storage
+            window.localStorage.removeItem(key);
+        }
+    }
 
     /*
      * Initialize cached data from local storage.
@@ -197,6 +208,7 @@ export function initP(doClear) {
     var allKeys = keys;
     for (raceId in raceIds) {
         allKeys.push('racelog-' + raceId);
+        allKeys.push('raceplan-' + raceId);
     }
     var removedKeys = [];
     for (i = 0; i < window.localStorage.length; i++) {
@@ -264,7 +276,12 @@ export function setSettings(props) {
  */
 
 export function getRaceLog(raceId) {
-    return raceLogs[raceId];
+    var raceLog = raceLogs[raceId];
+    if (raceLog) {
+        return raceLog.log;
+    } else {
+        return null;
+    }
 };
 
 export function setRaceLog(raceId, log) {
@@ -279,6 +296,29 @@ export function setRaceLog(raceId, log) {
         window.localStorage.setItem('raceIds', JSON.stringify(raceIds));
     }
     raceLogs[raceId] = raceLog;
+};
+
+export function getRacePlan(raceId) {
+    var racePlan = racePlans[raceId];
+    if (racePlan) {
+        return racePlan.plans;
+    } else {
+        return null;
+    }
+};
+
+export function setRacePlan(raceId, plans) {
+    var key = 'raceplan-' + raceId;
+    var racePlans = {
+        raceId: raceId,
+        plans: plans
+    };
+    window.localStorage.setItem(key, JSON.stringify(racePlans));
+    if (!(raceId in raceIds)) {
+        raceIds[raceId] = true;
+        window.localStorage.setItem('raceIds', JSON.stringify(raceIds));
+    }
+    racePlans[raceId] = racePlans;
 };
 
 // right now unclear when this function is called.  maybe automatic gc, or

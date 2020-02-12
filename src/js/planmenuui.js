@@ -1,6 +1,6 @@
 /* -*- js -*- */
 
-import {curState} from './state.js';
+import {curState, mkNewPlan} from './state.js';
 import {pushPage, popPage} from './pageui.js';
 import {alert} from './alertui.js';
 import {Plan} from './plan.js';
@@ -54,25 +54,13 @@ function itemClick(event) {
     } else if (curRace) {
         $('#tf-plan-plan').removeClass('disabled');
         plan = curRace.getPlan(name);
-        curState.curPlan.set(plan);
-        if (!plan.logbook) {
-            plan.attachLogBook(curState.curLogBook.get());
-            // add a function that checks if the plan no longer matches
-            // the logbook, and the plan is current, then we no longer
-            // use the plan as current.
-            plan.onPlanUpdate(function(plan, how) {
-                if (how == 'nomatch') {
-                    if (curState.curPlan.get().name == plan.name) {
-                        curState.curPlan.set(null);
-                    }
-                }
-            });
+        if (!plan) {
+            plan = mkNewPlan(name, curRace, curState.curLogBook.get());
         }
+        curState.curPlan.set(plan);
     } else {
         $('#tf-plan-plan').removeClass('disabled');
-        // FIXME: keep track of these 'anonymous' plans; re-use instead
-        // of re-create.  Also, when a race is activated, attach them to
-        // a logbook.
+        // When no race is activated, we create ephemeral plans
         plan = new Plan(name, curState.defaultPod, undefined);
         curState.curPlan.set(plan);
     }

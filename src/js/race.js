@@ -1,7 +1,5 @@
 /* -*- js -*- */
 
-import {Plan} from './plan.js';
-
 /**
  * Race data
  */
@@ -51,11 +49,16 @@ Race.prototype.getCommonFinish = function() {
     return this.raceData.common_finish;
 };
 
+Race.prototype.getPlans = function() {
+    return this.plans;
+};
+
 Race.prototype.getPlan = function(name) {
-    if (!this.plans[name]) {
-        this.plans[name] = new Plan(name, this.regatta.getPod(), undefined);
-    }
     return this.plans[name];
+};
+
+Race.prototype.setPlan = function(plan) {
+    this.plans[plan.name] = plan;
 };
 
 Race.prototype.hasStarted = function() {
