@@ -133,6 +133,8 @@ def get_legs(tree, all_points):
         sea = p.find("sea").text
         addtime = p.find("addtime").text
 
+        if dist is None:
+            print("** error: no distance: src: %s dst: %s" % (src, dst))
         properties = {"src": src,
                       "dst": dst,
                       "dist": float(dist)}
