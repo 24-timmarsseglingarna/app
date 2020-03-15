@@ -24,7 +24,7 @@ build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
 # For now you need to get a PoD.xml covering the entire area and
 # store it here.
 build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
-	tools/pod-xml-to-geojson.py --javascript -i PoD.xml -o $@
+	tools/pod-xml-to-geojson.py --javascript --id 18 -i PoD.xml -o $@
 
 deps/vsn.js: deps vsn.mk
 	echo "export var tfAppVsn = '$(VSN)';" > $@
@@ -158,7 +158,9 @@ JQUERY_VSN=3.4.1
 node_modules/jquery:
 	npm install jquery@$(JQUERY_VSN)
 
-OL_VSN=6.1.0
+# tapping on android doesn't work well in 6.x
+# can't pan in 6.2.x
+OL_VSN=5.3.3
 node_modules/ol:
 	npm install ol@$(OL_VSN)
 

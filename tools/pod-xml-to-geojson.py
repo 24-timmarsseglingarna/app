@@ -26,6 +26,7 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--infile", help="input file")
     parser.add_argument("-o", "--outfile", help="output file")
+    parser.add_argument("--id", help="id of terrain")
     parser.add_argument("--javascript", action="store_true")
     args = parser.parse_args()
     tree = etree.parse(args.infile)
@@ -33,20 +34,20 @@ def run():
     all_points, start_points, turning_points = get_points(tree)
     inshore_legs, offshore_legs = get_legs(tree, all_points)
 
-    output_pod(args.outfile, args.javascript,
+    output_pod(args.outfile, args.javascript, args.id,
                [('startPoints', start_points),
                 ('turningPoints', turning_points),
                 ('inshoreLegs', inshore_legs),
                 ('offshoreLegs', offshore_legs)])
 
-def output_pod(fname, javascript, features):
+def output_pod(fname, javascript, id, features):
     if sys.version < '3':
         fd = codecs.open(fname, "w", encoding="utf-8")
     else:
         fd = io.open(fname, "w", encoding="utf-8")
     if javascript:
         fd.write(u'/* eslint-disable */\n')
-        fd.write(u'export var basePodSpec = {')
+        fd.write(u'export var basePodSpec = {"id": %s, ' % id)
     else:
         fd.write(u'{')
     flen = len(features)

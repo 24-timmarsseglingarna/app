@@ -285,7 +285,10 @@ export function checkServerCompatibleP() {
                         curState.isServerCompatible = false;
                         throw '';
                     }
-                } else if (data.errorCode == 0) {
+                }
+            })
+            .catch(function(data) {
+                if (data.errorCode == 0) {
                     // connection error, keep going
                     curState.isServerCompatible = null;
                     return true;

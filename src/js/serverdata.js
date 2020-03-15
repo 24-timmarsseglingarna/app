@@ -137,7 +137,7 @@ export function getRaceP(raceId) {
  * @resolve :: Pod()
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
-export function getPodP(terrainId) {
+export function getPodP(terrainId, allowNull=false) {
     var pod = getPod(terrainId);
     if (pod) {
         return new Promise(function(resolve) {
@@ -149,6 +149,13 @@ export function getPodP(terrainId) {
             setCachedTerrain(data);
             pods[terrainId] = new Pod(data);
             return pods[terrainId];
+        })
+        .catch(function(error) {
+            if (allowNull) {
+                return null;
+            } else {
+                throw error;
+            }
         });
 };
 
@@ -158,7 +165,7 @@ function getAllPodsP(terrainIds, idx, retval) {
             resolve(retval);
         });
     }
-    return getPodP(terrainIds[idx])
+    return getPodP(terrainIds[idx], true)
         .then(function() {
             return getAllPodsP(terrainIds, idx + 1, retval);
         });
