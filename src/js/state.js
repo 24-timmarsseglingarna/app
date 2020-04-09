@@ -13,9 +13,11 @@ import {initP as initStorageP,
         getRacePlan, setRacePlan} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
+        getTerrainP,
         getAPIVersionP, validateTokenP} from './serverapi';
 import {initP as initServerDataP, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
+        getPodP,
         clearCache as clearServerDataCache} from './serverdata.js';
 import {debugInfo} from './debug.js';
 import {basePodSpec} from '../../build/pod.js';
@@ -92,6 +94,32 @@ export function initP() {
             // initialize server data; doesn't read from the server, but will
             // read cached data from local storage.
             return initServerDataP(curState.clientId, curState.defaultPod);
+        })
+        .then(function() {
+            if (!hasNetwork()) {
+                return null;
+            } else {
+                return getTerrainP('latest')
+                    .then(function(data) {
+                        if (data.id) {
+                            return getPodP(data.id, true);
+                        } else {
+                            return null;
+                        }
+                    })
+                    .then(function(pod) {
+                        if (pod) {
+                            curState.defaultPod = pod;
+                        }
+                        return true;
+                    })
+                    .catch(function() {
+                        return null;
+                    });
+            }
+        })
+        .then(function() {
+            return null;
         });
 };
 
