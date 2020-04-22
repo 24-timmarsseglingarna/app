@@ -245,7 +245,12 @@ function timeout() {
     }
     debugInfo['poll-timer-n'] = n;
 
-    updateServerDataP(getSetting('personId'))
+    var personId = getSetting('personId');
+    if (!personId) {
+        setTimer();
+        return;
+    }
+    updateServerDataP(personId)
         .then(function() {
             serverDataUpdateDone();
             var curRegatta = curState.curRegatta.get();
