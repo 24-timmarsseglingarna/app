@@ -35,6 +35,7 @@ export function initP(doClear) {
 
     if (doClear) {
         window.localStorage.clear();
+        cachedTerrains = {};
     };
 
     debugInfo['storage'] = function() {
@@ -245,7 +246,10 @@ export function initP(doClear) {
                 }
                 return [{key: 'terrain-files', val: tids.join(', ')}];
             };
-            return fs.ensure('terrains/')
+            return maybeClearP(fs, doClear)
+                .then(function() {
+                    return fs.ensure('terrains/');
+                })
                 .then(function() {
                     return readTerrainsP();
                 });
@@ -257,6 +261,17 @@ export function initP(doClear) {
             });
         });
 };
+
+function maybeClearP(fd, doClear) {
+    if (doClear) {
+        return fs.removeDir('terrains/');
+    } else {
+        return new Promise(function(resolve) {
+            resolve(true);
+        });
+    }
+};
+
 
 export function getSetting(key) {
     return settings[key];
@@ -309,16 +324,16 @@ export function getRacePlan(raceId) {
 
 export function setRacePlan(raceId, plans) {
     var key = 'raceplan-' + raceId;
-    var racePlans = {
+    var racePlan = {
         raceId: raceId,
         plans: plans
     };
-    window.localStorage.setItem(key, JSON.stringify(racePlans));
+    window.localStorage.setItem(key, JSON.stringify(racePlan));
     if (!(raceId in raceIds)) {
         raceIds[raceId] = true;
         window.localStorage.setItem('raceIds', JSON.stringify(raceIds));
     }
-    racePlans[raceId] = racePlans;
+    racePlans[raceId] = racePlan;
 };
 
 // right now unclear when this function is called.  maybe automatic gc, or

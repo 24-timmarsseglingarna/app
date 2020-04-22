@@ -77,6 +77,23 @@ var platform = null;
 // internal timer
 var timer = null;
 
+debugInfo['state'] = function() {
+    var kvs = [];
+    var race = curState.curRace.get();
+    if (race) {
+        kvs.push({key: 'race', val: race.getId()});
+        var pod = race.getPod();
+        if (pod) {
+            kvs.push({key: 'terrain', val: pod.getTerrain().id});
+        }
+    }
+    var logbook = curState.curLogBook.get();
+    if (logbook) {
+        kvs.push({key: 'team', val: logbook.teamData.id});
+    }
+    return kvs;
+};
+
 debugInfo['timer'] = function() {
     var val = false;
     if (timer != null) {

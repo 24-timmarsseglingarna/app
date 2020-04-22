@@ -24,7 +24,7 @@ build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
 # For now you need to get a PoD.xml covering the entire area and
 # store it here.
 build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
-	tools/pod-xml-to-geojson.py --javascript --id 12 -i PoD.xml -o $@
+	tools/pod-xml-to-geojson.py --javascript --id 13 -i PoD.xml -o $@
 
 deps/vsn.js: deps vsn.mk
 	echo "export var tfAppVsn = '$(VSN)';" > $@
@@ -61,7 +61,6 @@ build/deps:
 
 	cp node_modules/moment/min/moment.min.js $@/; \
 	cp node_modules/moment/locale/sv.js $@/
-
 
 # must set TGT_DIR to a dedicated directory for the app
 www-publish:

@@ -130,7 +130,9 @@ Regatta.prototype.isOngoing = function() {
  */
 Regatta.prototype.getLeaderBoard = function(curLogBook) {
     var res = [];
-    if (curLogBook && !this.teams[curLogBook.teamData.id]) {
+    if (curLogBook && !this.teams[curLogBook.teamData.id]
+        && curLogBook.getLastPoint() != null) {
+        // add ourselves if we have logged a point
         res.push({ netdist: curLogBook.getNetDistance(),
                    logbook: curLogBook });
     }
