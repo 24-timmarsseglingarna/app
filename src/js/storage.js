@@ -119,10 +119,20 @@ export function initP(doClear) {
          * delete all stored data.
          */
         if (settings.version != curVersion) {
-            // we do this during development only
             console.log('incompatible storage found; removing all data');
+            // try to keep some auth data
+            var email = settings.email;
+            var password = settings.password;
+            var personId = settings.personId;
+            var clientId = settings.clientId;
+
             window.localStorage.clear();
             setDefaultSettings();
+
+            settings.email = email;
+            settings.password = password;
+            settings.personId = personId;
+            settings.clientId = clientId;
         } else {
             for (key in settings) {
                 if (!(key in defaultSettings)) {
@@ -184,6 +194,14 @@ export function initP(doClear) {
         cachedRaces =
             JSON.parse(window.localStorage.getItem('cachedRaces'));
         for (var r in cachedRaces.data) {
+            // terrain_id was added to race in 2.3.0.  if the stored
+            // race doesn't have a terrain_id, it is old, and is deleted,
+            // and will be re-fetched, with terrain_id.
+            if (!cachedRaces.data[r][0]['terrain_id']) {
+                delete cachedRaces.data[r];
+                delete cachedRaces.etags[r];
+                continue;
+            }
             cachedRaces.data[r] =
                 cachedRaces.data[r].map(mkRace);
         }
