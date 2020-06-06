@@ -15,8 +15,10 @@ export function openPage(options) {
     /* Modify the text depending on current state */
     if (options.logBook.getPrevRound(options.beforeId) == null) {
         $('#tf-log-round').text('Start');
+        $('#tf-log-retire').text('Startar inte (DNS)');
     } else {
         $('#tf-log-round').text('Rundning');
+        $('#tf-log-retire').text('Bryter seglingen (DNF)');
     }
     if (!options.logBook.getLanterns(options.beforeId)) {
         $('#tf-log-lanterns').text('Tänder lanternor');

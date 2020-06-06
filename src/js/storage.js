@@ -256,6 +256,7 @@ export function initP(doClear) {
         })
         .catch(function() {
             // no file storage :(
+            debugInfo['filesystem'] = 'no storage';
             return new Promise(function(resolve) {
                 resolve(true);
             });

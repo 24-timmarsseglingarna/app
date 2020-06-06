@@ -47,7 +47,7 @@ export function LogBook(teamData, race, log, readOnly) {
     /* keep track of points logged (in order) */
     this.points = [];
     this.state = 'init'; // 'init' | 'started'
-                         // | 'finished' | 'finished-early' | 'retired'
+                         // | 'finished' | 'finished-early' | 'dns' | 'dnf'
     this.admin_state = 'ok'; // 'ok' | 'dsq'
     this.signed = false; // | 'signed' | 'signed-sync'
 
@@ -129,7 +129,8 @@ LogBook.prototype.saveToLog = function(logEntry, id) {
 LogBook.prototype.sign = function() {
     if (this.state == 'finished' ||
         this.state == 'finished-early' ||
-        this.state == 'retired') {
+        this.state == 'dns' ||
+        this.state == 'dnf') {
         var logEntry = {
             type: 'sign',
             time: moment()
@@ -207,6 +208,7 @@ LogBook.prototype._updateLog = function(reason) {
     var dsq = false;
     var adminDist = 0;
     var adminTime = 0;
+    var start_i = -1;
 
     // find startpoint - the first log entry that has a point.
     // we currently allow _any_ point (including points not marked as
@@ -218,6 +220,7 @@ LogBook.prototype._updateLog = function(reason) {
         if (e.point) {
             var p = pod.getPoint(e.point);
             if (p) {
+                start_i = i;
                 startPoint = e.point;
                 startTime = e.time;
                 realStartTime = e.time;
@@ -242,8 +245,8 @@ LogBook.prototype._updateLog = function(reason) {
     // note that the first start point does not count as a round in the
     // code below
 
-    // ignore any log items before the start point
-    for (; i < this.log.length; i++) {
+    for (i = 0; i < this.log.length; i++) {
+        if (i == start_i) continue;
         e = this.log[i];
         if (e.deleted) continue;
 
@@ -366,8 +369,11 @@ LogBook.prototype._updateLog = function(reason) {
     if (earlyFinish) {
         this.state = 'finished-early';
     }
-    if (retired) {
-        this.state = 'retired';
+    if (retired && startTime) {
+        this.state = 'dnf';
+    }
+    else if (retired) {
+        this.state = 'dns';
     }
     this.admin_state = 'ok';
     if (dsq) {
@@ -469,7 +475,8 @@ LogBook.prototype.getRealStartTime = function() {
 LogBook.prototype.hasFinished = function() {
     if (this.state == 'finished' ||
         this.state == 'finished-early' ||
-        this.state == 'retired') {
+        this.state == 'dns' ||
+        this.state == 'dnf') {
         return true;
     }
     return false;
@@ -542,8 +549,8 @@ LogBook.prototype.getCompensationDistance = function() {
 
 // gross
 LogBook.prototype.getApprovedDistance = function() {
-    if (this.state == 'finished-early' || this.state == 'retired'
-        || this.admin_state == 'dsq') {
+    if (this.state == 'finished-early' || this.state == 'dns'
+        || this.state == 'dnf' || this.admin_state == 'dsq') {
         return 0;
     }
     return this.getSailedDistance() + this.getCompensationDistance() -
@@ -558,8 +565,8 @@ LogBook.prototype.getAdminDistance = function() {
 
 // net
 LogBook.prototype.getPlaqueDistance = function() {
-    if (this.state == 'finished-early' || this.state == 'retired'
-       || this.admin_state == 'dsq') {
+    if (this.state == 'finished-early' || this.state == 'dns'
+        || this.state == 'dnf' || this.admin_state == 'dsq') {
         return 0;
     }
     return ((this.getApprovedDistance() / this.teamData.sxk_handicap) -

@@ -164,19 +164,21 @@ function openLogEntry2(options) {
         type = log[index].type;
     }
 
-    if (type == 'round') {
+    var end;
+    var hasStarted = false;
+    if (index != undefined) {
+        end = index;
+    } else {
+        end = log.length;
+    }
+    for (i = 0; i < end && !hasStarted; i++) {
+        if (!log[i].deleted && log[i].type == 'round') {
+            hasStarted = true;
+        }
+    }
+
+    if (type == 'round' && !hasStarted) {
         isStart = true;
-        var end;
-        if (index != undefined) {
-            end = index;
-        } else {
-            end = log.length;
-        }
-        for (i = 0; i < end && isStart; i++) {
-            if (!log[i].deleted && log[i].type == 'round') {
-                isStart = false;
-            }
-        }
     }
     $('#log-entry-point').removeClass('is-invalid');
     $('#log-entry-time').removeClass('is-invalid');
@@ -264,7 +266,11 @@ function openLogEntry2(options) {
         $('#log-entry-form-position').show();
         break;
     case 'retire':
-        title = 'Bryter seglingen';
+        if (hasStarted) {
+            title = 'Bryter seglingen (DNF)';
+        } else {
+            title = 'Startar inte (DNS)';
+        }
         initGeoPosition();
         $('#log-entry-form-position').show();
         break;

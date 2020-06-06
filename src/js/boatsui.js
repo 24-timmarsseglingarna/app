@@ -236,28 +236,6 @@ function fillResult(regatta) {
         var color = '';
         var dist = e.plaquedist.toFixed(1);
 
-/*
-        if (logbook.signed) {
-            color = 'bg-success'; // green
-            status = 'klar';
-        } else {
-            status = 'inte signerad';
-            color = 'bg-warning'; // yellow
-        }
-
-        switch (logbook.state) {
-        case 'finished':
-            status = '';
-            break;
-        case 'finished-early':
-        case 'retired':
-            status = 'DNF';
-            break;
-        default:
-            color = 'bg-danger';
-            status = 'ofullständig';
-        }
-*/
         if (logbook.signed) {
             status = 'OK';
         } else if (logbook.log.length == 0) {
@@ -266,7 +244,8 @@ function fillResult(regatta) {
             switch (logbook.state) {
             case 'finished':
             case 'finished-early':
-            case 'retired':
+            case 'dns':
+            case 'dnf':
                 status = 'Osignerad';
                 break;
             default:
@@ -274,8 +253,11 @@ function fillResult(regatta) {
             }
         }
         switch (logbook.state) {
+        case 'dns':
+            dist = 'DNS';
+            break;
         case 'finished-early':
-        case 'retired':
+        case 'dnf':
             dist = 'DNF';
         }
 

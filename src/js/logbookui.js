@@ -346,7 +346,8 @@ function refreshLogBook(options) {
     }
     if (logBook.state == 'finished' ||
         logBook.state == 'finished-early' ||
-        logBook.state == 'retired') {
+        logBook.state == 'dns' ||
+        logBook.state == 'dnf') {
         $('#log-book-plaque-elem').show();
     } else {
         $('#log-book-net-elem2').show();
@@ -360,7 +361,8 @@ function refreshLogBook(options) {
     $('#log-book-sign').removeClass('disabled');
     if (!(logBook.state == 'finished' ||
           logBook.state == 'finished-early' ||
-          logBook.state == 'retired') ||
+          logBook.state == 'dns' ||
+          logBook.state == 'dnf') ||
         logBook.hasConflict()) {
         $('#log-book-sign').addClass('disabled');
     }
@@ -378,7 +380,10 @@ function refreshLogBook(options) {
     if (logBook.state == 'finished-early') {
         $('#log-book-plaque-reason').show();
         $('#log-book-plaque-reason').html('(för kort segling)');
-    } else if (logBook.state == 'retired') {
+    } else if (logBook.state == 'dns') {
+        $('#log-book-plaque-reason').show();
+        $('#log-book-plaque-reason').html('(startade inte)');
+    } else if (logBook.state == 'dnf') {
         $('#log-book-plaque-reason').show();
         $('#log-book-plaque-reason').html('(seglingen bruten)');
     }
@@ -558,10 +563,11 @@ $(document).ready(function() {
         var logBook = logBookPage.logBook;
         if (!(logBook.state == 'finished' ||
               logBook.state == 'finished-early' ||
-              logBook.state == 'retired')) {
+              logBook.state == 'dns' ||
+              logBook.state == 'dnf')) {
             alert('<p>För att kunna signera loggboken måste du ha' +
                   ' loggat målgång på den sista rundningen, eller loggat att' +
-                  ' du har brutit seglingen.</p>');
+                  ' du har inte startat eller brutit seglingen.</p>');
         } else if (logBook.hasConflict()) {
             alert('<p>Loggboken har ändringar gjorda av någon annan.' +
                   ' Dessa måste lösas genom att klicka på pennan' +
