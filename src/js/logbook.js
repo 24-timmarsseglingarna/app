@@ -857,5 +857,7 @@ LogBook.prototype.sendToServerP = function(updated) {
     if (updated) {
         this._updateLog('syncDone');
     }
-    return true;
+    return new Promise(function(resolve) {
+        resolve(true);
+    });
 };
