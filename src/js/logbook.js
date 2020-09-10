@@ -2,6 +2,7 @@
 
 import {uuid, legName} from './util.js';
 import {getTeamLogP, postLogEntryP, patchLogEntryP} from './serverdata.js';
+import {debugInfo} from './debug.js';
 
 /**
  * Log Entry states, local property, not sent to server.
@@ -796,10 +797,11 @@ LogBook.prototype.sendToServerP = function(updated) {
                     // continue
                     return logBook.sendToServerP(true);
                 })
-                .catch(function(e) {
+                .catch(function(err) {
                     // error; wait and try later
-                    console.log('post error: ' + e);
-                    console.log(e.stack);
+                    debugInfo['posterr'] = err;
+                    console.log('post error: ' + err);
+                    console.log(err.stack);
                     e.state = 'dirty';
                     if (updated) {
                         logBook._updateLog('syncError');
@@ -840,10 +842,11 @@ LogBook.prototype.sendToServerP = function(updated) {
                     // continue
                     return logBook.sendToServerP(true);
                 })
-                .catch(function(e) {
+                .catch(function(err) {
                     // error; wait and try later
-                    console.log('patch error: ' + e);
-                    console.log(e.stack);
+                    debugInfo['patcherr'] = err;
+                    console.log('patch error: ' + err);
+                    console.log(err.stack);
                     e.state = 'dirty';
                     if (updated) {
                         logBook._updateLog('syncError');
