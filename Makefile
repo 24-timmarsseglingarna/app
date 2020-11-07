@@ -161,39 +161,39 @@ node_modules/jquery:
 # can't pan in 6.2.x
 OL_VSN=5.3.3
 node_modules/ol:
-	npm install ol@$(OL_VSN)
+	npm install ol@$(OL_VSN) --no-audit
 
 MOMENT_VSN=2.24.0
 node_modules/moment:
-	npm install moment@$(MOMENT_VSN)
+	npm install moment@$(MOMENT_VSN) --no-audit
 
 POPPER_VSN=1.14.4
 node_modules/popper.js:
-	npm install popper.js@$(POPPER_VSN)
+	npm install popper.js@$(POPPER_VSN) --no-audit
 
 BOOTSTRAP_VSN=4.2.1
 node_modules/bootstrap:
-	npm install bootstrap@$(BOOTSTRAP_VSN)
+	npm install bootstrap@$(BOOTSTRAP_VSN) --no-audit
 
 TEMPUSDOMINUS_VSN=5.1.2
 node_modules/tempusdominus-bootstrap-4:
-	npm install tempusdominus-bootstrap-4@$(TEMPUSDOMINUS_VSN)
+	npm install tempusdominus-bootstrap-4@$(TEMPUSDOMINUS_VSN) --no-audit
 
 TEMPUSDOMINUS_CORE_VSN=5.0.3
 node_modules/tempusdominus-core:
-	npm install tempusdominus-core@$(TEMPUSDOMINUS_CORE_VSN)
+	npm install tempusdominus-core@$(TEMPUSDOMINUS_CORE_VSN) --no-audit
 
 node_modules/rollup-plugin-node-resolve:
-	npm install --save-dev rollup-plugin-node-resolve
+	npm install --save-dev rollup-plugin-node-resolve --no-audit
 
 node_modules/rollup-plugin-commonjs:
-	npm install --save-dev rollup-plugin-commonjs
+	npm install --save-dev rollup-plugin-commonjs --no-audit
 
 node_modules/rollup-plugin-uglify:
-	npm install --save-dev rollup-plugin-uglify
+	npm install --save-dev rollup-plugin-uglify --no-audit
 
 node_modules/rollup-plugin-eslint:
-	npm install --save-dev rollup-plugin-eslint
+	npm install --save-dev rollup-plugin-eslint --no-audit
 
 tiles:
 	wget https://4468.se/24h/map.tgz -O - | tar zx
