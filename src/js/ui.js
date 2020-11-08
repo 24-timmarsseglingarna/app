@@ -1227,6 +1227,25 @@ export function initMapUI() {
 
     curState.curLogBook.onChange(function(logBook) {
         if (logBook) {
+            if (curState.mode.get() == 'race' &&
+                (!logBook.signed &&
+                 (logBook.state == 'finished' ||
+                  logBook.state == 'finished-early' ||
+                  logBook.state == 'dns' ||
+                  logBook.state == 'dnf')) &&
+                curState.loggedInPersonId.get() == logBook.teamData.skipper_id){
+                var reason;
+                if (logBook.state == 'dns') {
+                    reason = 'Starar inte (DNS)';
+                } else if (logBook.state == 'dnf') {
+                    reason = 'Bryter seglingen (DNF)';
+                } else {
+                    reason = 'Målgång';
+                }
+                alert('<p>Du har loggat "' + reason +
+                      '" men har inte signerat loggboken.</p>' +
+                      '<p>Kontrollera loggboken och signera den sedan.</p>');
+            }
             logBook.onLogUpdate(updateAll, 100);
         }
         updateAll();
