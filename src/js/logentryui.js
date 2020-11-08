@@ -75,7 +75,7 @@ export function fmtSails(sails) {
     return s.join(',');
 }
 
-export function fmtOther(e) {
+export function fmtOther(e, state) {
     var s = [];
     if (e.lanterns == 'on') {
         s.push('Lanternor på');
@@ -89,8 +89,10 @@ export function fmtOther(e) {
     }
     if (e.type == 'endOfRace') {
         s.push('Segling slut');
+    } else if (e.type == 'retire' && state == 'dns') {
+        s.push('Startar inte (DNS)');
     } else if (e.type == 'retire') {
-        s.push('Bryter seglingen');
+        s.push('Bryter seglingen (DNF)');
     } else if (e.finish) {
         s.push('Målgång');
     }

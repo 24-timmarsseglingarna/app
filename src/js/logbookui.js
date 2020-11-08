@@ -207,7 +207,7 @@ function refreshLogBook(options) {
         }
         var notes = [];
         var sails = fmtSails(e.sails);
-        var other = fmtOther(e);
+        var other = fmtOther(e, logBook.state);
         if (e.position) {
             notes.push(e.position);
         }
