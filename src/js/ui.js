@@ -1228,23 +1228,32 @@ export function initMapUI() {
     curState.curLogBook.onChange(function(logBook) {
         if (logBook) {
             if (curState.mode.get() == 'race' &&
-                (!logBook.signed &&
-                 (logBook.state == 'finished' ||
-                  logBook.state == 'finished-early' ||
-                  logBook.state == 'dns' ||
-                  logBook.state == 'dnf')) &&
+                logBook.signed == false &&
                 curState.loggedInPersonId.get() == logBook.teamData.skipper_id){
-                var reason;
-                if (logBook.state == 'dns') {
-                    reason = 'Starar inte (DNS)';
-                } else if (logBook.state == 'dnf') {
-                    reason = 'Bryter seglingen (DNF)';
-                } else {
-                    reason = 'Målgång';
+                var lateFinTime = moment(logBook.race.getStartTimes().start_to)
+                    .add(logBook.race.getRaceLengthHours(), 'h')
+                    .add(3, 'h');
+                if (logBook.state == 'finished' ||
+                    logBook.state == 'finished-early' ||
+                    logBook.state == 'dns' ||
+                    logBook.state == 'dnf') {
+                    var reason;
+                    if (logBook.state == 'dns') {
+                        reason = 'Starar inte (DNS)';
+                    } else if (logBook.state == 'dnf') {
+                        reason = 'Bryter seglingen (DNF)';
+                    } else {
+                        reason = 'Målgång';
+                    }
+                    alert('<p>Du har loggat "' + reason +
+                          '" men du har inte signerat loggboken.</p>' +
+                          '<p>Kontrollera loggboken och signera' +
+                          ' den sedan.</p>');
+                } else if (moment().isAfter(lateFinTime)) {
+                    alert('<p>Din segling verkar avslutad, men du har' +
+                          ' inte loggat att du har gått i mål eller' +
+                          ' brutit.</p>');
                 }
-                alert('<p>Du har loggat "' + reason +
-                      '" men har inte signerat loggboken.</p>' +
-                      '<p>Kontrollera loggboken och signera den sedan.</p>');
             }
             logBook.onLogUpdate(updateAll, 100);
         }
