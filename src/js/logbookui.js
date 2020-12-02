@@ -160,14 +160,21 @@ function refreshLogBook(options) {
         } else if (e.point) {
             prev = e;
         }
+        // NOTE: ensure that edit_button_html can be properly sanitized
+        // by bootstrap's sanitizeHtml function.  "button" will be removed,
+        // for example.  Also, it is not possible to set 'sanitize' to false
+        // in a 'data' attribute :(
+        // Also, sanitizeHtml doesn't allow 'data-' attributes, so we use
+        // the 'id' instead for now.
         var edit_button_html = '<div class=\'row log-book-edit-buttons\'' +
-            ' data-logid=\'' + e.id + '\'>' +
-            '<button class=\'btn btn-secondary\' id=\'log-book-btn-edit\'>' +
-            'Ändra</button>' +
-            '<button class=\'btn btn-secondary\' id=\'log-book-btn-add\'>' +
-            'Infoga</button>' +
-            '<button class=\'btn btn-warning\' id=\'log-book-btn-del\'>' +
-            'Radera</button>' +
+//            ' data-logid=\'' + e.id + '\'>' +
+            ' id=\'logid-' + e.id + '\'>' +
+            '<a role=\'button\' class=\'btn btn-secondary\'' +
+            ' id=\'log-book-btn-edit\'>Ändra</a>' +
+            '<a role=\'button\' class=\'btn btn-secondary\'' +
+            ' id=\'log-book-btn-add\'>Infoga</a>' +
+            '<a role=\'button\' class=\'btn btn-warning\'' +
+            ' id=\'log-book-btn-del\'>Radera</a>' +
             '</div>';
 
         var point = e.point || '';
@@ -283,8 +290,9 @@ function refreshLogBook(options) {
                                           // don't work :(
                 ' data-container="#log-book-entries"' +
                 ' data-placement="top"' +
-                ' data-viewport="#log-book-entries"' +
                 ' data-html="true"' +
+// sanitize isn't allowed as a 'data' attribute
+//                ' data-sanitize="false"' +
                 ' data-content="' + edit_button_html + '"' +
                 ' data-template="' + popover_template + '"' +
                 '><span class="icon-pencil">' + conflict + '</span></a></td>';
@@ -612,12 +620,14 @@ $(document).ready(function() {
             });
     });
     $(document).on('click', '#log-book-btn-edit', function(event) {
-        var id = $(event.currentTarget.parentElement).data('logid');
+        //var id = $(event.currentTarget.parentElement).data('logid');
+        var id = $(event.currentTarget.parentElement).attr('id').substring(6);
         $('.log-book-edit').popover('hide');
         openLogEntryFromPage({id: id});
     });
     $(document).on('click', '#log-book-btn-add', function(event) {
-        var id = $(event.currentTarget.parentElement).data('logid');
+//        var id = $(event.currentTarget.parentElement).data('logid');
+        var id = $(event.currentTarget.parentElement).attr('id').substring(6);
         var logBookPage = $('#log-book-page')[0];
         var logBook = logBookPage.logBook;
         var cur = logBook.getLogEntry(id);
@@ -644,7 +654,8 @@ $(document).ready(function() {
     });
     $(document).on('click', '#log-book-btn-del', function(event) {
         // delete the log entry
-        var id = $(event.currentTarget.parentElement).data('logid');
+//        var id = $(event.currentTarget.parentElement).data('logid');
+        var id = $(event.currentTarget.parentElement).attr('id').substring(6);
         var logBookPage = $('#log-book-page')[0];
         logBookPage.logBook.deleteLogEntry(id);
         // re-open the log book

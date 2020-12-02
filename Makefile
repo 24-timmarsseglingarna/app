@@ -56,6 +56,11 @@ build/deps:
 	cp node_modules/bootstrap/dist/js/bootstrap.min.js $@/; \
 	cp node_modules/bootstrap/dist/js/bootstrap.min.js.map $@/; \
 
+	cp node_modules/bootstrap-select/dist/css/bootstrap-select.min.css $@/; \
+	cp node_modules/bootstrap-select/dist/js/bootstrap-select.min.js $@/; \
+	cp node_modules/bootstrap-select/dist/js/bootstrap-select.min.js.map $@/; \
+	cp node_modules/bootstrap-select/dist/js/i18n/defaults-sv_SE.min.js $@/; \
+
 	cp node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css $@/
 	cp node_modules/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js $@/
 
@@ -130,6 +135,7 @@ depsjs: node_modules/ol \
 	node_modules/popper.js \
 	node_modules/bootstrap \
 	node_modules/moment \
+	node_modules/bootstrap-select \
 	node_modules/tempusdominus-bootstrap-4 \
 	node_modules/tempusdominus-core \
 	node_modules/rollup-plugin-node-resolve \
@@ -167,13 +173,17 @@ MOMENT_VSN=2.24.0
 node_modules/moment:
 	npm install moment@$(MOMENT_VSN) --no-audit
 
-POPPER_VSN=1.14.4
+POPPER_VSN=2.5.4
 node_modules/popper.js:
-	npm install popper.js@$(POPPER_VSN) --no-audit
+	npm install @popperjs/core@$(POPPER_VSN) --no-audit
 
-BOOTSTRAP_VSN=4.2.1
+BOOTSTRAP_VSN=4.5.3
 node_modules/bootstrap:
 	npm install bootstrap@$(BOOTSTRAP_VSN) --no-audit
+
+BOOTSTRAP_SELECT_VSN=1.13.18
+node_modules/bootstrap-select:
+	npm install bootstrap-select@$(BOOTSTRAP_SELECT_VSN) --no-audit
 
 TEMPUSDOMINUS_VSN=5.1.2
 node_modules/tempusdominus-bootstrap-4:

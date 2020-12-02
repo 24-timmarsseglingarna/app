@@ -250,6 +250,9 @@ function timeout() {
         setTimer();
         return;
     }
+    // FIXME if in showRegatta mode we should do as ui.showRegatta
+    // + add etags code in serverdata for the getXXperRegatta
+
     updateServerDataP(personId)
         .then(function() {
             serverDataUpdateDone();

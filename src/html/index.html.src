@@ -32,6 +32,8 @@
           content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 
     <link rel="stylesheet" href="deps/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="deps/bootstrap-select.min.css"
+          type="text/css" />
     <link rel="stylesheet" href="deps/ol.css" type="text/css" />
     <link rel="stylesheet" href="24h.css" type="text/css" />
     <link rel="stylesheet" href="icomoon.css" type="text/css" />
@@ -81,6 +83,8 @@ m4_include(planmenu.html)
     <!-- bootstrap -->
     <script type="text/javascript" src="deps/popper.min.js"></script>
     <script type="text/javascript" src="deps/bootstrap.min.js"></script>
+    <script type="text/javascript" src="deps/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="deps/defaults-sv_SE.min.js"></script>
     <script type="text/javascript" src="deps/tempusdominus-bootstrap-4.min.js">
     </script>
 

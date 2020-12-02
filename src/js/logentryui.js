@@ -416,6 +416,7 @@ function openLogEntry2(options) {
                     teamsElement.options[i].selected = true;
                 }
             }
+            $('#log-entry-teams').selectpicker('render');
         }
 
         if (entry.position != undefined) {
@@ -606,7 +607,7 @@ function getTeamsOptions(regattaId) {
             continue;
         }
         teamsOptions +=
-            '<option value="' + id + '">' +
+            '<option title="' + bn + '" value="' + id + '">' +
             sn + ' - ' + bn + ', ' + bcn;
         if (bsn) {
             teamsOptions += ', ' + bsn;
@@ -623,6 +624,7 @@ function initTeams(regattaId) {
         teamsElement.innerHTML = '';
     } else {
         teamsElement.innerHTML = getTeamsOptions(regattaId);
+        $('#log-entry-teams').selectpicker('refresh');
     }
 }
 

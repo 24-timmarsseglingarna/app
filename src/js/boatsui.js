@@ -187,9 +187,9 @@ function fillLeaderBoard(regatta) {
 
         html += '<tr>' +
             '<td>' + e.netdist.toFixed(1) + '</td>' +
+            '<td>' + logbook.teamData.boat_name + '</td>' +
             '<td>' + lastPoint + ' <i>' + lastPointName + '</i></td>' +
             '<td>' + lastTime + '</td>' +
-            '<td>' + logbook.teamData.boat_name + '</td>' +
             '<td>' + logbook.teamData.boat_type_name + '</td>' +
             //'<td>' + (logbook.teamData.boat_sail_number || '-') + '</td>' +
             '</tr>';

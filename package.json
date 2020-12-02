@@ -8,9 +8,12 @@
     "test": "test"
   },
   "dependencies": {
+    "@popperjs/core": "^2.5.4",
     "bootstrap": "^4.5.2",
+    "bootstrap-select": "^1.13.18",
     "moment": "^2.24.0",
     "ol": "^5.3.3",
+    "popper.js": "^1.16.1",
     "tempusdominus-bootstrap-4": "^5.1.2",
     "tempusdominus-core": "^5.0.3"
   },
