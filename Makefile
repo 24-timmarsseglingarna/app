@@ -185,11 +185,11 @@ BOOTSTRAP_SELECT_VSN=1.13.18
 node_modules/bootstrap-select:
 	npm install bootstrap-select@$(BOOTSTRAP_SELECT_VSN) --no-audit
 
-TEMPUSDOMINUS_VSN=5.1.2
+TEMPUSDOMINUS_VSN=5.39.0
 node_modules/tempusdominus-bootstrap-4:
 	npm install tempusdominus-bootstrap-4@$(TEMPUSDOMINUS_VSN) --no-audit
 
-TEMPUSDOMINUS_CORE_VSN=5.0.3
+TEMPUSDOMINUS_CORE_VSN=5.19.0
 node_modules/tempusdominus-core:
 	npm install tempusdominus-core@$(TEMPUSDOMINUS_CORE_VSN) --no-audit
 

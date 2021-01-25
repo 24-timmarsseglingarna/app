@@ -14,8 +14,8 @@
     "moment": "^2.24.0",
     "ol": "^5.3.3",
     "popper.js": "^1.16.1",
-    "tempusdominus-bootstrap-4": "^5.1.2",
-    "tempusdominus-core": "^5.0.3"
+    "tempusdominus-bootstrap-4": "^5.39.0",
+    "tempusdominus-core": "^5.19.0"
   },
   "devDependencies": {
     "rollup-plugin-commonjs": "^9.2.0",
