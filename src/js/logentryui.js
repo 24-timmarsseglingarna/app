@@ -131,6 +131,7 @@ export function openLogEntry(options) {
                 '. Vill du verkligen göra en loggboksanteckning?',
                 'Nej',
                 'Ja',
+                null,
                 function() {
                     openLogEntry2(options);
                 });

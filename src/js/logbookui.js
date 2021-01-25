@@ -558,6 +558,9 @@ $(document).ready(function() {
                 'Nej',
                 'Ja',
                 function() {
+                    $('#log-book-more').dropdown('hide');
+                },
+                function() {
                     var logBookPage = $('#log-book-page')[0];
                     var logBook = logBookPage.logBook;
                     logBook.deleteAllLogEntries();
@@ -589,6 +592,7 @@ $(document).ready(function() {
                     ' loggboken?</p>',
                     'Avbryt',
                     'Signera',
+                    null,
                     function() {
                         logBook.sign();
                         logBook.sendToServerP()

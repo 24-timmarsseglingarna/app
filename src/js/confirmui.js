@@ -6,9 +6,16 @@ import {pushPage, popPage} from './pageui.js';
  * Confirm (Cancel/Continue) dialog.
  */
 
-export function confirm(html, cancelLabel, continueLabel, continueFn) {
+// cancelFn may be 'null'
+export function confirm(html, cancelLabel, continueLabel,
+                        cancelFn, continueFn) {
     $('#confirm-body').html(html);
     $('#confirm-cancel').prop('value', cancelLabel);
+    $('#confirm-cancel').on('click', function() {
+        $('#confirm-cancel').off();
+        popPage(cancelFn);
+        return false;
+    });
     $('#confirm-continue').prop('value', continueLabel);
     $('#confirm-continue').on('click', function() {
         // remove the dynamic 'on' handler (actually, remove _all_ handlers,
@@ -21,10 +28,3 @@ export function confirm(html, cancelLabel, continueLabel, continueFn) {
         function() { $('#confirm-page').modal({backdrop: 'static'}); },
         function() { $('#confirm-page').modal('hide'); });
 };
-
-$(document).ready(function() {
-    $('#confirm-cancel').on('click', function() {
-        popPage();
-        return false;
-    });
-});

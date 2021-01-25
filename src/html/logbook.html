@@ -146,13 +146,21 @@
 
       <!-- justify-content-between: equal space between the buttons -->
       <div class="modal-footer justify-content-between">
-        <input type="button" class="btn btn-secondary mr-auto"
-               value="Radera loggboken" id="log-book-delete-all"/>
-        <input type="button" class="btn btn-secondary mr-auto"
+        <div class="dropdown">
+          <input type="button" class="btn btn-secondary dropdown-toggle"
+                 value="Mer..." data-toggle="dropdown"
+                 id="log-book-more"/>
+          <div class="dropdown-menu">
+            <input type="button" class="btn btn-secondary dropdown-item"
+                   value="Radera hela loggboken"
+                   id="log-book-delete-all"/>
+          </div>
+        </div>
+        <input type="button" class="btn btn-secondary"
                value="Skicka in" id="log-book-send"/>
-        <input type="button" class="btn btn-secondary mr-auto"
+        <input type="button" class="btn btn-secondary"
                value="Signera" id="log-book-sign"/>
-        <input type="button" class="btn btn-primary ml-auto"
+        <input type="button" class="btn btn-primary"
                value="Tillbaka" id="log-book-cancel"/>
       </div>
     </div>
