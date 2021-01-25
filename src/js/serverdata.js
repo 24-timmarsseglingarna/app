@@ -549,6 +549,7 @@ function mkServerLogData(r, teamId) {
         data.position = r.position;
         break;
     case 'seeOtherTeams':
+        data.position = r.position;
         data.teams = r.teams;
         break;
     case 'seeOtherBoats': // OBSOLETE

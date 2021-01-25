@@ -796,15 +796,28 @@ function logEntrySave() {
         logEntry.position = position;
         break;
     case 'seeOtherTeams':
+        logEntry.position = position;
         logEntry.teams = teams;
+        if (teams.length == 0 && comment == '') {
+            alert('<p>Du måste notera vilken båt som siktades.</p>');
+            return false;
+        }
         break;
     case 'protest':
         logEntry.position = position;
         logEntry.protest = protest;
+        if (protest == undefined && comment == '') {
+            alert('<p>Du måste notera vilken båt protesten gäller.</p>');
+            return false;
+        }
         break;
     case 'interrupt':
         logEntry.position = position;
         logEntry.interrupt = interrupt;
+        if (interrupt == undefined && comment == '') {
+            alert('<p>Du måste notera vilket avbrott som gjordes.</p>');
+            return false;
+        }
         break;
     case 'changeSails':
         logEntry.wind = wind;
