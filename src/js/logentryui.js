@@ -574,7 +574,7 @@ function initGeoPosition() {
                 // check that the position is still unset - we don't
                 // want to overwrite the user's input
                 if ($('#log-entry-position').val() == '') {
-                    var s = 'N ' + lat + '  O ' + lng;
+                    var s = 'N ' + lat + '  E ' + lng;
                     $('#log-entry-position').val(s);
                 }
             },
