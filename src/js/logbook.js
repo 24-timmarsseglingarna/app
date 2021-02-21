@@ -784,7 +784,7 @@ LogBook.prototype.sendToServerP = function(updated) {
         if (e.state == 'dirty' && !e.gen) {
             // new log entry
             e.state = 'syncing';
-            console.log('posting');
+            console.log('posting ' + e.id + ' ' + e.type);
             return postLogEntryP(this.teamData.id, e)
                 .then(function(res) {
                     // update ok; store id and generation id
@@ -821,7 +821,7 @@ LogBook.prototype.sendToServerP = function(updated) {
                 data = e;
             }
             e.state = 'syncing';
-            console.log('patching');
+            console.log('patching ' + e.id + ' ' + e.type);
             return patchLogEntryP(e.id, data)
                 .then(function(res) {
                     if (res == 'conflict') {

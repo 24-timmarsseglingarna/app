@@ -374,9 +374,9 @@ function refreshLogBook(options) {
         logBook.hasConflict()) {
         $('#log-book-sign').addClass('disabled');
     }
-    $('#log-book-delete-all').show();
+    $('#log-book-more').show();
     if (isReadOnly) {
-        $('#log-book-delete-all').hide();
+        $('#log-book-more').hide();
         $('#log-book-sign').hide();
     }
     $('#log-book-send').hide();
