@@ -6,6 +6,7 @@ import {alertUpgrade} from './alertui.js';
 import {URL} from './serverapi.js';
 import {isCordova} from './util.js';
 import {getSetting} from './storage.js';
+import {dbg} from './debug.js';
 
 export function openPage() {
     checkServerCompatibleP()
@@ -36,12 +37,11 @@ function submit() {
            $('#login-save-password').prop('checked'))
         .then(function() {
             $('#login-submit').val('Login');
-            console.log('loginPage response == true');
             popPage();
         })
         .catch(function(response) {
             $('#login-submit').val('Login');
-            console.log('loginPage response != true');
+            dbg('loginPage response: ' + response.errorStr);
             $('#login-error-btn').val(response.errorStr);
             $('#login-error-btn').show();
         });

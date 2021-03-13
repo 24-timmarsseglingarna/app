@@ -5,6 +5,7 @@ import {isCordova, isTouch} from './util.js';
 import {initMapUI} from './ui.js';
 import {Plan} from './plan.js';
 import {initLogbookUI} from './logbookui.js';
+import {setDebugMaxLogLen} from './debug.js';
 
 export var state = curState; // for debugging; access as tf.state
 
@@ -32,6 +33,7 @@ function onDeviceReady() {
 };
 
 function init() {
+    initDebugLog();
     if (!isTouch) {
         /* Prevent ESC from making whole page blank */
         $(':input').on('keydown', function(e) {
@@ -98,4 +100,13 @@ function init() {
         initRace();
         navigator.splashscreen.hide();
     }
+};
+
+function initDebugLog() {
+    setDebugMaxLogLen(curState.numberOfDebugLogEntries.get());
+    curState.numberOfDebugLogEntries.onChange(function(val) {
+        if (val >= 0 && val <= 1000) {
+            setDebugMaxLogLen(val);
+        }
+    });
 };

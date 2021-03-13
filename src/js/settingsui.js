@@ -6,7 +6,7 @@ import {pushPage, popPage} from './pageui.js';
 import {openPage as openLoginPage} from './loginui.js';
 import {alert} from './alertui.js';
 import {getSetting} from './storage.js';
-import {debugInfo} from './debug.js';
+import {debugInfo, debugLog} from './debug.js';
 
 export function openPage() {
     if (curState.loggedInPersonId.get()) {
@@ -20,6 +20,8 @@ export function openPage() {
     }
     $('#settings-plans').removeClass('is-invalid');
     $('#settings-plans').val(curState.numberOfPlans.get());
+    $('#settings-logs').removeClass('is-invalid');
+    $('#settings-logs').val(curState.numberOfDebugLogEntries.get());
     $('#settings-client-id').val(curState.clientId.get());
     $('#settings-poll-interval').removeClass('is-invalid');
     $('#settings-poll-interval').val(curState.pollInterval.get());
@@ -82,6 +84,14 @@ $(document).ready(function() {
             }
         }
         html += '</ul>';
+        for (var k = 0; k < debugLog.length; k++) {
+            var s = [];
+            for (var j = 0; j < debugLog[k].args.length; j++) {
+                s.push(debugLog[k].args[j]);
+            }
+            html += debugLog[k].time.format() + ' ' +
+                s.join(' ') + '<br/>';
+        }
         alert(html);
         return false;
     });
@@ -94,11 +104,14 @@ $(document).ready(function() {
 
     $('#settings-save-btn').on('click', function() {
         if ($('#settings-plans').hasClass('is-invalid') ||
-            $('#settings-poll-interval').hasClass('is-invalid')) {
+            $('#settings-poll-interval').hasClass('is-invalid') ||
+            $('#settings-logs').hasClass('is-invalid')) {
             return false;
         }
         var numberOfPlans = parseInt($('#settings-plans').val());
         curState.numberOfPlans.set(numberOfPlans);
+        var numberOfDebugLogEntries = parseInt($('#settings-logs').val());
+        curState.numberOfDebugLogEntries.set(numberOfDebugLogEntries);
         var pollInterval = parseInt($('#settings-poll-interval').val());
         curState.pollInterval.set(pollInterval);
         curState.clientId.set($('#settings-client-id').val().trim());
@@ -134,6 +147,16 @@ $(document).ready(function() {
             $('#settings-poll-interval').addClass('is-invalid');
         }
     });
+
+    $('#settings-logs').blur(function() {
+        var logs = parseInt($('#settings-logs').val());
+        if (logs >= 0 && logs <= 1000) {
+            $('#settings-logs').removeClass('is-invalid');
+        } else {
+            $('#settings-logs').addClass('is-invalid');
+        }
+    });
+
 
 });
 

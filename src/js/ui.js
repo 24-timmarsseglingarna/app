@@ -27,6 +27,7 @@ import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
 import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
+import {dbg} from './debug.js';
 
 /**
  * Font for point labels on zoom levels 1-3
@@ -1314,13 +1315,13 @@ export function initMapUI() {
 
     setupLoginP()
         .then(function(res) {
-            console.log('ui - login done: ' + res);
+            dbg('ui - login done: ' + res);
             setupContinue();
             stateSetupDone();
         })
         .catch(function(response) {
-            console.log('ui - login fail: ' + response);
-            console.log(response.stack);
+            dbg('ui - login fail: ' + response);
+            dbg(response.stack);
             if (response == false) {
                 openLoginPage();
                 stateSetupDone(); // FIXME

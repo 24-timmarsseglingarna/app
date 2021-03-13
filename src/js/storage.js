@@ -1,7 +1,7 @@
 /* -*- js -*- */
 
 import {defaultClientId, isCordova} from './util.js';
-import {debugInfo} from './debug.js';
+import {dbg, debugInfo} from './debug.js';
 import {CordovaPromiseFS} from './CordovaPromiseFS.js';
 
 /**
@@ -88,6 +88,7 @@ export function initP(doClear) {
          */
         'savePassword': true, // boolean()
         'numberOfPlans': 3, // int() 1-9
+        'numberOfDebugLogEntries': 50, // int() 0-1000
         'fontSize': null, // null | 'small' | 'normal' | 'large' | 'x-large'
         'pollInterval': 600, // seconds; int() 0-3600
         'immediateSendToServer': true, // boolean()
@@ -119,7 +120,7 @@ export function initP(doClear) {
          * delete all stored data.
          */
         if (settings.version != curVersion) {
-            console.log('incompatible storage found; removing all data');
+            dbg('incompatible storage found; removing all data');
             // try to keep some auth data
             var email = settings.email;
             var password = settings.password;
@@ -237,7 +238,7 @@ export function initP(doClear) {
         }
     }
     for (i = 0; i < removedKeys.length; i++) {
-        //console.log('removing old stored key ' + key);
+        //dbg('removing old stored key ' + key);
         window.localStorage.removeItem(removedKeys[i]);
     }
 
@@ -361,7 +362,7 @@ export function setRacePlan(raceId, plans) {
 function delRaceLog(raceId) {
     var key = 'racelog-' + raceId;
     if (raceId == settings['activeRaceId']) {
-        console.log('assertion failure - cannot delete active race');
+        dbg('assertion failure - cannot delete active race');
         return false;
     }
     window.localStorage.removeItem(key);
@@ -406,12 +407,12 @@ export function setCachedTerrain(terrain) {
     if (fs) {
         fs.write('terrains/' + terrain.id, terrain)
             .then(function() {
-                console.log('wrote file terrains/' + terrain.id);
+                dbg('wrote file terrains/' + terrain.id);
             })
             .catch(function(e) {
                 var estr = 'error writing terrains/' + terrain.id + ' ' + e;
                 debugInfo['fserror'] = estr;
-                console.log(estr);
+                dbg(estr);
             });
     }
 };
@@ -427,7 +428,7 @@ function readTerrainsP() {
         .catch(function(e) {
             var estr = 'error reading terrains ' + e;
             debugInfo['fserror'] = estr;
-            console.log(estr);
+            dbg(estr);
         });
 };
 
@@ -469,7 +470,7 @@ export function gcTerrainsP(keepTerrainIds, retval) {
     // we need to keep + one more
     removeTerrainIds.pop();
     if (removeTerrainIds.length > 0) {
-        console.log('removing terrains ' + removeTerrainIds);
+        dbg('removing terrains ' + removeTerrainIds);
     }
     return removeTerrainIdsP(removeTerrainIds, retval);
 };
@@ -479,7 +480,7 @@ function removeTerrainIdsP(removeTerrainIds, retval) {
         var id = removeTerrainIds.pop();
         return fs.remove('terrains/' + id)
             .then(function() {
-                console.log('successfully removed terrain ' + id);
+                dbg('successfully removed terrain ' + id);
                 delete cachedTerrains[id];
                 return removeTerrainIdsP(removeTerrainIds, retval);
             });

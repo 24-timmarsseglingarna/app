@@ -7,6 +7,7 @@ import {getCachedMyTeams, getCachedTeams,
         gcTerrainsP} from './storage.js';
 import * as serverAPI from './serverapi';
 import {Pod} from './pod.js';
+import {dbg} from './debug.js';
 
 var myTeams = [];
 var myTeamsETag = null;
@@ -107,7 +108,7 @@ export function getRegattaTeamsP(regattaId) {
 export function getRegattaRacesP(regattaId) {
     return serverAPI.getRacesPerRegattaP([regattaId], [null])
         .then(function(r) {
-            console.log('racesPer: ' + JSON.stringify(r));
+            dbg('racesPer: ' + JSON.stringify(r));
             var races = null;
             if (r.races) {
                 races = r.races[regattaId].map(mkRaceData);
@@ -234,7 +235,7 @@ export function postLogEntryP(teamId, data) {
 export function patchLogEntryP(logId, data) {
     return serverAPI.patchLogEntryP(logId, mkServerLogData(data))
         .then(function(x) {
-            console.log('patch ok ' + x);
+            dbg('patch ok ' + x);
             return x;
         });
 };

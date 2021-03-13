@@ -19,7 +19,7 @@ import {initP as initServerDataP, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
         getPodP,
         clearCache as clearServerDataCache} from './serverdata.js';
-import {debugInfo} from './debug.js';
+import {dbg, debugInfo} from './debug.js';
 import {basePodSpec} from '../../build/pod.js';
 
 export var curState = {};
@@ -54,6 +54,7 @@ defineVariable(curState, 'sendLogToServer', null);
 defineVariable(curState, 'immediateSendToServer', null);
 defineVariable(curState, 'serverId', null);
 defineVariable(curState, 'loggedInPersonId', null);
+defineVariable(curState, 'numberOfDebugLogEntries', null);
 
 /**
  * Initialize ephemeral state variables.
@@ -155,6 +156,12 @@ function init() {
             curState.curPlan.set(null);
         }
     });
+
+    curState.numberOfDebugLogEntries.set(getSetting('numberOfDebugLogEntries'));
+    curState.numberOfDebugLogEntries.onChange(function(val) {
+        setSettings({numberOfDebugLogEntries: val});
+    });
+
 
     curState.clientId.set(getSetting('clientId'));
     curState.clientId.onChange(function(val) {
@@ -281,8 +288,8 @@ function timeout() {
         })
         .catch(function(x) {
             // reset timer also on error
-            console.log('log sync error: ' + x);
-            console.log(x.stack);
+            dbg('log sync error: ' + x);
+            dbg(x.stack);
             setTimer();
         });
 };
@@ -382,16 +389,16 @@ function setupLogin2() {
     var email = getSetting('email');
     var personId = getSetting('personId');
     if (hasNet && !token) {
-        //console.log('has network, no stored token');
+        //dbg('has network, no stored token');
         // we haven't logged in
         throw false;
     } else if (hasNet) {
-        //console.log('has network and stored token, validate it');
+        //dbg('has network and stored token, validate it');
         // validate the token
         return validateTokenP(email, token, personId)
             .then(function(data) {
                 // token is valid
-                console.log('valid token! role:' + data.role);
+                dbg('valid token! role:' + data.role);
                 var props = {
                     role: data.role
                 };
@@ -400,14 +407,14 @@ function setupLogin2() {
                 return true;
             })
             .catch(function() {
-                //console.log('has network, invalid token');
+                //dbg('has network, invalid token');
                 // token invalid, check if the password is stored
                 var password = getSetting('password');
                 if (password) {
-                    //console.log('has stored passwd, login');
+                    //dbg('has stored passwd, login');
                     return serverAPILoginP(email, password)
                         .then(function(response) {
-                            //console.log('login ok');
+                            //dbg('login ok');
                             var props = {
                                 token: response.token,
                                 personId: response.personId,
@@ -418,7 +425,7 @@ function setupLogin2() {
                             return true;
                         })
                         .catch(function() {
-                            //console.log('apilogin failed ' + err.errorStr);
+                            //dbg('apilogin failed ' + err.errorStr);
                             throw false;
                         });
                 } else {
@@ -427,11 +434,11 @@ function setupLogin2() {
                 }
             });
     } else if (getSetting('token')) {
-        //console.log('no network, token');
+        //dbg('no network, token');
         // we have a token but no network; continue with the data we have
         return true;
     } else {
-        //console.log('no network, no token');
+        //dbg('no network, no token');
         // no network, no token; not much to do
         throw 'nonetwork';
     }
@@ -454,7 +461,7 @@ function serverDataUpdateDone() {
     if (races.length == 1 && races[0].raceData.id != curActiveRaceId) {
         // the user is registered for a single race,
         // make it active
-        console.log('make race active: ' + races[0].raceData.id);
+        dbg('make race active: ' + races[0].raceData.id);
         activateRace(races[0].raceData.id);
     } else if (getRaceData(curActiveRaceId) == null) {
         // current activeRaceId is not valid
@@ -642,6 +649,8 @@ export function reset(keepauth, doLoginFn) {
             setSettings(props, true);
 
             curState.numberOfPlans.set(getSetting('numberOfPlans'));
+            curState.numberOfDebugLogEntries.set(
+                getSetting('numberOfDebugLogEntries'));
             curState.clientId.set(getSetting('clientId'));
             curState.fontSize.set(getSetting('fontSize'));
             curState.pollInterval.set(getSetting('pollInterval'));

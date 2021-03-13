@@ -1,4 +1,6 @@
 /* eslint-disable */
+import {dbg} from './debug.js';
+
 export var CordovaPromiseFS =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -629,7 +631,7 @@ module.exports = function(options){
     var promise = new Promise(function(resolve,reject){
       var attempt = function(err){
         if(transferOptions.retry.length === 0) {
-          if(options.debug) console.log('FileTransfer Error: '+serverUrl,err);
+          if(options.debug) dbg('FileTransfer Error: '+serverUrl,err);
           reject(err);
         } else {
 

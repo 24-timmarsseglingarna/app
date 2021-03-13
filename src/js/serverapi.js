@@ -1,6 +1,6 @@
 /* -*- js -*- */
 
-import {debugInfo} from './debug.js';
+import {dbg, debugInfo} from './debug.js';
 
 /**
  * Base URL for server requests.
@@ -121,7 +121,7 @@ export function loginP(email, password) {
                         errorStr: data.error
                     });
                 } else {
-                    console.log('login: bad response from server');
+                    dbg('login: bad response from server');
                     reject({
                         errorCode: -2,
                         errorStr: 'Okänt fel från servern'
@@ -147,7 +147,7 @@ function mkError(jqXHR, url, textStatus, errorThrown) {
         errorStr = textStatus + ' ' + errorThrown;
     }
     debugInfo['reqerror'] = errorStr + ' ' + moment().format();
-    console.log('mkerror ' + errorStr);
+    dbg('mkerror ' + errorStr);
     return {
         url: url,
         errorCode: jqXHR.status,
@@ -393,7 +393,7 @@ function getJSONP(urlpath, etag) {
                 return true;
             },
             success: function(data, _status, jqXHR) {
-                //console.log(urlpath + ' -> ' + JSON.stringify(data));
+                //dbg(urlpath + ' -> ' + JSON.stringify(data));
                 resolve({
                     etag: jqXHR.getResponseHeader('ETag'),
                     modified: (jqXHR.status != 304),
@@ -402,7 +402,7 @@ function getJSONP(urlpath, etag) {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 var errorstr = 'req error for ' + urlpath + ': ' +jqXHR.status;
-                console.log(errorstr);
+                dbg(errorstr);
                 debugInfo['getjsonerror'] = errorstr + ' ' +
                     moment().format();
                 reject(mkError(jqXHR, url, textStatus, errorThrown));
@@ -413,7 +413,7 @@ function getJSONP(urlpath, etag) {
 
 
 function getAJAX(urlpath, etag, opaque) {
-    //console.log('req: ' + urlpath);
+    //dbg('req: ' + urlpath);
     return $.ajax({
         url: URL + urlpath,
         dataType: 'json',
@@ -441,12 +441,12 @@ function getS3JSONP(urlpath) {
             url: url,
             dataType: 'json',
             success: function(data) {
-                //console.log(urlpath + ' -> (data)');
+                //dbg(urlpath + ' -> (data)');
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 var errorstr = 'req error for ' + urlpath + ': ' +jqXHR.status;
-                console.log(errorstr);
+                dbg(errorstr);
                 debugInfo['gets3error'] = errorstr + ' ' +
                     moment().format();
                 reject(mkError(jqXHR, url, textStatus, errorThrown));
@@ -466,7 +466,7 @@ function patchJSONP(urlpath, data) {
 function setJSONP(method, urlpath, data) {
     var url = URL + urlpath;
     return new Promise(function(resolve, reject) {
-        //console.log(urlpath + ' <- ' + JSON.stringify(data));
+        //dbg(urlpath + ' <- ' + JSON.stringify(data));
         $.ajax({
             url: url,
             method: method,
@@ -487,12 +487,12 @@ function setJSONP(method, urlpath, data) {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 if (jqXHR.status == 409) {
-                    //console.log(method+' '+urlpath+'returns 409 conflict');
+                    //dbg(method+' '+urlpath+'returns 409 conflict');
                     resolve('conflict');
                 } else {
                     var errorstr = method + ' error for ' + urlpath + ': ' +
                         jqXHR.status;
-                    console.log(errorstr);
+                    dbg(errorstr);
                     debugInfo['setjsonerr'] = errorstr + ' ' +
                         moment().format();
                     reject(mkError(jqXHR, url, textStatus, errorThrown));

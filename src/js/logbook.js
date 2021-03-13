@@ -2,7 +2,7 @@
 
 import {uuid, legName} from './util.js';
 import {getTeamLogP, postLogEntryP, patchLogEntryP} from './serverdata.js';
-import {debugInfo} from './debug.js';
+import {dbg, debugInfo} from './debug.js';
 
 /**
  * Log Entry states, local property, not sent to server.
@@ -740,16 +740,16 @@ LogBook.prototype.addLogFromServer = function(log) {
                     // unless both have deleted the entry we need to notify
                     // the user about this.
                     // FIXME: how to notify the user?
-                    console.log('both modified log entry w/ id ' + new_.id);
-                    console.log(JSON.stringify(old));
-                    console.log(JSON.stringify(new_));
+                    dbg('both modified log entry w/ id ' + new_.id);
+                    dbg(JSON.stringify(old));
+                    dbg(JSON.stringify(new_));
                 }
                 new_.state = 'conflict';
                 del.push(old.id);
                 add.push(new_);
                 break;
             case 'syncing':
-                console.log('assertion failure - we should not call ' +
+                dbg('assertion failure - we should not call ' +
                             'updateFromServer when we have outstanding ' +
                             'log updates to server');
                 break;
@@ -778,13 +778,13 @@ LogBook.prototype.addLogFromServer = function(log) {
 
 LogBook.prototype.sendToServerP = function(updated) {
     var logBook = this;
-    console.log('send to server!');
+    dbg('send to server!');
     for (var i = 0; i < this.log.length; i++) {
         var e = this.log[i];
         if (e.state == 'dirty' && !e.gen) {
             // new log entry
             e.state = 'syncing';
-            console.log('posting ' + e.id + ' ' + e.type);
+            dbg('posting ' + e.id + ' ' + e.type);
             return postLogEntryP(this.teamData.id, e)
                 .then(function(res) {
                     // update ok; store id and generation id
@@ -800,8 +800,8 @@ LogBook.prototype.sendToServerP = function(updated) {
                 .catch(function(err) {
                     // error; wait and try later
                     debugInfo['posterr'] = err;
-                    console.log('post error: ' + err);
-                    console.log(err.stack);
+                    dbg('post error: ' + err);
+                    dbg(err.stack);
                     e.state = 'dirty';
                     if (updated) {
                         logBook._updateLog('syncError');
@@ -821,7 +821,7 @@ LogBook.prototype.sendToServerP = function(updated) {
                 data = e;
             }
             e.state = 'syncing';
-            console.log('patching ' + e.id + ' ' + e.type);
+            dbg('patching ' + e.id + ' ' + e.type);
             return patchLogEntryP(e.id, data)
                 .then(function(res) {
                     if (res == 'conflict') {
@@ -845,8 +845,8 @@ LogBook.prototype.sendToServerP = function(updated) {
                 .catch(function(err) {
                     // error; wait and try later
                     debugInfo['patcherr'] = err;
-                    console.log('patch error: ' + err);
-                    console.log(err.stack);
+                    dbg('patch error: ' + err);
+                    dbg(err.stack);
                     e.state = 'dirty';
                     if (updated) {
                         logBook._updateLog('syncError');
