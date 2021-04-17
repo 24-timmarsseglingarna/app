@@ -93,6 +93,7 @@ PLATFORM=ios
 APPID=nu.24-timmars
 else
 PLATFORM=android
+PLATFORM_VSN=@9.0.0
 APPID=org.homenet.mbj.tjugofyratimmars
 endif
 
@@ -113,7 +114,7 @@ build-app: 24h-app
 # always sets it to 1.0.0), so we change it afterwards.
 # remove debug files (css .map files)
 24h-app: all src/cordova-template/template_src/res
-	cordova create 24h-app --template src/cordova-template; \
+	cordova create 24h-app --template ./src/cordova-template; \
 	TGT_DIR=24h-app/www $(MAKE) copy-target; \
 	cd 24h-app; \
 	rm -f deps/*.map; \

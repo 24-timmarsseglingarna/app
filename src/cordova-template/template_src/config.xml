@@ -20,6 +20,7 @@
     <plugin name="cordova-plugin-statusbar" spec="" />
     <plugin name="cordova-plugin-device" spec="" />
     <plugin name="cordova-plugin-file" spec="" />
+    <plugin name="cordova-plugin-androidx" spec="" />
     <plugin name="cordova-plugin-safariviewcontroller" spec="" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
@@ -117,6 +118,12 @@
     <splash density="land-xhdpi" src="res/screens/android/screen-xhdpi-landscape.png" />
     <splash density="land-xxhdpi" src="res/screens/android/screen-xxhdpi-landscape.png" />
     <splash density="land-xxxhdpi" src="res/screens/android/screen-xxxhdpi-landscape.png" />
+    <splash density="hdpi" src="res/screens/android/screen-hdpi-landscape.png" />
+    <splash density="ldpi" src="res/screens/android/screen-ldpi-landscape.png" />
+    <splash density="mdpi" src="res/screens/android/screen-mdpi-landscape.png" />
+    <splash density="xhdpi" src="res/screens/android/screen-xhdpi-landscape.png" />
+    <splash density="xxhdpi" src="res/screens/android/screen-xxhdpi-landscape.png" />
+    <splash density="xxxhdpi" src="res/screens/android/screen-xxxhdpi-landscape.png" />
     <splash density="port-hdpi" src="res/screens/android/screen-hdpi-portrait.png" />
     <splash density="port-ldpi" src="res/screens/android/screen-ldpi-portrait.png" />
     <splash density="port-mdpi" src="res/screens/android/screen-mdpi-portrait.png" />
