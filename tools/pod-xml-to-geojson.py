@@ -47,9 +47,8 @@ def output_pod(fname, javascript, id, features):
         fd = io.open(fname, "w", encoding="utf-8")
     if javascript:
         fd.write(u'/* eslint-disable */\n')
-        fd.write(u'export var basePodSpec = {"id": %s, ' % id)
-    else:
-        fd.write(u'{')
+        fd.write(u'export var basePodSpec = ')
+    fd.write(u'{"id": %s, ' % id)
     flen = len(features)
     i = 1
     for (name, obj) in features:

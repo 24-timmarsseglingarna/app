@@ -1,3 +1,27 @@
+2.4.0 - 2021-04-20
+
+   - Popup reminders for end of race and signing
+
+   - Moved 'Delete logbook' to separate menu
+
+   - Fixed bug on sync that could lead to missing log entry uploads
+
+   - Various bugfixes
+
+2.3.1 - 2020-06-10
+
+   - Various bugfixes
+
+2.3.0 - 2020-04-22
+
+   - Read PoD from S3
+
+   - Store plans to local storage
+
+2.2.0 - 2019-04-29
+
+2.1.0 - 2019-03-15
+
 2.0.2 - 2018-08-18
 
   - Diverse buggfixar
