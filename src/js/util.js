@@ -70,6 +70,39 @@ export function isAdminRights(role) {
     }
 };
 
+function nProperties(obj) {
+    var n = 0;
+    var k;
+    for (k in obj) {
+        if (obj.hasOwnProperty(k)) {
+            n++;
+        }
+    }
+    return n;
+};
+
+
+export function objectsEqual(a, b) {
+    var k;
+    if (typeof(a) !== typeof(b)) {
+        return false;
+    }
+
+    if (a instanceof Object && b instanceof Object) {
+        if (nProperties(a) !== nProperties(b)) {
+            return false;
+        }
+        for (k in a) {
+            if (!objectsEqual(a[k], b[k])) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return a === b;
+    }
+}
+
 /**
  * Detect environment
  */

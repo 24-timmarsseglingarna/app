@@ -1099,7 +1099,9 @@ function setPodLayers(pod) {
 };
 
 function stateSetupDone() {
-    setPodLayers(curState.defaultPod);
+    if (!inshoreLegsLayer) {
+        setPodLayers(curState.defaultPod);
+    }
     if (curState.mode.get() == 'showRegatta') {
         showRegatta(curState.showRegattaId.get());
         return;

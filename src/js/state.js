@@ -6,7 +6,7 @@ import {Plan} from './plan.js';
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
-import {defineVariable, numberToName, isCordova} from './util.js';
+import {defineVariable, numberToName, isCordova, objectsEqual} from './util.js';
 import {initP as initStorageP,
         getSetting, setSettings,
         getRaceLog, setRaceLog,
@@ -463,9 +463,25 @@ function serverDataUpdateDone() {
         // make it active
         dbg('make race active: ' + races[0].raceData.id);
         activateRace(races[0].raceData.id);
-    } else if (getRaceData(curActiveRaceId) == null) {
-        // current activeRaceId is not valid
-        setActiveRace2(null);
+    } else {
+        var newRaceData = getRaceData(curActiveRaceId);
+        if (newRaceData == null) {
+            // current activeRaceId is not valid
+            setActiveRace2(null);
+        } else {
+            var curRace = curState.curRace.get();
+            if (!objectsEqual(curRace.raceData, newRaceData)) {
+                dbg('race ' + curActiveRaceId + ' has been updated on server');
+                var pod = getPod(newRaceData.terrain_id);
+                if (pod) {
+                    var newRegatta = new Regatta(newRaceData.regatta_id,
+                                                 newRaceData.regatta_name,
+                                                 newRaceData, pod);
+                    var newRace = new Race(newRegatta, newRaceData);
+                    curState.curRace.set(newRace);
+                }
+            }
+        }
     }
 };
 
