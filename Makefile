@@ -93,7 +93,7 @@ PLATFORM=ios
 APPID=nu.24-timmars
 else
 PLATFORM=android
-PLATFORM_VSN=@9.0.0
+PLATFORM_VSN=@10.1.2
 APPID=org.homenet.mbj.tjugofyratimmars
 endif
 
@@ -107,7 +107,6 @@ apk: 24h-app
 
 build-app: 24h-app
 	cd 24h-app; \
-	cordova platform add $(PLATFORM); \
 	cordova build $(PLATFORM)
 
 # for some reason, cordova doesn't keep the version in config.xml (it
