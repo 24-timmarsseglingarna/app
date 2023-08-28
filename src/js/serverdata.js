@@ -109,11 +109,12 @@ export function getRegattaRacesP(regattaId) {
     return serverAPI.getRacesPerRegattaP([regattaId], [null])
         .then(function(r) {
             dbg('racesPer: ' + JSON.stringify(r));
-            var races = null;
+            var lraces = null;
             if (r.races) {
-                races = r.races[regattaId].map(mkRaceData);
+                lraces = r.races[regattaId].map(mkRaceData);
+                races[regattaId] = lraces;
             }
-            return races;
+            return lraces;
         });
 };
 

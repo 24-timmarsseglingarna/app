@@ -808,62 +808,70 @@ function initNavbar() {
         }
         var opts = {regatta: curRegatta};
         if (curState.mode.get() == 'showRegatta') {
-            opts['adminView'] = true;
+            opts['displayView'] = true;
+            // opts['adminView'] = true;
         }
         openBoatsPage(opts);
         return false;
     });
 
-    $('#tf-nav-log').on('click', function() {
-        var curLogBook = curState.curLogBook.get();
-        if (!curLogBook) {
-            alertNoRace('göra en loggboksanteckning');
-            return false;
-        } else if (curLogBook.isReadOnly()) {
-            alert('<p>När loggboken är signerad går det inte att' +
-                  ' göra en loggboksanteckning.</p>');
-            return false;
-        }
-        openAddLogEntryPage({
-            logBook: curLogBook
-        });
-        return false;
-    });
-
-    $('#tf-nav-logbook').on('click', function() {
-        var curLogBook = curState.curLogBook.get();
-        if (!curLogBook) {
-            alertNoRace('öppna loggboken');
-        } else {
-            openLogBook({
+    if (curState.mode.get() == 'showRegatta') {
+        $('#tf-nav-log').hide();
+        $('#tf-nav-logbook').hide();
+        $('#tf-nav-plan-mode').hide();
+        $('#tf-nav-show-activate-race').hide();
+    } else {
+        $('#tf-nav-log').on('click', function() {
+            var curLogBook = curState.curLogBook.get();
+            if (!curLogBook) {
+                alertNoRace('göra en loggboksanteckning');
+                return false;
+            } else if (curLogBook.isReadOnly()) {
+                alert('<p>När loggboken är signerad går det inte att' +
+                      ' göra en loggboksanteckning.</p>');
+                return false;
+            }
+            openAddLogEntryPage({
                 logBook: curLogBook
             });
-        }
-        return false;
-    });
-
-    $('#tf-nav-plan-mode').on('click', function() {
-        /*
-        if (!curState.curRace.get()) {
-            alertNoRace('planera en rutt');
             return false;
-        }
-        */
-        openPlanMenuPage();
-        return false;
-    });
+        });
 
-    $('#tf-nav-show-activate-race').on('click', function() {
-        // close the dropdown
-        $('#tf-nav-more').dropdown('toggle');
-        if (!curState.loggedInPersonId.get()) {
-            alert('<p>Du behöver logga in för att kunna ' +
-                  'aktivera en segling.</p>');
+        $('#tf-nav-logbook').on('click', function() {
+            var curLogBook = curState.curLogBook.get();
+            if (!curLogBook) {
+                alertNoRace('öppna loggboken');
+            } else {
+                openLogBook({
+                    logBook: curLogBook
+                });
+            }
             return false;
-        }
-        openActivateRacePage();
-        return false;
-    });
+        });
+
+        $('#tf-nav-plan-mode').on('click', function() {
+            /*
+              if (!curState.curRace.get()) {
+              alertNoRace('planera en rutt');
+              return false;
+              }
+            */
+            openPlanMenuPage();
+            return false;
+        });
+
+        $('#tf-nav-show-activate-race').on('click', function() {
+            // close the dropdown
+            $('#tf-nav-more').dropdown('toggle');
+            if (!curState.loggedInPersonId.get()) {
+                alert('<p>Du behöver logga in för att kunna ' +
+                      'aktivera en segling.</p>');
+                return false;
+            }
+            openActivateRacePage();
+            return false;
+        });
+    }
 
     $('#tf-nav-show-settings').on('click', function() {
         // close the dropdown
@@ -1325,8 +1333,10 @@ export function initMapUI() {
             dbg('ui - login fail: ' + response);
             dbg(response.stack);
             if (response == false) {
-                openLoginPage();
-                stateSetupDone(); // FIXME
+                if (curState.mode.get() != 'showRegatta') {
+                    openLoginPage();
+                }
+                stateSetupDone();
             } else if (response == 'nonetwork') {
                 alert('<p>Det finns inget nätverk.  Du måste logga in när ' +
                       'du har nätverk.</p>');
@@ -1361,14 +1371,28 @@ function showRegatta(regattaId) {
             if (races.length == 0) {
                 throw false;
             }
-            return getPodP(races[0].terrain_id);
+            return getPodP(races[0].terrain_id, true);
         })
         .then(function(pod) {
-            showPod = pod;
+            if (pod) {
+                showPod = pod;
+            } else { // for test only - new regattas have pod
+                showPod = curState.defaultPod;
+            }
             return getRegattaTeamsP(regattaId);
         })
         .then(function(teams) {
             showTeams = teams;
+            // pick one start point and center map
+            if (teams.length > 0 && !initialCenterChanged) {
+                var point = showPod.getPoint(teams[0].start_point);
+                if (point) {
+                    var center = transform(point.coords,
+                                           'EPSG:4326', 'EPSG:3857');
+                    view.setCenter(center);
+                }
+            }
+
             return getRegattaLogsP(regattaId);
         })
         .then(function(logs) {

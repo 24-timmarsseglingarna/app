@@ -37,8 +37,8 @@ export var curState = {};
 
 
 // mode :: 'race'
+//       | 'logbook'
 //       | 'showRegatta'  // experimental
-//       | 'logbook'      // NYI
 defineVariable(curState, 'mode', null);
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
 defineVariable(curState, 'planMode', false); // if mode == 'race'

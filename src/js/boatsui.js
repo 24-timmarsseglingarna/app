@@ -29,7 +29,7 @@ export function openPage(options) {
 
     fillStartList(regatta, fontclass);
 
-    fillLeaderBoard(regatta);
+    fillLeaderBoard(regatta, options.displayView);
 
     if (options.adminView) {
         fillResult(regatta);
@@ -157,7 +157,7 @@ function fillStartList(regatta, fontclass) {
     $('#boats-start').html(html);
 };
 
-function fillLeaderBoard(regatta) {
+function fillLeaderBoard(regatta, displayView) {
     var html = '';
 
     var pod = regatta.getPod();
@@ -168,6 +168,7 @@ function fillLeaderBoard(regatta) {
     // that we've seen it.
     regatta.log_updated = false;
     $('#tf-nav-boats-badge').hide(); // and immediately hide the info badge
+    curRegatta = regatta;
     for (var i = 0; i < leaderboard.length; i++) {
         var e = leaderboard[i];
         var logbook = e.logbook;
@@ -185,8 +186,14 @@ function fillLeaderBoard(regatta) {
             lastTime = last.time.format('HH:mm');
         }
 
-        html += '<tr>' +
-            '<td>' + e.netdist.toFixed(1) + '</td>' +
+        if (displayView) {
+            html += '<tr onclick="window.tfUiBoatsSelect(' +
+                logbook.teamData.id +
+                ')">';
+        } else {
+            html += '<tr>';
+        }
+        html += '<td>' + e.netdist.toFixed(1) + '</td>' +
             '<td>' + logbook.teamData.boat_name + '</td>' +
             '<td>' + lastPoint + ' <i>' + lastPointName + '</i></td>' +
             '<td>' + lastTime + '</td>' +
