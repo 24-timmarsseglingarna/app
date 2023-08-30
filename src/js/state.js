@@ -445,41 +445,58 @@ function timeout() {
         setTimer();
         return;
     }
-    // FIXME if in showRegatta mode we should do as ui.showRegatta
-    // + add etags code in serverdata for the getXXperRegatta
 
-    updateServerDataP(personId)
-        .then(function() {
-            serverDataUpdateDone();
-            var curRegatta = curState.curRegatta.get();
-            if (curRegatta) {
+    if (curState.mode.get() == 'showRegatta') {
+        var curRegatta = curState.curRegatta.get();
+        if (curRegatta) {
+            curRegatta.updateLogFromServerP()
+                .then(function() {
+                    setTimer();
+                })
+                .catch(function(x) {
+                    // reset timer also on error
+                    dbg('log sync error: ' + x);
+                    dbg(x.stack);
+                    setTimer();
+                });
+        } else {
+            setTimer();
+            return;
+        }
+    } else {
+        updateServerDataP(personId)
+            .then(function() {
+                serverDataUpdateDone();
+                var curRegatta = curState.curRegatta.get();
+                if (curRegatta) {
+                    var curLogBook = curState.curLogBook.get();
+                    return curRegatta.updateLogFromServerP(curLogBook);
+                } else {
+                    return true;
+                }
+            })
+            .then(function() {
                 var curLogBook = curState.curLogBook.get();
-                return curRegatta.updateLogFromServerP(curLogBook);
-            } else {
-                return true;
-            }
-        })
-        .then(function() {
-            var curLogBook = curState.curLogBook.get();
-            if (curLogBook && curState.sendLogToServer.get()) {
-                return curLogBook.sendToServerP();
-            }
-        })
-        .then(function() {
-            var curLogBook = curState.curLogBook.get();
-            if (curLogBook) {
-                return curLogBook.updateFromServerP();
-            }
-        })
-        .then(function() {
-            setTimer();
-        })
-        .catch(function(x) {
-            // reset timer also on error
-            dbg('log sync error: ' + x);
-            dbg(x.stack);
-            setTimer();
-        });
+                if (curLogBook && curState.sendLogToServer.get()) {
+                    return curLogBook.sendToServerP();
+                }
+            })
+            .then(function() {
+                var curLogBook = curState.curLogBook.get();
+                if (curLogBook) {
+                    return curLogBook.updateFromServerP();
+                }
+            })
+            .then(function() {
+                setTimer();
+            })
+            .catch(function(x) {
+                // reset timer also on error
+                dbg('log sync error: ' + x);
+                dbg(x.stack);
+                setTimer();
+            });
+    };
 };
 
 /**
