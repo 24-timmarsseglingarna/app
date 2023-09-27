@@ -93,7 +93,7 @@ PLATFORM=ios
 APPID=nu.24-timmars
 else
 PLATFORM=android
-PLATFORM_VSN=@10.1.2
+#PLATFORM_VSN=@12.0.0
 APPID=org.homenet.mbj.tjugofyratimmars
 endif
 
