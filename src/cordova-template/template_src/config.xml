@@ -20,7 +20,7 @@
     <plugin name="cordova-plugin-statusbar" spec="" />
     <plugin name="cordova-plugin-device" spec="" />
     <plugin name="cordova-plugin-file" spec="" />
-    <plugin name="cordova-plugin-androidx" spec="" />
+    <!--plugin name="cordova-plugin-androidx" spec="" /-->
     <plugin name="cordova-plugin-safariviewcontroller" spec="" />
     <plugin name="cordova-background-geolocation-plugin" spec="" />
 <!--
@@ -122,7 +122,9 @@
     <icon height="159" src="res/icons/wp8/Background.png" width="159" />
 </platform>
 
-<!--platform name="android">
+<platform name="android">
+  <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screens/android-24h.xml" />
+  <!--
     <splash density="land-hdpi" src="res/screens/android/screen-hdpi-landscape.png" />
     <splash density="land-ldpi" src="res/screens/android/screen-ldpi-landscape.png" />
     <splash density="land-mdpi" src="res/screens/android/screen-mdpi-landscape.png" />
@@ -141,7 +143,9 @@
     <splash density="port-xhdpi" src="res/screens/android/screen-xhdpi-portrait.png" />
     <splash density="port-xxhdpi" src="res/screens/android/screen-xxhdpi-portrait.png" />
     <splash density="port-xxxhdpi" src="res/screens/android/screen-xxxhdpi-portrait.png" />
-</platform-->
+    -->
+
+</platform>
 <platform name="ios">
     <splash src="res/screens/ios/screen@2x~universal~anyany.png" />
 </platform>
