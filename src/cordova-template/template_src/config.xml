@@ -61,9 +61,9 @@
     -->
     <preference name="StatusBarStyle" value="default" />>
 
-    <preference name="SplashScreen" value="screen"/>
-    <preference name="AutoHideSplashScreen" value="false" />
-    <preference name="SplashMaintainAspectRatio" value="true"/>
+    <!--preference name="SplashScreen" value="screen"/-->
+    <!--preference name="AutoHideSplashScreen" value="false" /-->
+    <!--preference name="SplashMaintainAspectRatio" value="true"/-->
 
     <!-- store files (terrains) on internal disk -->
     <preference name="AndroidPersistentFileLocation" value="Internal"/>
@@ -122,7 +122,7 @@
     <icon height="159" src="res/icons/wp8/Background.png" width="159" />
 </platform>
 
-<platform name="android">
+<!--platform name="android">
     <splash density="land-hdpi" src="res/screens/android/screen-hdpi-landscape.png" />
     <splash density="land-ldpi" src="res/screens/android/screen-ldpi-landscape.png" />
     <splash density="land-mdpi" src="res/screens/android/screen-mdpi-landscape.png" />
@@ -141,7 +141,7 @@
     <splash density="port-xhdpi" src="res/screens/android/screen-xhdpi-portrait.png" />
     <splash density="port-xxhdpi" src="res/screens/android/screen-xxhdpi-portrait.png" />
     <splash density="port-xxxhdpi" src="res/screens/android/screen-xxxhdpi-portrait.png" />
-</platform>
+</platform-->
 <platform name="ios">
     <splash src="res/screens/ios/screen@2x~universal~anyany.png" />
 </platform>
