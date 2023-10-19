@@ -328,7 +328,9 @@ function startTracker() {
             postTemplate: {
                 lat: '@latitude',
                 lon: '@longitude',
-                time: '@time',
+                bsp: '@speed',   // m/s
+                hdg: '@bearing', // degrees
+                time: '@time',   // msec since epoch
                 team: teamId
             }
         });
