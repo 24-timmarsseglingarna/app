@@ -297,10 +297,12 @@ function startTracker() {
         var trackerDistance = curState.trackerDistance.get();
         var logbook = curState.curLogBook.get();
         var teamId = 0;
+        var regattaId = 0;
         if (logbook) {
             teamId = logbook.teamData.id;
+            regattaId = logbook.getRace().getRegattaId();
         }
-        dbg('start tracker team' + teamId);
+        var url = TRACKERURL + '?regatta=' + regattaId;
         var provider;
         if (trackerDistance == 0) {
             BackgroundGeolocation.RAW_PROVIDER;
@@ -308,6 +310,7 @@ function startTracker() {
         } else {
             BackgroundGeolocation.DISTANCE_FILTER_PROVIDER;
         }
+        dbg('start tracker team' + teamId);
         BackgroundGeolocation.configure({
             locationProvider: provider,
             notificationTitle: '24-timmars GPS spår',
@@ -318,8 +321,8 @@ function startTracker() {
             distanceFilter: trackerDistance,
             maxLocations: 2880, // 24h w/ 30s poll
             interval: trackerInterval * 1000,
-            url: TRACKERURL,
-            syncUrl: TRACKERURL,
+            url: url,
+            syncUrl: url,
             //syncThreshold: Math.max(Math.round(600 / trackerInterval), 1),
             syncThreshold: 1,
             postTemplate: {
