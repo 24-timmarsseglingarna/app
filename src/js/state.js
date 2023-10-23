@@ -13,7 +13,7 @@ import {initP as initStorageP,
         getRacePlan, setRacePlan} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
-        getTerrainP, TRACKERURL,
+        getTerrainP,
         getAPIVersionP, validateTokenP} from './serverapi';
 import {initP as initServerDataP, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
@@ -268,7 +268,9 @@ function startTracker() {
     if (isTracking) {
         return;
     }
-    if (isCordova && BackgroundGeolocation) {
+    var logbook = curState.curLogBook.get();
+    if (logbook && logbook.getRace().raceData.tracker_url
+        && isCordova && BackgroundGeolocation) {
         debugInfo['bgGeo'] = function() {
             return [{key: 'bgGeo', val: curState.bgLog.join('<br/>\n')}];
         };
@@ -295,14 +297,8 @@ function startTracker() {
 
         var trackerInterval = curState.trackerInterval.get();
         var trackerDistance = curState.trackerDistance.get();
-        var logbook = curState.curLogBook.get();
-        var teamId = 0;
-        var regattaId = 0;
-        if (logbook) {
-            teamId = logbook.teamData.id;
-            regattaId = logbook.getRace().getRegattaId();
-        }
-        var url = TRACKERURL + '?regatta=' + regattaId;
+        var teamId = logbook.teamData.id;
+        var url = logbook.getRace().raceData.tracker_url;
         var provider;
         if (trackerDistance == 0) {
             BackgroundGeolocation.RAW_PROVIDER;
@@ -401,6 +397,7 @@ function stopTracker() {
         dbg('stop tracker');
         BackgroundGeolocation.stop();
     }
+    isTracking = false;
 };
 
 function hasNetwork() {
