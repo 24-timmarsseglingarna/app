@@ -18,7 +18,7 @@ build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
 build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
-	rollup -c
+	node_modules/rollup/dist/bin/rollup -c
 
 # This is temporary.  The pod will be downloaded from the server.
 # For now you need to get a PoD.xml covering the entire area and
@@ -138,6 +138,7 @@ depsjs: node_modules/ol \
 	node_modules/bootstrap-select \
 	node_modules/tempusdominus-bootstrap-4 \
 	node_modules/tempusdominus-core \
+	node_modules/rollup \
 	node_modules/rollup-plugin-node-resolve \
 	node_modules/rollup-plugin-commonjs \
 	node_modules/rollup-plugin-uglify \
@@ -193,6 +194,9 @@ TEMPUSDOMINUS_CORE_VSN=5.19.0
 node_modules/tempusdominus-core:
 	npm install tempusdominus-core@$(TEMPUSDOMINUS_CORE_VSN) --no-audit
 
+node_modules/rollup:
+	npm install --save-dev rollup --no-audit
+
 node_modules/rollup-plugin-node-resolve:
 	npm install --save-dev rollup-plugin-node-resolve --no-audit
 
@@ -206,4 +210,4 @@ node_modules/rollup-plugin-eslint:
 	npm install --save-dev rollup-plugin-eslint --no-audit
 
 tiles:
-	wget https://4468.se/24h/map.tgz -O - | tar zx
+	wget https://4668.se/24h/map.tgz -O - | tar zx
