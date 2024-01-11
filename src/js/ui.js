@@ -29,6 +29,8 @@ import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
 import {dbg} from './debug.js';
 
+import {baseTssSpec} from '../../build/tss.js';
+
 /**
  * Font for point labels on zoom levels 1-3
  * @const {string}
@@ -137,6 +139,7 @@ var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
  */
 
 var showLegs = true;
+var showTSS = true;
 var dragState = null;
 var initialCenterChanged = false;
 
@@ -144,6 +147,9 @@ var inshoreLegsLayer;
 var offshoreLegsLayer;
 var turningPointsLayer;
 var startPointsLayer;
+var tssZonesLayer;
+var tssLanesLayer;
+//var tssDWLayer;
 
 var view;
 
@@ -485,15 +491,15 @@ function mkPointStyleFunc(color) {
         function(feature, resolution) {
             var number = feature.get('number');
             var label = number + ' ' + feature.get('name');
-            var styleName = number + '1';
+            var styleName = number + '.1';
             var font = POINT_LABEL_FONT_ZOOM_MIN;
             var pointStyle = zoomMinPointStyle;
             if (getZoomLevel(resolution) > 3) {
                 font = POINT_LABEL_FONT_ZOOM_MED;
-                styleName = number + '2';
+                styleName = number + '.2';
                 pointStyle = basicPointStyle;
             } else if (getZoomLevel(resolution) < 3) {
-                styleName = number + '3';
+                styleName = number + '.3';
                 label = number;
             }
             var labelStyle = styleCache[styleName];
@@ -741,6 +747,127 @@ function mkLegsLayer(legs, title, color) {
     });
 };
 
+
+const zoneStrokeStyle =
+      new Style({
+          stroke: new Stroke({
+              color: 'blue',
+              lineDash: [4],
+              width: 3
+          }),
+          fill: new Fill({
+              color: 'rgba(0, 0, 255, 0.35)'
+          })
+      });
+
+const zoneStyleFunction = function (feature, resolution) {
+    if (!showTSS) {
+        return [];
+    }
+    if (getZoomLevel(resolution) < 3) {
+        return [zoneStrokeStyle];
+    }
+    var name = feature.get('name');
+    var label = 'tss-' + name;
+    var labelStyle = styleCache[label];
+    if (!labelStyle) {
+        labelStyle = new Style({
+            text: new Text({
+                font: POINT_LABEL_FONT_ZOOM_MED,
+                text: name,
+                overflow: true
+            })
+        });
+    }
+    return [zoneStrokeStyle, labelStyle];
+};
+
+const laneStyle =
+    new Style({
+        stroke: new Stroke({
+            color: 'blue',
+            lineDash: [4],
+            width: 1
+        }),
+        fill: new Fill({
+            color: 'rgba(0, 0, 255, 0.1)'
+        }),
+    });
+
+const laneStyleFunction = function () {
+    if (!showTSS) {
+        return [];
+    }
+    return [laneStyle];
+};
+
+const dwStyle =
+    new Style({
+        stroke: new Stroke({
+            color: 'green',
+            lineDash: [4],
+            width: 1
+        }),
+        fill: new Fill({
+            color: 'rgba(0, 255, 0, 0.1)'
+        }),
+    });
+
+
+function mkTssZonesLayer(tss) {
+    var format = new GeoJSON();
+    var features = format.readFeatures(tss,
+                                       {dataProjection: 'EPSG:4326',
+                                        featureProjection: 'EPSG:3857'});
+    var source = new VectorSource();
+    source.addFeatures(features);
+
+    return new VectorLayer({
+        source: source,
+        style: zoneStyleFunction,
+        title: 'tss',
+        //updateWhileAnimating: true,
+        updateWhileInteracting: true,
+        visible: true
+    });
+};
+
+function mkTssLanesLayer(tss) {
+    var format = new GeoJSON();
+    var features = format.readFeatures(tss,
+                                       {dataProjection: 'EPSG:4326',
+                                        featureProjection: 'EPSG:3857'});
+    var source = new VectorSource();
+    source.addFeatures(features);
+
+    return new VectorLayer({
+        source: source,
+        style: laneStyleFunction,
+        title: 'tss',
+        //updateWhileAnimating: true,
+        updateWhileInteracting: true,
+        visible: true
+    });
+};
+
+function mkTssDWLayer(tss) {
+    var format = new GeoJSON();
+    var features = format.readFeatures(tss,
+                                       {dataProjection: 'EPSG:4326',
+                                        featureProjection: 'EPSG:3857'});
+    var source = new VectorSource();
+    source.addFeatures(features);
+
+    return new VectorLayer({
+        source: source,
+        style: dwStyle,
+        title: 'tss',
+        //updateWhileAnimating: true,
+        updateWhileInteracting: true,
+        visible: true
+    });
+};
+
 /**
  * Buttonbar handling
  */
@@ -769,9 +896,21 @@ function showLegsActivate(active) {
     }
 };
 
+function showTSSActivate(active) {
+    // We don't call the layer's setVisible() function, since
+    // the logged and planned legs are just styles in these layers;
+    // if we made the layer invisible, we wouldn't see the plan.
+    showTSS = active;
+    if (tssZonesLayer) {
+        tssZonesLayer.changed();
+        tssLanesLayer.changed();
+    }
+};
+
 function initNavbar() {
     // initiate the checkboxes according to default state
     $('#tf-nav-show-legs').prop('checked', showLegs);
+    $('#tf-nav-show-tss').prop('checked', showTSS);
 
     $('#tf-status-interrupt').on('click', function() {
         alert('<p>Du har ett pågående avbrott</p>');
@@ -780,6 +919,9 @@ function initNavbar() {
 
     $('#tf-nav-show-legs').change(function(event) {
         showLegsActivate(event.target.checked);
+    });
+    $('#tf-nav-show-tss').change(function(event) {
+        showTSSActivate(event.target.checked);
     });
 
     $('.tf-nav-distances').change(function(event) {
@@ -1106,7 +1248,43 @@ function setPodLayers(pod) {
     }
 };
 
+function setShipsRouteingLayers() {
+    map.removeLayer(tssZonesLayer);
+    map.removeLayer(tssLanesLayer);
+//    map.removeLayer(tssDWLayer);
+    var tssZonesFeatures = [];
+    var tssLanesFeatures = [];
+//    var tssDWFeatures = [];
+    for (var i = 0; i < baseTssSpec.features.length; i++) {
+        var f = baseTssSpec.features[i];
+        var category = f.properties['category'];
+        var type = f.properties['type'];
+        if (category == 'traffic separation scheme') {
+            if (type == 'separation zone' ||
+                type == 'roundabout separation zone') {
+                tssZonesFeatures.push(f);
+            } else if (type == 'traffic lane') {
+                tssLanesFeatures.push(f);
+            }
+//        } else if (category == 'deep-water route') {
+//            tssDWFeatures.push(f);
+        }
+    }
+    baseTssSpec.features = tssZonesFeatures;
+    tssZonesLayer = mkTssZonesLayer(baseTssSpec);
+    baseTssSpec.features = tssLanesFeatures;
+    tssLanesLayer = mkTssLanesLayer(baseTssSpec);
+//    baseTssSpec.features = tssDWFeatures;
+//    tssDWLayer = mkTssDWLayer(baseTssSpec);
+    map.addLayer(tssZonesLayer);
+    map.addLayer(tssLanesLayer);
+//    map.addLayer(tssDWLayer);
+};
+
 function stateSetupDone() {
+    if (!tssZonesLayer) {
+        setShipsRouteingLayers();
+    }
     if (!inshoreLegsLayer) {
         setPodLayers(curState.defaultPod);
     }
