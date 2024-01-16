@@ -79,6 +79,9 @@ curState.defaultPod = new Pod(basePodSpec);
 
 curState.bgLog = [];
 
+curState.mapURL = 'tiles/{z}/{x}/{y}.png';
+curState.mapMaxZoom = 13;
+
 
 var platform = null;
 
@@ -127,6 +130,7 @@ export function initP() {
                 return getTerrainP('latest')
                     .then(function(data) {
                         if (data.id) {
+                            dbg('latest pod: ' + data.id);
                             return getPodP(data.id, true);
                         } else {
                             return null;

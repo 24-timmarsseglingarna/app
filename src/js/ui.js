@@ -207,7 +207,15 @@ function initMap() {
     });
 };
 
-var mapURL = 'tiles/{z}/{x}/{y}.png';
+//const MAX_ZOOM = 13;
+//var mapURL = 'tiles/{z}/{x}/{y}.png';
+
+//var mapURL = 'https://map.eniro.com/geowebcache/service/tms1.0.0/nautical/{z}/{x}/{-y}.png';
+//const MAX_ZOOM = 18;
+
+//var mapURL = 'https://t2.openseamap.org/tile/{z}/{x}/{y}.png';
+//const MAX_ZOOM = 18;
+
 
 /**
  * Our map has *lots* of plain yellow tiles (representing land) and
@@ -234,7 +242,7 @@ var mapURL = 'tiles/{z}/{x}/{y}.png';
 
 function mkMapLayer() {
     var mapSource = new XYZ({
-        url: mapURL
+        url: curState.mapURL
     });
     return new Tile({
         source: mapSource,
@@ -282,6 +290,11 @@ function mkPointPopupHTML(number, name, descr, footnote, times) {
     return s;
 };
 
+function mkLegPopupHTML(src, dst, dist) {
+    return '<p><b>' + src + ' - ' + dst + '</b></p>'
+        + '<p>Distans: ' + dist + 'M</p>';
+};
+
 window.tfUiLogPoint = function(number) {
     pointPopup.hide();
     openLogEntry({point: number,
@@ -319,16 +332,19 @@ window.tfUiDelPlan = function() {
 };
 
 function handleMapClick(event) {
+    var handled = false;
     map.forEachFeatureAtPixel(
         event.pixel,
         function(feature) {
             var geom = feature.getGeometry();
+            var coord = geom.getCoordinates();
+
             // Only popup when Points are clicked
             if (geom.getType() == 'Point') {
                 var number = feature.get('number');
                 var name = feature.get('name');
                 var descr = feature.get('descr');
-                var coord;
+                handled = true;
                 if (descr) {
                     if (curState.planMode.get()) {
                         /*
@@ -348,7 +364,6 @@ function handleMapClick(event) {
                             if (event.type === 'singleclick') {
                                 curState.curPlan.get().addPoint(number);
                             } else if (event.type === 'dblclick') {
-                                coord = geom.getCoordinates();
                                 plannedPointPopup.show(
                                     coord,
                                     mkPlannedPointPopupHTML(number, name));
@@ -372,7 +387,6 @@ function handleMapClick(event) {
                             times = curState.curPlan.get().getTimes(number);
                         }
                         // show the popup from the center of the point
-                        coord = geom.getCoordinates();
                         var footnote = feature.get('footnote');
                         pointPopup.show(
                             coord,
@@ -382,6 +396,23 @@ function handleMapClick(event) {
                 }
             }
         });
+    if (!handled) {
+        map.forEachFeatureAtPixel(
+            event.pixel,
+            function(feature) {
+                var geom = feature.getGeometry();
+
+                if (geom.getType() == 'LineString') {
+                    var src = feature.get('src');
+                    var dst = feature.get('dst');
+                    var dist = feature.get('dist');
+                    handled = true;
+                    pointPopup.show(
+                        event.coordinate,
+                        mkLegPopupHTML(src, dst, dist));
+                }
+            });
+    }
 };
 
 function handleMapPointerDown(event) {
@@ -747,16 +778,19 @@ function mkLegsLayer(legs, title, color) {
     });
 };
 
+function tssColor(g) {
+    return 'rgba(255, 0, 255, ' + g + ')';
+};
 
 const zoneStrokeStyle =
       new Style({
           stroke: new Stroke({
-              color: 'blue',
+              color: tssColor(1),
               lineDash: [4],
               width: 3
           }),
           fill: new Fill({
-              color: 'rgba(0, 0, 255, 0.35)'
+              color: tssColor(1)
           })
       });
 
@@ -768,13 +802,13 @@ const zoneStyleFunction = function (feature, resolution) {
         return [zoneStrokeStyle];
     }
     var name = feature.get('name');
-    var label = 'tss-' + name;
+    var label = 'TSS ' + name;
     var labelStyle = styleCache[label];
     if (!labelStyle) {
         labelStyle = new Style({
             text: new Text({
                 font: POINT_LABEL_FONT_ZOOM_MED,
-                text: name,
+                text: label,
                 overflow: true
             })
         });
@@ -785,12 +819,12 @@ const zoneStyleFunction = function (feature, resolution) {
 const laneStyle =
     new Style({
         stroke: new Stroke({
-            color: 'blue',
+            color: tssColor(1),
             lineDash: [4],
             width: 1
         }),
         fill: new Fill({
-            color: 'rgba(0, 0, 255, 0.1)'
+            color: tssColor(0.1)
         }),
     });
 
@@ -1261,6 +1295,7 @@ function setShipsRouteingLayers() {
         var type = f.properties['type'];
         if (category == 'traffic separation scheme') {
             if (type == 'separation zone' ||
+                type == 'separation line' ||
                 type == 'roundabout separation zone') {
                 tssZonesFeatures.push(f);
             } else if (type == 'traffic lane') {
@@ -1393,7 +1428,7 @@ export function initMapUI() {
     view = new View({
         center: center,
         minZoom: 7,
-        maxZoom: 13,
+        maxZoom: curState.mapMaxZoom,
         zoom: 10
     });
 

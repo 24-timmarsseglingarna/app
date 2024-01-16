@@ -66,6 +66,11 @@ function init() {
                 params[a[0]] = val;
             }
         }
+        if (params['map'] == 'eniro') {
+            curState.mapURL = 'https://map.eniro.com/geowebcache/service/tms1.0.0/nautical/{z}/{x}/{-y}.png';
+            curState.mapMaxZoom = 18;
+        }
+
         if (params['logbook']) {
             // Provide UI to fill in logbook for the given team.
             // Designed to be a link in Giona.
