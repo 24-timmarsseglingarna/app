@@ -134,6 +134,10 @@ var INSHORE_LEG_COLOR = '#0113e6'; // blue
  */
 var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
 
+const ZONE_LABEL_FONT = 'bold italic 14px sans-serif';
+const PA_LABEL_FONT = 'italic 14px sans-serif';
+
+
 /**
  * Initialize ui ephemeral state variables
  */
@@ -149,7 +153,7 @@ var turningPointsLayer;
 var startPointsLayer;
 var tssZonesLayer;
 var tssLanesLayer;
-//var tssDWLayer;
+var tssPALayer;
 
 var view;
 
@@ -807,7 +811,7 @@ const zoneStyleFunction = function (feature, resolution) {
     if (!labelStyle) {
         labelStyle = new Style({
             text: new Text({
-                font: POINT_LABEL_FONT_ZOOM_MED,
+                font: ZONE_LABEL_FONT,
                 text: label,
                 overflow: true
             })
@@ -835,18 +839,36 @@ const laneStyleFunction = function () {
     return [laneStyle];
 };
 
-const dwStyle =
+const paStrokeStyle =
     new Style({
         stroke: new Stroke({
-            color: 'green',
+            color: 'rgba(250, 179, 221, 1)',
             lineDash: [4],
             width: 1
         }),
         fill: new Fill({
-            color: 'rgba(0, 255, 0, 0.1)'
+            color: 'rgba(250, 179, 221, 0.1)'
         }),
     });
 
+const paLabelStyle =
+      new Style({
+          text: new Text({
+              font: PA_LABEL_FONT,
+              text: 'Precautionary area',
+              overflow: true
+          })
+      });
+
+const paStyleFunction = function (feature, resolution) {
+    if (!showTSS) {
+        return [];
+    }
+    if (getZoomLevel(resolution) < 3) {
+        return [paStrokeStyle];
+    }
+    return [paStrokeStyle, paLabelStyle];
+};
 
 function mkTssZonesLayer(tss) {
     var format = new GeoJSON();
@@ -884,7 +906,7 @@ function mkTssLanesLayer(tss) {
     });
 };
 
-function mkTssDWLayer(tss) {
+function mkTssPALayer(tss) {
     var format = new GeoJSON();
     var features = format.readFeatures(tss,
                                        {dataProjection: 'EPSG:4326',
@@ -894,8 +916,8 @@ function mkTssDWLayer(tss) {
 
     return new VectorLayer({
         source: source,
-        style: dwStyle,
-        title: 'tss',
+        style: paStyleFunction,
+        title: 'precautionary area',
         //updateWhileAnimating: true,
         updateWhileInteracting: true,
         visible: true
@@ -1285,35 +1307,34 @@ function setPodLayers(pod) {
 function setShipsRouteingLayers() {
     map.removeLayer(tssZonesLayer);
     map.removeLayer(tssLanesLayer);
-//    map.removeLayer(tssDWLayer);
+    map.removeLayer(tssPALayer);
     var tssZonesFeatures = [];
     var tssLanesFeatures = [];
-//    var tssDWFeatures = [];
+    var tssPAFeatures = [];
     for (var i = 0; i < baseTssSpec.features.length; i++) {
         var f = baseTssSpec.features[i];
         var category = f.properties['category'];
         var type = f.properties['type'];
         if (category == 'traffic separation scheme') {
             if (type == 'separation zone' ||
-                type == 'separation line' ||
-                type == 'roundabout separation zone') {
+                type == 'separation line') {
                 tssZonesFeatures.push(f);
             } else if (type == 'traffic lane') {
                 tssLanesFeatures.push(f);
             }
-//        } else if (category == 'deep-water route') {
-//            tssDWFeatures.push(f);
+        } else if (category == 'precautionary area') {
+            tssPAFeatures.push(f);
         }
     }
     baseTssSpec.features = tssZonesFeatures;
     tssZonesLayer = mkTssZonesLayer(baseTssSpec);
     baseTssSpec.features = tssLanesFeatures;
     tssLanesLayer = mkTssLanesLayer(baseTssSpec);
-//    baseTssSpec.features = tssDWFeatures;
-//    tssDWLayer = mkTssDWLayer(baseTssSpec);
+    baseTssSpec.features = tssPAFeatures;
+    tssPALayer = mkTssPALayer(baseTssSpec);
     map.addLayer(tssZonesLayer);
     map.addLayer(tssLanesLayer);
-//    map.addLayer(tssDWLayer);
+    map.addLayer(tssPALayer);
 };
 
 function stateSetupDone() {
