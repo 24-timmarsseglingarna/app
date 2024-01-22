@@ -236,6 +236,15 @@ export function getTerrainP(terrainId) {
 };
 
 /**
+ * Returns Promise
+ * @resolve :: json()
+ * @reject :: { errorCode :: integer(), errorStr :: string() }
+ */
+export function getTSSP() {
+    return getS3JSONP('/tss.json.gz');
+};
+
+/**
  * regattaIds :: [regattaId :: integer()]
  * prevetags :: null || opaque()
  * responsefn :: (races :: hash(regattaId -> 'notmodified'

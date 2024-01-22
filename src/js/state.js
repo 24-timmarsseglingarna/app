@@ -13,7 +13,7 @@ import {initP as initStorageP,
         getRacePlan, setRacePlan} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
-        getTerrainP,
+        getTerrainP, getTSSP,
         getAPIVersionP, validateTokenP} from './serverapi';
 import {initP as initServerDataP, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
@@ -21,6 +21,8 @@ import {initP as initServerDataP, updateServerDataP,
         clearCache as clearServerDataCache} from './serverdata.js';
 import {dbg, debugInfo} from './debug.js';
 import {basePodSpec} from '../../build/pod.js';
+import {baseTssSpec} from '../../build/tss.js';
+
 //import {alert} from './alertui.js';
 
 export var curState = {};
@@ -59,6 +61,7 @@ defineVariable(curState, 'numberOfDebugLogEntries', null);
 defineVariable(curState, 'trackerEnabled', false);
 defineVariable(curState, 'trackerInterval', null);
 defineVariable(curState, 'trackerDistance', null);
+defineVariable(curState, 'tss', baseTssSpec);
 
 /**
  * Initialize ephemeral state variables.
@@ -140,6 +143,10 @@ export function initP() {
                         if (pod) {
                             curState.defaultPod = pod;
                         }
+                        return getTSSP();
+                    })
+                    .then(function(data) {
+                        curState.tss.set(data);
                         return true;
                     })
                     .catch(function() {

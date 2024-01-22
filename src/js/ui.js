@@ -29,8 +29,6 @@ import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
 import {dbg} from './debug.js';
 
-import {baseTssSpec} from '../../build/tss.js';
-
 /**
  * Font for point labels on zoom levels 1-3
  * @const {string}
@@ -1311,8 +1309,9 @@ function setShipsRouteingLayers() {
     var tssZonesFeatures = [];
     var tssLanesFeatures = [];
     var tssPAFeatures = [];
-    for (var i = 0; i < baseTssSpec.features.length; i++) {
-        var f = baseTssSpec.features[i];
+    var tss = curState.tss.get();
+    for (var i = 0; i < tss.features.length; i++) {
+        var f = tss.features[i];
         var category = f.properties['category'];
         var type = f.properties['type'];
         if (category == 'traffic separation scheme') {
@@ -1326,12 +1325,17 @@ function setShipsRouteingLayers() {
             tssPAFeatures.push(f);
         }
     }
-    baseTssSpec.features = tssZonesFeatures;
-    tssZonesLayer = mkTssZonesLayer(baseTssSpec);
-    baseTssSpec.features = tssLanesFeatures;
-    tssLanesLayer = mkTssLanesLayer(baseTssSpec);
-    baseTssSpec.features = tssPAFeatures;
-    tssPALayer = mkTssPALayer(baseTssSpec);
+    var dtss = {
+        type: tss.type,
+        name: tss.name,
+        crs: tss.crs
+    };
+    dtss.features = tssZonesFeatures;
+    tssZonesLayer = mkTssZonesLayer(dtss);
+    dtss.features = tssLanesFeatures;
+    tssLanesLayer = mkTssLanesLayer(dtss);
+    dtss.features = tssPAFeatures;
+    tssPALayer = mkTssPALayer(dtss);
     map.addLayer(tssZonesLayer);
     map.addLayer(tssLanesLayer);
     map.addLayer(tssPALayer);
@@ -1536,6 +1540,10 @@ export function initMapUI() {
             curState.fontSize.set('normal');
         }
     }
+
+    curState.tss.onChange(function() {
+        setShipsRouteingLayers();
+    });
 
     updateStatusBar();
 
