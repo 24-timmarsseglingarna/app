@@ -958,6 +958,7 @@ function showTSSActivate(active) {
     if (tssZonesLayer) {
         tssZonesLayer.changed();
         tssLanesLayer.changed();
+        tssPALayer.changed();
     }
 };
 

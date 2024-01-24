@@ -6,8 +6,11 @@ JS_SRC = $(wildcard src/js/*.js)
 
 HTML_SRC = $(wildcard src/html/*.html)
 
+TSS_GEOJSON = $(wildcard ships-routeing/*.geojson)
+
 all: 	build/deps \
 	build/pod.js \
+	build/tss.js \
 	build/index.html \
 	build/24h.js \
 	build/24h.css \
@@ -20,11 +23,29 @@ build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
 	node_modules/rollup/dist/bin/rollup -c
 
-# This is temporary.  The pod will be downloaded from the server.
-# For now you need to get a PoD.xml covering the entire area and
+# This is the base PoD built into the app, which only is used
+# if there is no network available.  If possible, the app will
+# download the correct PoD from the server.
+# You need to get a PoD.xml covering the entire area and
 # store it here.
 build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
 	tools/pod-xml-to-geojson.py --javascript --id 16 -i PoD.xml -o $@
+
+
+# This is the base TSS file  built into the app. The app will download
+# the latest TSS from the server, if possible.
+build/tss.js: $(TSS_GEOJSON)
+	ships-routeing/tools/mk-24h-json --javascript $@ $^
+
+tss.json.gz: $(TSS_GEOJSON)
+	ships-routeing/tools/mk-24h-json tss.json $^ && gzip tss.json
+
+S3SERVER ?= gionaprod
+# Build this for storage on S3.
+.PHONY: publish-tss-to-s3
+publish-tss-to-s3: tss.json.gz
+	aws s3 cp tss.json.gz s3://$(S3SERVER) --acl public-read --content-type 'application/json' --content-encoding gzip
+
 
 deps/vsn.js: deps vsn.mk
 	echo "export var tfAppVsn = '$(VSN)';" > $@

@@ -1,0 +1,147 @@
+Definitions from "Ships' Routeing" (1998)
+
+  Routeing system
+
+    Any system of one or more routes or routeing measures aimed at
+    reducing the risk of casualties; it includes traffic separation
+    schemes, two-way routes, recommended tracks, areas to be avoided,
+    inshore traffic zones, roundabouts, precautionary areas and
+    deep-water routes.
+
+  Mandatory routeing system
+
+   A routeing system adopted by the Organization, in accordance with
+   the requirements of regulation V/8 of the International Convention
+   for the Safety of Life at Sea 1974, for mandatory use by all ships,
+   certain categories of ships or ships carrying certain cargoes.
+
+  Traffic separation scheme*
+
+    A routeing measure aimed at the separation of opposing streams of
+    traffic by appropriate means and by the establishment of traffic
+    lanes.
+
+  Separation zone or line*
+
+    A zone or line separating the traffic lanes in which ships are
+    proceeding in opposite or nearly opposite directions; or
+    separating a traffic lane from the adjacent sea area; or
+    separating traffic lanes designated for particular classes of ship
+    proceeding in the same direction.
+
+  Traffic lane*
+
+    An area within defined limits in which one-way traffic is
+    established. Natural obstacles, including those forming
+    separation zones, may constitute a boundary.
+
+  Roundabout
+
+    A routeing measure comprising a separation point or circular
+    separation zone and a circular traffic lane within defined limits.
+    Traffic within the roundabout is separated by moving in a
+    counterclockwise direction around the separation point or zone.
+
+  Inshore traffic zone*
+
+    A routeing measure comprising a designated area between the
+    landward boundary of a traffic separation scheme and the adjacent
+    coast, to be used in accordance with the provisions of Rule 10(d),
+    as amended, of the International Regulations for Preventing
+    Collisions at Sea, 1972 (Collision Regulations).
+
+  Two-way route
+
+    A route within defined limits inside which two-way traffic is
+    established, aimed at providing safe passage of ships through
+    waters where navigation is difficult or dangerous.
+
+  Recommended route
+
+    A route of undefined width, for the convenience of ships in
+    transit, which is often marked by centreline buoys.
+
+  Recommended track
+
+    A route which has been specially examined to ensure so far as
+    possible that it is free of dangers and along which ships are
+    advised to navigate.
+
+  Deep-water route
+
+    A route within defined limits which has been accurately surveyed
+    for clearance of sea bottom and submerged obstacles as indicated
+    on the chart.
+
+  Precautionary area
+
+    A routeing measure comprising an area within defined limits where
+    ships must navigate with particular caution and within which the
+    direction of traffic flow may be recommended.
+
+  Area to be avoided
+
+    A routeing measure comprising an area within defined limits in
+    which either navigation is particularly hazardous or it is
+    exceptionally important to avoid casualties and which should be
+    avoided by all ships, or certain classes of ship.
+
+  Established direction of traffic flow
+
+    A traffic flow pattern indicating the directional movement of
+    traffic as established within a traffic separation scheme.
+
+  Recommended direction of traffic flow
+
+    A traffic flow pattern indicating a recommended directional
+    movement of traffic where it is impractical or unnecessary to
+    adopt an established direction of traffic flow.
+
+
+* These terms are used in the 1972 Collision Regulations.
+
+---
+
+enumeration category {
+  enum "traffic separation scheme";
+  enum "inshore traffic zone";
+  enum "recommended route";
+  enum "two-way route";
+  enum "deep-water route";
+  enum "precautionary area";
+  enum "area to be avoided";
+}
+
+enumeration type {
+  enum "separation zone" {
+    description
+      "Part of a traffic separation scheme";
+  }
+  enum "separation line" {
+    description
+      "Part of a traffic separation scheme";
+  }
+  enum "traffic lane" {
+    description
+      "Part of a traffic separation scheme";
+  }
+}
+
+categories: traffic separation scheme
+              separation zone
+              separation line
+              traffic lane
+
+            inshore traffic zone
+
+            recommended track
+
+            recommended route
+
+            two-way route
+
+            deep-water route
+
+            precautionary area
+
+            area to be avoided
