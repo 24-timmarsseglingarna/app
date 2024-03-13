@@ -40,7 +40,8 @@ export var curState = {};
 
 // mode :: 'race'
 //       | 'logbook'
-//       | 'showRegatta'  // experimental
+//       | 'showRegatta'
+//       | 'showChart'  // experimental
 defineVariable(curState, 'mode', null);
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
 defineVariable(curState, 'planMode', false); // if mode == 'race'
@@ -85,6 +86,7 @@ curState.bgLog = [];
 curState.mapURL = 'tiles/{z}/{x}/{y}.png';
 curState.mapMaxZoom = 13;
 
+curState.requestedPodId = 'latest';
 
 var platform = null;
 
@@ -130,7 +132,7 @@ export function initP() {
             if (!hasNetwork()) {
                 return null;
             } else {
-                return getTerrainP('latest')
+                return getTerrainP(curState.requestedPodId)
                     .then(function(data) {
                         if (data.id) {
                             dbg('latest pod: ' + data.id);

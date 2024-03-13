@@ -22,7 +22,23 @@ function initRace() {
     initMapUI();
 };
 
+var params = {};
+
 function onDeviceReady() {
+    if (!isCordova) {
+        var query = window.location.search.slice(1);
+        if (query) {
+            var arr = query.split('&');
+            for (var i = 0; i < arr.length; i++) {
+                var a = arr[i].split('=');
+                var val = typeof(a[1])==='undefined' ? true : a[1];
+                params[a[0]] = val;
+            }
+        }
+    }
+    if (params['pod']) {
+        curState.requestedPodId = params['pod'];
+    }
     initStateP()
         .then(function() {
             init();
@@ -55,17 +71,6 @@ function init() {
     if (!isCordova) {
         // This is the web version.  We can assume we have network.
         // Parse query parameters
-        var query = window.location.search.slice(1);
-        var params = {};
-        var i;
-        if (query) {
-            var arr = query.split('&');
-            for (i = 0; i < arr.length; i++) {
-                var a = arr[i].split('=');
-                var val = typeof(a[1])==='undefined' ? true : a[1];
-                params[a[0]] = val;
-            }
-        }
         if (params['map'] == 'eniro') {
             curState.mapURL = 'https://map.eniro.com/geowebcache/service/tms1.0.0/nautical/{z}/{x}/{-y}.png';
             curState.mapMaxZoom = 18;
@@ -87,15 +92,19 @@ function init() {
             var plan = params['plan'];
             var points = plan.split(',');
             var planX = new Plan('Plan X', curState.defaultPod, undefined);
-            for (i = 0; i < points.length; i++) {
+            for (var i = 0; i < points.length; i++) {
                 planX.addPoint(points[i]);
             }
             curState.curPlan.set(planX);
         } else if (params['regatta']) {
-            // Experimental feature - show all logs in a given regatta
             var regattaId = params['regatta'];
             curState.mode.set('showRegatta');
             curState.showRegattaId.set(regattaId);
+            initMapUI();
+        } else if (params['chart']) { // chart=sthlm[&zoom=10.2]
+            curState.mode.set('showChart');
+            curState.chartName = params['chart'];
+            curState.chartZoom = params['zoom'];
             initMapUI();
         } else {
             initRace();

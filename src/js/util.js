@@ -74,7 +74,9 @@ function nProperties(obj) {
     var n = 0;
     var k;
     for (k in obj) {
-        if (obj.hasOwnProperty(k)) {
+        // todo: use shorter syntax when it is supported everywhere
+        // if (Object.hasOwn(obj, k)) {
+        if (Object.prototype.hasOwnProperty.call(obj, k)) {
             n++;
         }
     }

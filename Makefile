@@ -21,7 +21,7 @@ build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
 
 build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
-	node_modules/rollup/dist/bin/rollup -c
+	node_modules/rollup/dist/bin/rollup -c --bundleConfigAsCjs
 
 # This is the base PoD built into the app, which only is used
 # if there is no network available.  If possible, the app will
@@ -51,7 +51,7 @@ deps/vsn.js: deps vsn.mk
 	echo "export var tfAppVsn = '$(VSN)';" > $@
 
 PoD.xml:
-	curl -s "https://dev.24-timmars.nu/PoD/xmlapi_app.php" > $@
+	curl -s "https://24-timmars.se/PoD/xmlapi_app.php" > $@
 
 build/icomoon.css: src/icomoon/style.css
 	cp $< $@
@@ -160,10 +160,11 @@ depsjs: node_modules/ol \
 	node_modules/tempusdominus-bootstrap-4 \
 	node_modules/tempusdominus-core \
 	node_modules/rollup \
-	node_modules/rollup-plugin-node-resolve \
-	node_modules/rollup-plugin-commonjs \
+	node_modules/@rollup/plugin-node-resolve \
+	node_modules/@rollup/plugin-commonjs \
 	node_modules/rollup-plugin-uglify \
-	node_modules/rollup-plugin-eslint
+	node_modules/@rollup/plugin-eslint \
+	node_modules/eslint-config-mourner
 
 deps:
 	mkdir deps; \
@@ -188,6 +189,7 @@ node_modules/jquery:
 # tapping on android doesn't work well in 6.x
 # can't pan in 6.2.x
 OL_VSN=5.3.3
+#OL_VSN=8.2.0
 node_modules/ol:
 	npm install ol@$(OL_VSN) --no-audit
 
@@ -218,17 +220,20 @@ node_modules/tempusdominus-core:
 node_modules/rollup:
 	npm install --save-dev rollup --no-audit
 
-node_modules/rollup-plugin-node-resolve:
-	npm install --save-dev rollup-plugin-node-resolve --no-audit
+node_modules/@rollup/plugin-node-resolve:
+	npm install --save @rollup/plugin-node-resolve
 
-node_modules/rollup-plugin-commonjs:
-	npm install --save-dev rollup-plugin-commonjs --no-audit
+node_modules/@rollup/plugin-commonjs:
+	npm install --save @rollup/plugin-commonjs
+
+node_modules/@rollup/plugin-eslint:
+	npm install --save @rollup/plugin-eslint
+
+node_modules/eslint-config-mourner:
+	npm install --save eslint-config-mourner
 
 node_modules/rollup-plugin-uglify:
 	npm install --save-dev rollup-plugin-uglify --no-audit
-
-node_modules/rollup-plugin-eslint:
-	npm install --save-dev rollup-plugin-eslint --no-audit
 
 tiles:
 	wget https://4668.se/24h/map.tgz -O - | tar zx

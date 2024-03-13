@@ -55,6 +55,13 @@
       <p>Laddar...</p>
     </div>
 
+    <div id="tf-sxk-logo" style="display: none">
+         <image src="sxk.svg" id="tf-sxk-logo-img"/>
+    </div>
+
+    <div id="tf-chart-header" style="display: none">
+    </div>
+
 m4_include(statusbar.html)
 m4_include(navbar.html)
 m4_include(help.html)

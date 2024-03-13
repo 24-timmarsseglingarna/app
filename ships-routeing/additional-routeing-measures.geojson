@@ -39,6 +39,7 @@
       "properties": {
         "name": "Skagen West",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation zone"
       },
@@ -149,6 +150,7 @@
       "properties": {
         "name": "Skagen East",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation zone"
       },
@@ -372,6 +374,7 @@
       "properties": {
         "name": "Entrance to The Sound",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation zone"
       },
@@ -393,6 +396,7 @@
       "properties": {
         "name": "Entrance to The Sound",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation zone"
       },
@@ -1577,6 +1581,7 @@
       "properties": {
         "name": "South Åland Sea",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation line",
         "description": "Part IV - Traffic separation line"
@@ -1838,6 +1843,7 @@
       "properties": {
         "name": "At Hattern Barn",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation line"
       },
@@ -1882,6 +1888,7 @@
       "properties": {
         "name": "At Hattern Barn",
         "24h": true,
+        "24h-label": false,
         "category": "traffic separation scheme",
         "type": "separation line"
       },

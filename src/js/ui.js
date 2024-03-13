@@ -9,6 +9,7 @@ import {Tile, Vector as VectorLayer} from 'ol/layer.js';
 import {Style,Circle,Fill,Text,Stroke} from 'ol/style.js';
 import {GeoJSON} from 'ol/format.js';
 import {transform} from 'ol/proj.js';
+import {DEVICE_PIXEL_RATIO} from 'ol/has.js';
 
 import {Popup} from './ol-popup.js';
 
@@ -34,6 +35,8 @@ import {dbg} from './debug.js';
  * @const {string}
  */
 var POINT_LABEL_FONT_ZOOM_MIN = 'bold 13px sans-serif';
+
+var POINT_LABEL_FONT_SHOW_CHART = 'bold 14px sans-serif';
 
 /**
  * Font for point labels on zoom levels 4-5.
@@ -132,6 +135,8 @@ var INSHORE_LEG_COLOR = '#0113e6'; // blue
  */
 var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
 
+const CHART_LEG_COLOR = '#2874a6';
+
 const ZONE_LABEL_FONT = 'bold italic 14px sans-serif';
 const PA_LABEL_FONT = 'italic 14px sans-serif';
 
@@ -154,6 +159,9 @@ var tssLanesLayer;
 var tssPALayer;
 
 var view;
+
+var noPointLabels = false;
+var chart;
 
 /**
  * We define 5 zoom levels; 5 is max zoomed in (small area)
@@ -180,7 +188,16 @@ function getZoomLevel(resolution) {
 var map;
 
 function initMap() {
-    map = new Map({
+    var zoom = !(isTouch); // no zoom on touch screen
+    if (curState.mode.get() == 'showChart') {
+        zoom = false;
+        chart = charts[curState.chartName];
+        if (chart.noPointLabels) {
+            noPointLabels = true;
+        }
+    }
+
+    var mapOpts = {
         target: 'map',
         /*
          * Increase moveTolerance in order to detect taps correctly on
@@ -192,7 +209,7 @@ function initMap() {
         controls: defaultControls({
             attribution: false,
             rotate: false,
-            zoom: !(isTouch) // no zoom on touch screen
+            zoom: zoom
         }),
         interactions: defaultInteractions({
             altShiftDragRotate: false,
@@ -206,7 +223,12 @@ function initMap() {
                 return handleMapPointerUp(event);
             }
         })])
-    });
+    };
+    if (curState.mode.get() == 'showChart') {
+        // sharper fonts
+        mapOpts.pixelRatio = Math.max(2, DEVICE_PIXEL_RATIO);
+    }
+    map = new Map(mapOpts);
 };
 
 //const MAX_ZOOM = 13;
@@ -398,7 +420,7 @@ function handleMapClick(event) {
                 }
             }
         });
-    if (!handled) {
+    if (!handled && event.type === 'singleclick') {
         map.forEachFeatureAtPixel(
             event.pixel,
             function(feature) {
@@ -531,22 +553,34 @@ function mkPointStyleFunc(color) {
                 font = POINT_LABEL_FONT_ZOOM_MED;
                 styleName = number + '.2';
                 pointStyle = basicPointStyle;
-            } else if (getZoomLevel(resolution) < 3) {
+            }
+            if (getZoomLevel(resolution) < 3 || noPointLabels) {
                 styleName = number + '.3';
                 label = number;
             }
+            if (curState.mode.get() == 'showChart') {
+                font = POINT_LABEL_FONT_SHOW_CHART;
+            }
             var labelStyle = styleCache[styleName];
             if (!labelStyle) {
+                var textOpts = {
+                    font: font,
+                    text: label,
+                    offsetY: -10
+                };
+                if (curState.mode.get() == 'showChart') {
+                    textOpts.stroke = new Stroke({
+                        color: 'white',
+                        width: 3
+                    });
+                }
                 labelStyle = new Style({
-                    text: new Text({
-                        font: font,
-                        text: label,
-                        offsetY: -10
-                    })
+                    text: new Text(textOpts)
                 });
                 styleCache[styleName] = labelStyle;
             }
-            if (getZoomLevel(resolution) < 2) {
+            if (getZoomLevel(resolution) < 2 &&
+                curState.mode.get() != 'showChart') {
                 return [pointStyle, tapPointStyle];
             }
             return [pointStyle, tapPointStyle, labelStyle];
@@ -556,6 +590,21 @@ function mkPointStyleFunc(color) {
 
 function mkPointsLayer(points, title, color) {
     var format = new GeoJSON();
+    var fs = [];
+    var i, f, n;
+    if (curState.mode.get() == 'showChart') {
+        fs = [];
+        for (i = 0; i < points.features.length; i++) {
+            f = points.features[i];
+            n = f.properties.number;
+            // currently, do not show Vänern and Mälaren, since
+            // we don't print charts for them
+            if (n < 1000 || n >= 1300) {
+                fs.push(f);
+            }
+        }
+        points.features = fs;
+    }
     var features = format.readFeatures(points,
                                        {dataProjection: 'EPSG:4326',
                                         featureProjection: 'EPSG:3857'});
@@ -764,6 +813,18 @@ function mkLegStyleFunc(color) {
 
 function mkLegsLayer(legs, title, color) {
     var format = new GeoJSON();
+    if (curState.mode.get() == 'showChart') {
+        var fs = [];
+        for (var i = 0; i < legs.features.length; i++) {
+            var f = legs.features[i];
+            var n = f.properties.src;
+            if (n < 1000 || n >= 1300) {
+                fs.push(f);
+            }
+
+        }
+        legs.features = fs;
+    }
     var features = format.readFeatures(legs,
                                        {dataProjection: 'EPSG:4326',
                                         featureProjection: 'EPSG:3857'});
@@ -800,7 +861,8 @@ const zoneStyleFunction = function (feature, resolution) {
     if (!showTSS) {
         return [];
     }
-    if (getZoomLevel(resolution) < 3) {
+    if (getZoomLevel(resolution) < 3 ||
+        (feature.get('24h-label') == false)) {
         return [zoneStrokeStyle];
     }
     var name = feature.get('name');
@@ -1017,6 +1079,12 @@ function initNavbar() {
         $('#tf-nav-logbook').hide();
         $('#tf-nav-plan-mode').hide();
         $('#tf-nav-show-activate-race').hide();
+    } else if (curState.mode.get() == 'showChart') {
+        $('#tf-nav-log').hide();
+        $('#tf-nav-logbook').hide();
+        $('#tf-nav-plan-mode').hide();
+        $('#tf-nav-show-activate-race').hide();
+
     } else {
         $('#tf-nav-log').on('click', function() {
             var curLogBook = curState.curLogBook.get();
@@ -1284,12 +1352,18 @@ function setPodLayers(pod) {
         startPointsLayer =
             mkPointsLayer(podSpec.startPoints, 'StartPoints',
                           START_POINT_COLOR);
+        var legColor = INSHORE_LEG_COLOR;
+        if (chart) {
+            legColor = CHART_LEG_COLOR;
+        }
         inshoreLegsLayer =
-            mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs',
-                        INSHORE_LEG_COLOR);
+            mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs', legColor);
+        legColor = OFFSHORE_LEG_COLOR;
+        if (chart) {
+            legColor = CHART_LEG_COLOR;
+        }
         offshoreLegsLayer =
-            mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs',
-                        OFFSHORE_LEG_COLOR);
+            mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs', legColor);
 
         map.addLayer(inshoreLegsLayer);
         map.addLayer(offshoreLegsLayer);
@@ -1352,6 +1426,29 @@ function stateSetupDone() {
     if (curState.mode.get() == 'showRegatta') {
         showRegatta(curState.showRegattaId.get());
         return;
+    }
+
+    if (curState.mode.get() == 'showChart') {
+        var revision = new Date().getFullYear() + '.' +
+            curState.defaultPod.getTerrain().id;
+
+        $('#tf-chart-header').html('<p>24-timmarsseglingarna<br/>' +
+                                   'Punktkort<br/>' +
+                                   chart.title + '<br/>' +
+                                   '<span>Utgåva ' + revision + '</span></p>');
+        if (window.innerWidth > window.innerHeight) {
+            // landscape
+            console.log('width: ' + window.innerWidth +
+                        ' height: ' + window.innerHeight +
+                        ' ratio w/h: ' + window.innerWidth / window.innerHeight +
+                        ' (optimal: ' + 297/210 + ')');
+        } else {
+            // portrait
+            console.log('width: ' + window.innerWidth +
+                        ' height: ' + window.innerHeight +
+                        ' ratio h/w: ' + window.innerHeight / window.innerWidth +
+                        ' (optimal: ' + 297/210 + ')');
+        }
     }
 
     // 1. center on 580 initially
@@ -1433,6 +1530,75 @@ $(document).ready(function() {
     }
 });
 
+const charts = {
+    // portrait
+    sthlm: {
+        title: 'Stockholms innerskärgård',
+        coords: [18.60, 59.30],
+        zoom: 9.97,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '33%',
+        headerBackground: true
+    },
+    arholma: {
+        title: 'Arholma - Örskär',
+        coords: [18.81, 60.10],
+        zoom: 9.55,
+        logoTop: '1%',
+        logoLeft: '70%',
+        headerTop: '1%',
+        headerLeft: '33%',
+        headerBackground: true
+    },
+    landsort: {
+        title: 'Arholma - Landsort',
+        coords: [18.63, 59.32],
+        zoom: 9.24,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '30%',
+        headerBackground: true,
+        noPointLabels: true
+    },
+    // landscape
+    sthlmN: {
+        orientation: 'landscape',
+        title: 'Stockholms norra skärgård',
+        coords: [19.10, 59.60],
+        zoom: 10.5,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '17%',
+        headerBackground: true
+    },
+    sthlmM: {
+        orientation: 'landscape',
+        title: 'Stockholms mellanskärgård',
+        coords: [18.80, 59.30],
+        zoom: 10.5,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '17%',
+        headerBackground: true
+    },
+    sthlmS: {
+        orientation: 'landscape',
+        title: 'Stockholms södra skärgård',
+        coords: [18.40, 59.00],
+        zoom: 10.5,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '17%',
+        headerBackground: true
+    }
+};
+
 export function initMapUI() {
     initMap();
     initPopup();
@@ -1448,6 +1614,35 @@ export function initMapUI() {
     map.addOverlay(plannedPointPopup);
 
     var coords = [18.387, 59.44]; // 580 is the initial center
+    var zoom = 10;
+
+    if (curState.mode.get() == 'showChart') {
+        coords = chart.coords;
+        zoom = chart.zoom;
+        if (curState.chartZoom) {
+            zoom = curState.chartZoom;
+        }
+        forceLegDistances = -1;
+        if (chart.headerBackground) {
+            $('#tf-chart-header').addClass('tf-chart-header-background');
+        }
+
+        $('#tf-sxk-logo').css('top', chart.logoTop);
+        $('#tf-sxk-logo').css('left', chart.logoLeft);
+        $('#tf-chart-header').css('top', chart.headerTop);
+        $('#tf-chart-header').css('left', chart.headerLeft);
+
+        // I don't really understand why this is needed.  But without this
+        // the chart looks good on the screen, but the logo and header are too
+        // big when printed.
+        if (chart.orientation == 'landscape') {
+            $('#tf-sxk-logo-img').css('max-width', '65%');
+            $('#tf-chart-header').css('font', 'bold 13px sans-serif');
+        }
+
+        $('#tf-chart-header').show();
+        $('#tf-sxk-logo').show();
+    }
 
     var center = transform(coords, 'EPSG:4326', 'EPSG:3857');
 
@@ -1455,7 +1650,7 @@ export function initMapUI() {
         center: center,
         minZoom: 7,
         maxZoom: curState.mapMaxZoom,
-        zoom: 10
+        zoom: zoom
     });
 
     view.once('change:center', function() {
@@ -1552,7 +1747,9 @@ export function initMapUI() {
 
     map.setView(view);
 
-    $('.tf-default-race-hidden').removeClass('tf-default-race-hidden');
+    if (curState.mode.get() != 'showChart') {
+        $('.tf-default-race-hidden').removeClass('tf-default-race-hidden');
+    }
 
 /* I don't know if this is a good idea or not...
 
@@ -1576,7 +1773,8 @@ export function initMapUI() {
             dbg('ui - login fail: ' + response);
             dbg(response.stack);
             if (response == false) {
-                if (curState.mode.get() != 'showRegatta') {
+                if (curState.mode.get() != 'showRegatta' &&
+                    curState.mode.get() != 'showChart') {
                     openLoginPage();
                 }
                 stateSetupDone();
