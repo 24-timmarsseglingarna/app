@@ -590,21 +590,6 @@ function mkPointStyleFunc(color) {
 
 function mkPointsLayer(points, title, color) {
     var format = new GeoJSON();
-    var fs = [];
-    var i, f, n;
-    if (curState.mode.get() == 'showChart') {
-        fs = [];
-        for (i = 0; i < points.features.length; i++) {
-            f = points.features[i];
-            n = f.properties.number;
-            // currently, do not show Vänern and Mälaren, since
-            // we don't print charts for them
-            if (n < 1000 || n >= 1300) {
-                fs.push(f);
-            }
-        }
-        points.features = fs;
-    }
     var features = format.readFeatures(points,
                                        {dataProjection: 'EPSG:4326',
                                         featureProjection: 'EPSG:3857'});
@@ -1334,6 +1319,46 @@ function setFontSize(val) {
     }
 };
 
+function trimPoints(points, ranges) {
+    var fs = [];
+    for (var i = 0; i < points.features.length; i++) {
+        var f = points.features[i];
+        var n = f.properties.number;
+        for (var j = 0; j < ranges.length; j++) {
+            var min = ranges[j][0];
+            var max = ranges[j][1];
+            if (n >= min && n <= max) {
+                fs.push(f);
+                break;
+            }
+        }
+    }
+    points.features = fs;
+};
+
+function movePoints(fromPoints, toPoints, ranges) {
+    var fs = [];
+    for (var i = 0; i < fromPoints.features.length; i++) {
+        var f = fromPoints.features[i];
+        var n = f.properties.number;
+        var keep = false;
+        for (var j = 0; j < ranges.length; j++) {
+            var min = ranges[j][0];
+            var max = ranges[j][1];
+            if (n >= min && n <= max) {
+                keep = true;
+                break;
+            }
+        }
+        if (keep) {
+            fs.push(f);
+        } else {
+            toPoints.features.push(f);
+        }
+    }
+    fromPoints.features = fs;
+};
+
 /**
  * Add the PoD to the map
  */
@@ -1346,12 +1371,21 @@ function setPodLayers(pod) {
 
     if (pod) {
         var podSpec = pod.getTerrain();
+        var turningPoints = podSpec.turningPoints;
+        var startPoints = podSpec.startPoints;
+        if (curState.mode.get() == 'showChart') {
+            if (chart.pointRanges) {
+                trimPoints(turningPoints, chart.pointRanges);
+                trimPoints(startPoints, chart.pointRanges);
+            }
+            if (chart.startRanges) {
+                movePoints(startPoints, turningPoints, chart.startRanges);
+            }
+        }
         turningPointsLayer =
-            mkPointsLayer(podSpec.turningPoints, 'TurningPoints',
-                          TURN_POINT_COLOR);
+            mkPointsLayer(turningPoints, 'TurningPoints', TURN_POINT_COLOR);
         startPointsLayer =
-            mkPointsLayer(podSpec.startPoints, 'StartPoints',
-                          START_POINT_COLOR);
+            mkPointsLayer(startPoints, 'StartPoints', START_POINT_COLOR);
         var legColor = INSHORE_LEG_COLOR;
         if (chart) {
             legColor = CHART_LEG_COLOR;
@@ -1530,12 +1564,43 @@ $(document).ready(function() {
     }
 });
 
+/*
+ * Unclear if it is a good idea to use startRanges.  That means that the
+ * same chart would need to exist in different versions for different
+ * organizers.  I think it is better to show them as start points on the
+ * chart.
+ */
 const charts = {
     // portrait
+    hudik: {
+        orientation: 'portait',
+        title: 'Hudiksvall - Sundsvall',
+        coords: [17.58, 62.18],
+//        startRanges: [[441,705], [905,905]],
+        zoom: 9.4,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '30%',
+        headerBackground: true
+    },
+    jungfru: {
+        orientation: 'portait',
+        title: 'Jungfrukusten',
+        coords: [17.45, 61.18],
+//        startRanges: [[441,705], [905,905]],
+        zoom: 9.4,
+        logoTop: '0%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '62%',
+        headerBackground: true
+    },
     sthlm: {
         title: 'Stockholms innerskärgård',
         coords: [18.60, 59.30],
         zoom: 9.97,
+        pointRanges: [[1,999],[1200,6399]],
         logoTop: '1%',
         logoLeft: '1%',
         headerTop: '1%',
@@ -1546,20 +1611,70 @@ const charts = {
         title: 'Arholma - Örskär',
         coords: [18.81, 60.10],
         zoom: 9.55,
+        pointRanges: [[1,999],[1200,6399]],
         logoTop: '1%',
         logoLeft: '70%',
         headerTop: '1%',
         headerLeft: '33%',
-        headerBackground: true
+        headerBackground: true,
     },
     landsort: {
         title: 'Arholma - Landsort',
         coords: [18.63, 59.32],
         zoom: 9.24,
+        pointRanges: [[1,999],[1200,6399]],
         logoTop: '1%',
         logoLeft: '1%',
         headerTop: '1%',
         headerLeft: '30%',
+        headerBackground: true,
+        noPointLabels: true
+    },
+    gotska: {
+        orientation: 'portait',
+        title: 'Gotska sjön',
+        coords: [18.10, 57.9],
+        zoom: 8.7,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '30%',
+        headerBackground: true
+    },
+    stanna: {
+        orientation: 'portait',
+        title: 'St Anna skärgård',
+        coords: [16.76, 58.05],
+//        startRanges: [[441,705], [905,905]],
+        zoom: 9.1,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '30%',
+        headerBackground: true,
+        noPointLabels: true
+    },
+    balt: {
+        orientation: 'portait',
+        title: 'Gotland - Baltikum - Åland',
+        coords: [20.65, 58.50],
+        zoom: 8.1,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '30%',
+        headerBackground: true,
+        noPointLabels: true
+    },
+    oland: {
+        orientation: 'portait',
+        title: 'Öland',
+        coords: [17.20, 56.985],
+        zoom: 9.1,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '40%',
         headerBackground: true,
         noPointLabels: true
     },
@@ -1569,6 +1684,7 @@ const charts = {
         title: 'Stockholms norra skärgård',
         coords: [19.10, 59.60],
         zoom: 10.5,
+        pointRanges: [[1,999],[1200,6399]],
         logoTop: '1%',
         logoLeft: '1%',
         headerTop: '1%',
@@ -1579,6 +1695,7 @@ const charts = {
         orientation: 'landscape',
         title: 'Stockholms mellanskärgård',
         coords: [18.80, 59.30],
+        pointRanges: [[1,999],[1200,6399]],
         zoom: 10.5,
         logoTop: '1%',
         logoLeft: '1%',
@@ -1590,11 +1707,36 @@ const charts = {
         orientation: 'landscape',
         title: 'Stockholms södra skärgård',
         coords: [18.40, 59.00],
+        pointRanges: [[1,999],[1200,6399]],
         zoom: 10.5,
         logoTop: '1%',
         logoLeft: '1%',
         headerTop: '1%',
         headerLeft: '17%',
+        headerBackground: true
+    },
+    sormland: {
+        orientation: 'landscape',
+        title: 'Sörmlands skärgård',
+        pointRanges: [[1,999],[1200,6399]],
+        coords: [17.19, 58.65],
+        zoom: 10.2,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '1%',
+        headerLeft: '17%',
+        headerBackground: true
+    },
+    uppland: {
+        orientation: 'landscape',
+        title: 'Upplandskusten',
+        pointRanges: [[1,999],[1200,6399]],
+        coords: [17.88, 60.6],
+        zoom: 10.5,
+        logoTop: '1%',
+        logoLeft: '1%',
+        headerTop: '8%',
+        headerLeft: '1%',
         headerBackground: true
     }
 };
