@@ -1,0 +1,131 @@
+<!--
+    Page to generate "punktkort".
+    Controlled by chartui.js.
+-->
+<div class="modal" id="chart-page">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          Punktkort
+        </h3>
+      </div>
+
+      <div class="modal-body">
+        <div class="container border-bottom">
+          <p>
+            För att skapa punktkort som passar för utskrift behöver du
+            justera ditt fönster så att det passar som liggande eller
+            stående A4.  Det viktiga är att kvoten mellan bredd och
+            höjd på fönstret är nära A4. Justera fönstret tills nedan
+            angivna kvot blir bra.
+          </p>
+          <p>
+            Välj sedan ett punktkort i listan och printa det till fil.
+          </p>
+          <p>
+            Klicka någonstans på kartan för att öppna detta fönster
+            igen.
+          </p>
+          <p>
+            Om du vill hitta inställningar för ett nytt punktkort får
+            du flytta kartan tills du har en bra centrumpunkt, och
+            sedan klicka någonstans så att detta fönster öppnas.  Då
+            visas dina valda koordinater.
+          </p>
+          <p>
+            Tyvärr finns det inget bra sätt att zooma med god
+            precision i open layers.  För att hitta rätt zoom-nivå får
+            du skriva in en nivå nedan, och trycka på "Klar" och se om
+            det blev bra. Använd gärna en eller två decimaler.
+          </p>
+        </div>
+
+        <p>
+          Ditt fönster verkar vara <span
+          id="chart-orientation"></span>.
+        </p>
+
+        <div class="row">
+          <div class="col-6">
+            <b>Bredd:</b> <span id="chart-width"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Höjd:</b> <span id="chart-height"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Kvot:</b> <span id="chart-ratio"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Optimal kvot:</b> <span id="chart-optimal-ratio"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <b>Koordinater:</b> <span id="chart-coords"></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <b>Zoom:</b> <input type="number" class="form-control"
+            id="chart-zoom"/>
+          </div>
+        </div>
+
+
+
+        <hr/>
+
+        <h4>Stående punktkort</h4>
+
+        <div class="table-responsive row">
+          <table class="table table-sm">
+            <colgroup>
+              <col class="tf-col-4"></col>
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Område</th>
+              </tr>
+            </thead>
+            <tbody id="chart-portrait-entries">
+              <!-- dynamically filled in -->
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Liggande punktkort</h4>
+
+        <div class="table-responsive row">
+          <table class="table table-sm">
+            <colgroup>
+              <col class="tf-col-4"></col>
+            </colgroup>
+
+            <thead>
+              <tr>
+                <th>Område</th>
+              </tr>
+            </thead>
+            <tbody id="chart-landscape-entries">
+              <!-- dynamically filled in -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer justify-content-between">
+        <input type="button" class="btn btn-primary"
+               value="Klar" id="chart-cancel"/>
+      </div>
+    </div>
+  </div>
+</div>
+

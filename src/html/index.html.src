@@ -76,6 +76,7 @@ m4_include(addlogentry.html)
 m4_include(logbook.html)
 m4_include(logentry.html)
 m4_include(planmenu.html)
+m4_include(chart.html)
 
     <!-- used to communicate media min-width from css to js -->
     <div id="tf-media" class="d-none"/>

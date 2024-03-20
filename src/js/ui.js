@@ -26,6 +26,7 @@ import {openPage as openPlanMenuPage} from './planmenuui.js';
 import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
+import {openPage as openChartPage} from './chartui.js';
 import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
 import {dbg} from './debug.js';
@@ -135,7 +136,10 @@ var INSHORE_LEG_COLOR = '#0113e6'; // blue
  */
 var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
 
-const CHART_LEG_COLOR = '#2874a6';
+//const CHART_INSHORE_LEG_COLOR = '#2874a6'; // nice blue
+const CHART_INSHORE_LEG_COLOR = '#4178be'; // nice blue
+//const CHART_OFFSHORE_LEG_COLOR = '#be4141'; // nice red
+const CHART_OFFSHORE_LEG_COLOR = CHART_INSHORE_LEG_COLOR; // tmp
 
 const ZONE_LABEL_FONT = 'bold italic 14px sans-serif';
 const PA_LABEL_FONT = 'italic 14px sans-serif';
@@ -161,7 +165,6 @@ var tssPALayer;
 var view;
 
 var noPointLabels = false;
-var chart;
 
 /**
  * We define 5 zoom levels; 5 is max zoomed in (small area)
@@ -186,15 +189,12 @@ function getZoomLevel(resolution) {
  */
 
 var map;
+var chart;
 
 function initMap() {
     var zoom = !(isTouch); // no zoom on touch screen
     if (curState.mode.get() == 'showChart') {
         zoom = false;
-        chart = charts[curState.chartName];
-        if (chart.noPointLabels) {
-            noPointLabels = true;
-        }
     }
 
     var mapOpts = {
@@ -286,6 +286,7 @@ var styleCache = {};
 
 var pointPopup;
 var plannedPointPopup;
+var chartPopup;
 
 function mkPointPopupHTML(number, name, descr, footnote, times) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
@@ -437,6 +438,11 @@ function handleMapClick(event) {
                 }
             });
     }
+    if (!handled && event.type === 'singleclick') {
+        var coords = transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
+        curState.view = view;
+        openChartPage(coords, view.getZoom());
+    }
 };
 
 function handleMapPointerDown(event) {
@@ -483,6 +489,7 @@ function handleMapPointerUp (event) {
 function initPopup() {
     pointPopup = new Popup();
     plannedPointPopup = new Popup();
+    chartPopup = new Popup;
 
     map.on('click', handleMapClick);
     map.on('singleclick', handleMapClick);
@@ -798,18 +805,6 @@ function mkLegStyleFunc(color) {
 
 function mkLegsLayer(legs, title, color) {
     var format = new GeoJSON();
-    if (curState.mode.get() == 'showChart') {
-        var fs = [];
-        for (var i = 0; i < legs.features.length; i++) {
-            var f = legs.features[i];
-            var n = f.properties.src;
-            if (n < 1000 || n >= 1300) {
-                fs.push(f);
-            }
-
-        }
-        legs.features = fs;
-    }
     var features = format.readFeatures(legs,
                                        {dataProjection: 'EPSG:4326',
                                         featureProjection: 'EPSG:3857'});
@@ -1319,21 +1314,38 @@ function setFontSize(val) {
     }
 };
 
+function inRange(n, ranges) {
+    for (var j = 0; j < ranges.length; j++) {
+        var min = ranges[j][0];
+        var max = ranges[j][1];
+        if (n >= min && n <= max) {
+            return true;
+        }
+    }
+    return false;
+};
+
 function trimPoints(points, ranges) {
     var fs = [];
     for (var i = 0; i < points.features.length; i++) {
         var f = points.features[i];
-        var n = f.properties.number;
-        for (var j = 0; j < ranges.length; j++) {
-            var min = ranges[j][0];
-            var max = ranges[j][1];
-            if (n >= min && n <= max) {
-                fs.push(f);
-                break;
-            }
+        if (inRange(f.properties.number, ranges)) {
+            fs.push(f);
         }
     }
     points.features = fs;
+};
+
+function trimLegs(legs, ranges) {
+    var fs = [];
+    for (var i = 0; i < legs.features.length; i++) {
+        var f = legs.features[i];
+        if (inRange(f.properties.src, ranges) &&
+            inRange(f.properties.dst, ranges)) {
+            fs.push(f);
+        }
+    }
+    legs.features = fs;
 };
 
 function movePoints(fromPoints, toPoints, ranges) {
@@ -1373,31 +1385,44 @@ function setPodLayers(pod) {
         var podSpec = pod.getTerrain();
         var turningPoints = podSpec.turningPoints;
         var startPoints = podSpec.startPoints;
-        if (curState.mode.get() == 'showChart') {
+        var inshoreLegs = podSpec.inshoreLegs;
+        var offshoreLegs = podSpec.offshoreLegs;
+
+        if (curState.mode.get() == 'showChart' && chart) {
+            turningPoints = structuredClone(podSpec.turningPoints);
+            startPoints = structuredClone(podSpec.startPoints);
+            inshoreLegs = structuredClone(podSpec.inshoreLegs);
+            offshoreLegs = structuredClone(podSpec.offshoreLegs);
+
             if (chart.pointRanges) {
                 trimPoints(turningPoints, chart.pointRanges);
                 trimPoints(startPoints, chart.pointRanges);
+                trimLegs(inshoreLegs, chart.pointRanges);
+                trimLegs(offshoreLegs, chart.pointRanges);
             }
             if (chart.startRanges) {
                 movePoints(startPoints, turningPoints, chart.startRanges);
             }
         }
+
         turningPointsLayer =
             mkPointsLayer(turningPoints, 'TurningPoints', TURN_POINT_COLOR);
         startPointsLayer =
             mkPointsLayer(startPoints, 'StartPoints', START_POINT_COLOR);
+
         var legColor = INSHORE_LEG_COLOR;
-        if (chart) {
-            legColor = CHART_LEG_COLOR;
+        if (curState.mode.get() == 'showChart') {
+            legColor = CHART_INSHORE_LEG_COLOR;
         }
         inshoreLegsLayer =
-            mkLegsLayer(podSpec.inshoreLegs, 'InshoreLegs', legColor);
+            mkLegsLayer(inshoreLegs, 'InshoreLegs', legColor);
+
         legColor = OFFSHORE_LEG_COLOR;
-        if (chart) {
-            legColor = CHART_LEG_COLOR;
+        if (curState.mode.get() == 'showChart') {
+            legColor = CHART_OFFSHORE_LEG_COLOR;
         }
         offshoreLegsLayer =
-            mkLegsLayer(podSpec.offshoreLegs, 'OffshoreLegs', legColor);
+            mkLegsLayer(offshoreLegs, 'OffshoreLegs', legColor);
 
         map.addLayer(inshoreLegsLayer);
         map.addLayer(offshoreLegsLayer);
@@ -1460,29 +1485,6 @@ function stateSetupDone() {
     if (curState.mode.get() == 'showRegatta') {
         showRegatta(curState.showRegattaId.get());
         return;
-    }
-
-    if (curState.mode.get() == 'showChart') {
-        var revision = new Date().getFullYear() + '.' +
-            curState.defaultPod.getTerrain().id;
-
-        $('#tf-chart-header').html('<p>24-timmarsseglingarna<br/>' +
-                                   'Punktkort<br/>' +
-                                   chart.title + '<br/>' +
-                                   '<span>Utgåva ' + revision + '</span></p>');
-        if (window.innerWidth > window.innerHeight) {
-            // landscape
-            console.log('width: ' + window.innerWidth +
-                        ' height: ' + window.innerHeight +
-                        ' ratio w/h: ' + window.innerWidth / window.innerHeight +
-                        ' (optimal: ' + 297/210 + ')');
-        } else {
-            // portrait
-            console.log('width: ' + window.innerWidth +
-                        ' height: ' + window.innerHeight +
-                        ' ratio h/w: ' + window.innerHeight / window.innerWidth +
-                        ' (optimal: ' + 297/210 + ')');
-        }
     }
 
     // 1. center on 580 initially
@@ -1564,183 +1566,6 @@ $(document).ready(function() {
     }
 });
 
-/*
- * Unclear if it is a good idea to use startRanges.  That means that the
- * same chart would need to exist in different versions for different
- * organizers.  I think it is better to show them as start points on the
- * chart.
- */
-const charts = {
-    // portrait
-    hudik: {
-        orientation: 'portait',
-        title: 'Hudiksvall - Sundsvall',
-        coords: [17.58, 62.18],
-//        startRanges: [[441,705], [905,905]],
-        zoom: 9.4,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '30%',
-        headerBackground: true
-    },
-    jungfru: {
-        orientation: 'portait',
-        title: 'Jungfrukusten',
-        coords: [17.45, 61.18],
-//        startRanges: [[441,705], [905,905]],
-        zoom: 9.4,
-        logoTop: '0%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '62%',
-        headerBackground: true
-    },
-    sthlm: {
-        title: 'Stockholms innerskärgård',
-        coords: [18.60, 59.30],
-        zoom: 9.97,
-        pointRanges: [[1,999],[1200,6399]],
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '33%',
-        headerBackground: true
-    },
-    arholma: {
-        title: 'Arholma - Örskär',
-        coords: [18.81, 60.10],
-        zoom: 9.55,
-        pointRanges: [[1,999],[1200,6399]],
-        logoTop: '1%',
-        logoLeft: '70%',
-        headerTop: '1%',
-        headerLeft: '33%',
-        headerBackground: true,
-    },
-    landsort: {
-        title: 'Arholma - Landsort',
-        coords: [18.63, 59.32],
-        zoom: 9.24,
-        pointRanges: [[1,999],[1200,6399]],
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '30%',
-        headerBackground: true,
-        noPointLabels: true
-    },
-    gotska: {
-        orientation: 'portait',
-        title: 'Gotska sjön',
-        coords: [18.10, 57.9],
-        zoom: 8.7,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '30%',
-        headerBackground: true
-    },
-    stanna: {
-        orientation: 'portait',
-        title: 'St Anna skärgård',
-        coords: [16.76, 58.05],
-//        startRanges: [[441,705], [905,905]],
-        zoom: 9.1,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '30%',
-        headerBackground: true,
-        noPointLabels: true
-    },
-    balt: {
-        orientation: 'portait',
-        title: 'Gotland - Baltikum - Åland',
-        coords: [20.65, 58.50],
-        zoom: 8.1,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '30%',
-        headerBackground: true,
-        noPointLabels: true
-    },
-    oland: {
-        orientation: 'portait',
-        title: 'Öland',
-        coords: [17.20, 56.985],
-        zoom: 9.1,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '40%',
-        headerBackground: true,
-        noPointLabels: true
-    },
-    // landscape
-    sthlmN: {
-        orientation: 'landscape',
-        title: 'Stockholms norra skärgård',
-        coords: [19.10, 59.60],
-        zoom: 10.5,
-        pointRanges: [[1,999],[1200,6399]],
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '17%',
-        headerBackground: true
-    },
-    sthlmM: {
-        orientation: 'landscape',
-        title: 'Stockholms mellanskärgård',
-        coords: [18.80, 59.30],
-        pointRanges: [[1,999],[1200,6399]],
-        zoom: 10.5,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '17%',
-        headerBackground: true
-    },
-    sthlmS: {
-        orientation: 'landscape',
-        title: 'Stockholms södra skärgård',
-        coords: [18.40, 59.00],
-        pointRanges: [[1,999],[1200,6399]],
-        zoom: 10.5,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '17%',
-        headerBackground: true
-    },
-    sormland: {
-        orientation: 'landscape',
-        title: 'Sörmlands skärgård',
-        pointRanges: [[1,999],[1200,6399]],
-        coords: [17.19, 58.65],
-        zoom: 10.2,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '1%',
-        headerLeft: '17%',
-        headerBackground: true
-    },
-    uppland: {
-        orientation: 'landscape',
-        title: 'Upplandskusten',
-        pointRanges: [[1,999],[1200,6399]],
-        coords: [17.88, 60.6],
-        zoom: 10.5,
-        logoTop: '1%',
-        logoLeft: '1%',
-        headerTop: '8%',
-        headerLeft: '1%',
-        headerBackground: true
-    }
-};
-
 export function initMapUI() {
     initMap();
     initPopup();
@@ -1754,19 +1579,29 @@ export function initMapUI() {
 
     map.addOverlay(pointPopup);
     map.addOverlay(plannedPointPopup);
+    map.addOverlay(chartPopup);
 
     var coords = [18.387, 59.44]; // 580 is the initial center
     var zoom = 10;
 
-    if (curState.mode.get() == 'showChart') {
-        coords = chart.coords;
-        zoom = chart.zoom;
-        if (curState.chartZoom) {
-            zoom = curState.chartZoom;
+    curState.curChart.onChange(function() {
+        chart = curState.curChart.get();
+
+        var zoom = chart.zoom;
+
+        if (chart.noPointLabels) {
+            noPointLabels = true;
+        } else {
+            noPointLabels = false;
         }
-        forceLegDistances = -1;
+
+        view.setCenter(transform(chart.coords, 'EPSG:4326', 'EPSG:3857'));
+        view.setZoom(zoom);
+
         if (chart.headerBackground) {
             $('#tf-chart-header').addClass('tf-chart-header-background');
+        } else {
+            $('#tf-chart-header').removeClass('tf-chart-header-background');
         }
 
         $('#tf-sxk-logo').css('top', chart.logoTop);
@@ -1782,8 +1617,23 @@ export function initMapUI() {
             $('#tf-chart-header').css('font', 'bold 13px sans-serif');
         }
 
+        var revision = new Date().getFullYear() + '.' +
+            curState.defaultPod.getTerrain().id;
+
+        $('#tf-chart-header').html('<p>24-timmarsseglingarna<br/>' +
+                                   'Punktkort<br/>' +
+                                   chart.title + '<br/>' +
+                                   '<span>Utgåva ' + revision + '</span></p>');
+
         $('#tf-chart-header').show();
         $('#tf-sxk-logo').show();
+
+        setPodLayers(curState.defaultPod);
+        updateAll();
+    });
+
+    if (curState.mode.get() == 'showChart') {
+        forceLegDistances = -1;
     }
 
     var center = transform(coords, 'EPSG:4326', 'EPSG:3857');
@@ -1798,6 +1648,13 @@ export function initMapUI() {
     view.once('change:center', function() {
         initialCenterChanged = true;
     });
+
+    if (curState.mode.get() == 'showChart') {
+        coords = transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
+        curState.view = view;
+        openChartPage(coords, view.getZoom());
+    }
+
 
     curState.loggedInPersonId.onChange(function() {
         updateAll();
@@ -1972,6 +1829,7 @@ function showRegatta(regattaId) {
                 if (point) {
                     var center = transform(point.coords,
                                            'EPSG:4326', 'EPSG:3857');
+
                     view.setCenter(center);
                 }
             }

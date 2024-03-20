@@ -63,6 +63,7 @@ defineVariable(curState, 'trackerEnabled', false);
 defineVariable(curState, 'trackerInterval', null);
 defineVariable(curState, 'trackerDistance', null);
 defineVariable(curState, 'tss', baseTssSpec);
+defineVariable(curState, 'curChart', null);
 
 /**
  * Initialize ephemeral state variables.

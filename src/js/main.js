@@ -101,10 +101,8 @@ function init() {
             curState.mode.set('showRegatta');
             curState.showRegattaId.set(regattaId);
             initMapUI();
-        } else if (params['chart']) { // chart=sthlm[&zoom=10.2]
+        } else if (params['chart']) {
             curState.mode.set('showChart');
-            curState.chartName = params['chart'];
-            curState.chartZoom = params['zoom'];
             initMapUI();
         } else {
             initRace();
