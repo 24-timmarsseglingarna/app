@@ -80,6 +80,17 @@ window.tfUiChartSelect = function(chartId) {
  */
 const charts = {
     // portrait
+    bohus: {
+        orientation: 'portrait',
+        title: 'Bohuslän',
+        coords: [10.76, 58.38],
+        zoom: 8.9,
+        logoTop: '0%',
+        logoLeft: '0%',
+        headerTop: '0.4%',
+        headerLeft: '70%',
+        headerBackground: true
+    },
     hudik: {
         orientation: 'portrait',
         title: 'Hudiksvall - Sundsvall',

@@ -89,6 +89,7 @@ build/deps:
 	cp node_modules/moment/locale/sv.js $@/
 
 # must set TGT_DIR to a dedicated directory for the app
+# set WEBAPP=1 to build for the web (w/ extra features)
 www-publish:
 	$(MAKE) www-publish-no-map; \
 	if [ ! -e $(TGT_DIR)/../tiles ]; then \
@@ -163,6 +164,7 @@ depsjs: node_modules/ol \
 	node_modules/@rollup/plugin-node-resolve \
 	node_modules/@rollup/plugin-commonjs \
 	node_modules/rollup-plugin-uglify \
+	node_modules/rollup-plugin-jscc \
 	node_modules/@rollup/plugin-eslint \
 	node_modules/eslint-config-mourner
 
@@ -234,6 +236,9 @@ node_modules/eslint-config-mourner:
 
 node_modules/rollup-plugin-uglify:
 	npm install --save-dev rollup-plugin-uglify --no-audit
+
+node_modules/rollup-plugin-jscc:
+	npm install --save-dev rollup-plugin-jscc --no-audit
 
 tiles:
 	wget https://4668.se/24h/map.tgz -O - | tar zx

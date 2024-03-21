@@ -2,6 +2,7 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import uglify from 'rollup-plugin-uglify';
 import eslint from '@rollup/plugin-eslint';
+import jscc from 'rollup-plugin-jscc';
 
 export default {
     input: './src/js/main.js',
@@ -19,5 +20,8 @@ export default {
             // FIXME: the setting below doesn't help!
             side_effects: false // w/o this the map isn't displayed...
         }})),
+        (process.env.WEBAPP === '1' && jscc({
+                values: { _WEBAPP: 1 },
+         })),
     ]
 };

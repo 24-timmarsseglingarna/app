@@ -26,7 +26,9 @@ import {openPage as openPlanMenuPage} from './planmenuui.js';
 import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
+/*#if _WEBAPP
 import {openPage as openChartPage} from './chartui.js';
+//#endif */
 import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
 import {dbg} from './debug.js';
@@ -439,10 +441,18 @@ function handleMapClick(event) {
             });
     }
     if (!handled && event.type === 'singleclick') {
+        maybeOpenChartPage();
+    }
+};
+
+function maybeOpenChartPage() {
+/*#if _WEBAPP
+    if (curState.mode.get() == 'showChart') {
         var coords = transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
         curState.view = view;
         openChartPage(coords, view.getZoom());
     }
+//#endif */
 };
 
 function handleMapPointerDown(event) {
@@ -507,7 +517,7 @@ function initPopup() {
  * Points handling
  */
 
-function mkPointStyleFunc(color) {
+function mkPointStyleFunc(isStartPoint, color) {
     var basicPointStyle = styleCache['basicPoint' + color];
     var zoomMinPointStyle = styleCache['zoomMinPoint' + color];
     // The tapPointStyle is a larger, invisible circle, that makes
@@ -580,6 +590,11 @@ function mkPointStyleFunc(color) {
                         color: 'white',
                         width: 3
                     });
+                    if (isStartPoint) {
+                        textOpts.backgroundFill = new Fill({
+                            color: 'rgba(255, 255, 255, 0.3)'
+                        });
+                    }
                 }
                 labelStyle = new Style({
                     text: new Text(textOpts)
@@ -605,7 +620,7 @@ function mkPointsLayer(points, title, color) {
 
     return new VectorLayer({
         source: source,
-        style: mkPointStyleFunc(color),
+        style: mkPointStyleFunc(title === 'StartPoints', color),
         title: title,
         //updateWhileAnimating: true,
         updateWhileInteracting: true,
@@ -1649,12 +1664,7 @@ export function initMapUI() {
         initialCenterChanged = true;
     });
 
-    if (curState.mode.get() == 'showChart') {
-        coords = transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
-        curState.view = view;
-        openChartPage(coords, view.getZoom());
-    }
-
+    maybeOpenChartPage();
 
     curState.loggedInPersonId.onChange(function() {
         updateAll();
