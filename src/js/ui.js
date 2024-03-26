@@ -140,8 +140,8 @@ var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
 
 //const CHART_INSHORE_LEG_COLOR = '#2874a6'; // nice blue
 const CHART_INSHORE_LEG_COLOR = '#4178be'; // nice blue
-//const CHART_OFFSHORE_LEG_COLOR = '#be4141'; // nice red
-const CHART_OFFSHORE_LEG_COLOR = CHART_INSHORE_LEG_COLOR; // tmp
+const CHART_OFFSHORE_LEG_COLOR = '#be4141'; // nice red
+
 
 const ZONE_LABEL_FONT = 'bold italic 14px sans-serif';
 const PA_LABEL_FONT = 'italic 14px sans-serif';
