@@ -202,6 +202,7 @@
         "name": "Between Hatter Rev and Hatter Barn",
         "category": "deep-water route",
         "type": "deep-water route",
+        "24h": true,
         "description": "Minimum depth of water below mean sea level of 19 metres. Ships which are not obliged by reason of their draught (<13 m) to use the deep-water route should use the TSS which lies east of that route and where there is a min. depth of water below mean"
       },
       "geometry": {
@@ -10706,6 +10707,7 @@
         "name": "North Åland Sea",
         "category": "deep-water route",
         "type": "deep-water route",
+        "24h": true,
         "description": "deep water route and navigation lanes"
       },
       "geometry": {
@@ -14534,6 +14536,7 @@
         "name": "Off Gotland Island",
         "category": "deep-water route",
         "type": "deep-water route",
+        "24h": true,
         "description": "All ships passing east and south of the island of Gotland bound to or from the north-eastern part of the Baltic Sea, with a draught exceeding 12 metres, are recommended to use the deep-water route."
       },
       "geometry": {
@@ -14578,6 +14581,7 @@
         "name": "Off Gotland Island",
         "category": "deep-water route",
         "type": "deep-water route",
+        "24h": true,
         "description": "All ships passing east and south of the island of Gotland bound to or from the north-eastern part of the Baltic Sea, with a draught exceeding 12 metres, are recommended to use the deep-water route."
       },
       "geometry": {
@@ -16058,6 +16062,7 @@
         "name": "Off Rodsher Island and Off Gogland",
         "category": "deep-water route",
         "type": "deep-water route",
+        "24h": true,
         "description": "Revocation of the deep-water route inside the borders of the TSS from Gogland Island to Rodsher Island"
       },
       "geometry": {

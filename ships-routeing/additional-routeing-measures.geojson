@@ -1971,6 +1971,436 @@
           ]
         ]
       }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "DW Kattegat North",
+        "24h": true,
+        "category": "deep-water route",
+        "type": "deep-water route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.648167, 57.187667],
+[11.837667, 56.893167],
+[11.782667, 56.882667],
+[11.592833, 57.177167],
+[11.648167, 57.187667]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "DW Kattegat South",
+        "24h": true,
+        "category": "deep-water route",
+        "type": "deep-water route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.485667, 56.368333],
+[11.402000, 56.287667],
+[11.383667, 56.293333],
+[11.467500, 56.374000],
+[11.485667, 56.368333]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route A",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[8.372000, 57.376167],
+[9.619667, 57.805333],
+[8.372000, 57.376167]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route A",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[9.619667, 57.805333],
+[10.267333, 57.824667],
+[10.552000, 57.833167],
+[10.267333, 57.824667],
+[9.619667, 57.805333]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route B",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[8.516500, 57.221000],
+[10.267333, 57.824667],
+[8.516500, 57.221000]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route T",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[10.928333, 57.779333],
+[11.404833, 57.504333],
+[10.928333, 57.779333]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route T",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.466333, 57.422667],
+[11.620500, 57.182500],
+[11.466333, 57.422667]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route T",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.810167, 56.888000],
+[11.911333, 56.728333],
+[11.810167, 56.888000]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route T",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.911333, 56.728333],
+[11.476500, 56.371167],
+[11.911333, 56.728333]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route T",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.392000, 56.290833],
+[11.272833, 56.174667],
+[11.392000, 56.290833]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route S",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.516333, 57.439833],
+[11.853667, 57.243333],
+[11.516333, 57.439833]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route S",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.888333, 57.218167],
+[12.064833, 56.938167],
+[11.888333, 57.218167]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route S",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[12.076500, 56.919333],
+[12.415833, 56.182000],
+[12.076500, 56.919333]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route C",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[10.785500, 57.779833],
+[10.709333, 57.177000],
+[10.785500, 57.779833]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route C",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[10.709333, 57.177000],
+[10.867667, 56.966167],
+[10.709333, 57.177000]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route C",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[10.867667, 56.966167],
+[10.800000, 56.848833],
+[10.867667, 56.966167]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route C",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[10.800000, 56.848833],
+[11.017333, 56.723333],
+[10.800000, 56.848833]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route C",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.017333, 56.723333],
+[11.099833, 56.397500],
+[11.017333, 56.723333]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route C",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.099833, 56.397500],
+[11.085667, 56.022667],
+[11.099833, 56.397500]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Route D",
+        "24h": true,
+        "category": "recommended route",
+        "type": "recommended route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[11.698000, 56.553500],
+[11.099833, 56.397500],
+[11.698000, 56.553500]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Salvorev",
+        "24h": true,
+        "category": "two-way route",
+        "type": "two-way route"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+[18.424000, 57.899500],
+[18.460167, 57.961667],
+[19.304167, 58.145000],
+[19.337667, 58.098667],
+[18.424000, 57.899500]
+          ]
+        ]
+      }
     }
+
+
   ]
 }

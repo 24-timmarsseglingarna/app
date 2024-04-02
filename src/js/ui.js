@@ -130,21 +130,24 @@ var TURN_POINT_COLOR = '#000000';
  * Color of inshore leg
  * @const {string}
  */
-var INSHORE_LEG_COLOR = '#0113e6'; // blue
+var INSHORE_LEG_COLOR = '#4178be'; // nice blue
 
 /**
  * Color of offshore leg
  * @const {string}
  */
-var OFFSHORE_LEG_COLOR = '#f31b1f'; // some-other-red
+var OFFSHORE_LEG_COLOR = '#be4141'; // nice red
 
 //const CHART_INSHORE_LEG_COLOR = '#2874a6'; // nice blue
-const CHART_INSHORE_LEG_COLOR = '#4178be'; // nice blue
-const CHART_OFFSHORE_LEG_COLOR = '#be4141'; // nice red
+//const CHART_INSHORE_LEG_COLOR = '#4178be'; // nice blue
+//const CHART_OFFSHORE_LEG_COLOR = '#be4141'; // nice red
+const CHART_INSHORE_LEG_COLOR = '#0113e6'; // classic blue
+const CHART_OFFSHORE_LEG_COLOR = '#f31b1f'; // classic red
 
 
 const ZONE_LABEL_FONT = 'bold italic 14px sans-serif';
 const PA_LABEL_FONT = 'italic 14px sans-serif';
+const ROUTES_LABEL_FONT = 'italic 14px sans-serif';
 
 
 /**
@@ -163,6 +166,7 @@ var startPointsLayer;
 var tssZonesLayer;
 var tssLanesLayer;
 var tssPALayer;
+var tssRoutesLayer;
 
 var view;
 
@@ -523,6 +527,7 @@ function mkPointStyleFunc(isStartPoint, color) {
     // The tapPointStyle is a larger, invisible circle, that makes
     // it easier to tap on the point on a touch screen.
     var tapPointStyle = styleCache['tapPoint'];
+    var pointStroke = styleCache['pointStroke'];
     if (!basicPointStyle) {
         basicPointStyle =
             new Style({
@@ -558,6 +563,13 @@ function mkPointStyleFunc(isStartPoint, color) {
             });
         styleCache['tapPoint'] = tapPointStyle;
     }
+    if (!pointStroke) {
+        pointStroke = new Stroke({
+            color: 'white',
+            width: 3
+        });
+        styleCache['pointStroke'] = pointStroke;
+    }
 
     var pointStyleFunction =
         function(feature, resolution) {
@@ -583,13 +595,10 @@ function mkPointStyleFunc(isStartPoint, color) {
                 var textOpts = {
                     font: font,
                     text: label,
-                    offsetY: -10
+                    offsetY: -10,
+                    stroke: pointStroke
                 };
                 if (curState.mode.get() == 'showChart') {
-                    textOpts.stroke = new Stroke({
-                        color: 'white',
-                        width: 3
-                    });
                     if (isStartPoint) {
                         textOpts.backgroundFill = new Fill({
                             color: 'rgba(255, 255, 255, 0.3)'
@@ -837,6 +846,7 @@ function mkLegsLayer(legs, title, color) {
 };
 
 function tssColor(g) {
+    // magenta - the recommended color for routes and routeing measures
     return 'rgba(255, 0, 255, ' + g + ')';
 };
 
@@ -897,12 +907,14 @@ const laneStyleFunction = function () {
 const paStrokeStyle =
     new Style({
         stroke: new Stroke({
-            color: 'rgba(250, 179, 221, 1)',
+            color: tssColor(0.4),
+//            color: 'rgba(250, 179, 221, 1)',
             lineDash: [4],
             width: 1
         }),
         fill: new Fill({
-            color: 'rgba(250, 179, 221, 0.1)'
+            color: tssColor(0.03),
+//            color: 'rgba(250, 179, 221, 0.1)'
         }),
     });
 
@@ -923,6 +935,46 @@ const paStyleFunction = function (feature, resolution) {
         return [paStrokeStyle];
     }
     return [paStrokeStyle, paLabelStyle];
+};
+
+const routesStrokeStyle =
+    new Style({
+        stroke: new Stroke({
+//            color: 'rgba(250, 179, 221, 1)',
+            color: tssColor(0.8),
+            lineDash: [4],
+            width: 1
+        })
+    });
+
+const routesStyleFunction = function (feature, resolution) {
+    if (!showTSS) {
+        return [];
+    }
+    if (getZoomLevel(resolution) < 3) {
+        return [routesStrokeStyle];
+    }
+    var label = 'Route';
+    var category = feature.get('category');
+    if (category == 'deep-water route') {
+        label = 'DW Route';
+    } else if (category == 'two-way route') {
+        label = 'Two-way Route';
+    } else if (category == 'recommended route') {
+        label = feature.get('name');
+    }
+    var labelStyle = styleCache[label];
+    if (!labelStyle) {
+        labelStyle = new Style({
+            text: new Text({
+                font: ROUTES_LABEL_FONT,
+                text: label,
+                overflow: true
+            })
+        });
+    }
+
+    return [routesStrokeStyle, labelStyle];
 };
 
 function mkTssZonesLayer(tss) {
@@ -979,6 +1031,24 @@ function mkTssPALayer(tss) {
     });
 };
 
+function mkTssRoutesLayer(tss) {
+    var format = new GeoJSON();
+    var features = format.readFeatures(tss,
+                                       {dataProjection: 'EPSG:4326',
+                                        featureProjection: 'EPSG:3857'});
+    var source = new VectorSource();
+    source.addFeatures(features);
+
+    return new VectorLayer({
+        source: source,
+        style: routesStyleFunction,
+        title: 'routes',
+        //updateWhileAnimating: true,
+        updateWhileInteracting: true,
+        visible: true
+    });
+};
+
 /**
  * Buttonbar handling
  */
@@ -1016,6 +1086,7 @@ function showTSSActivate(active) {
         tssZonesLayer.changed();
         tssLanesLayer.changed();
         tssPALayer.changed();
+        tssRoutesLayer.changed();
     }
 };
 
@@ -1455,9 +1526,11 @@ function setShipsRouteingLayers() {
     map.removeLayer(tssZonesLayer);
     map.removeLayer(tssLanesLayer);
     map.removeLayer(tssPALayer);
+    map.removeLayer(tssRoutesLayer);
     var tssZonesFeatures = [];
     var tssLanesFeatures = [];
     var tssPAFeatures = [];
+    var tssRoutesFeatures = [];
     var tss = curState.tss.get();
     for (var i = 0; i < tss.features.length; i++) {
         var f = tss.features[i];
@@ -1472,7 +1545,13 @@ function setShipsRouteingLayers() {
             }
         } else if (category == 'precautionary area') {
             tssPAFeatures.push(f);
+        } else if (category == 'deep-water route' ||
+                   category == 'two-way route' ||
+                   category == 'recommended route' ||
+                   category == 'recommended track') {
+            tssRoutesFeatures.push(f);
         }
+
     }
     var dtss = {
         type: tss.type,
@@ -1485,9 +1564,12 @@ function setShipsRouteingLayers() {
     tssLanesLayer = mkTssLanesLayer(dtss);
     dtss.features = tssPAFeatures;
     tssPALayer = mkTssPALayer(dtss);
+    dtss.features = tssRoutesFeatures;
+    tssRoutesLayer = mkTssRoutesLayer(dtss);
     map.addLayer(tssZonesLayer);
     map.addLayer(tssLanesLayer);
     map.addLayer(tssPALayer);
+    map.addLayer(tssRoutesLayer);
 };
 
 function stateSetupDone() {

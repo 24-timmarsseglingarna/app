@@ -16,8 +16,8 @@ export function openPage(coords, zoom) {
 
     for (var id in charts) {
         var c = charts[id];
-        var s = '<tr onclick="window.tfUiChartSelect(\'' + id + '\')"><td>' +
-            c.title + '</td></tr>';
+        var s = '<tr onclick="window.tfUiChartSelect(\'' + id + '\')"><td><a href="#" class="text-secondary">' +
+            c.title + '</a></td></tr>';
         if (c.orientation == 'portrait') {
             portraitrows += s;
         } else {
@@ -116,6 +116,7 @@ const charts = {
         headerBackground: true
     },
     sthlm: {
+        orientation: 'portrait',
         title: 'Stockholms innerskärgård',
         coords: [18.60, 59.30],
         zoom: 9.97,
@@ -127,6 +128,7 @@ const charts = {
         headerBackground: true
     },
     arholma: {
+        orientation: 'portrait',
         title: 'Arholma - Örskär',
         coords: [18.81, 60.10],
         zoom: 9.55,
@@ -138,6 +140,7 @@ const charts = {
         headerBackground: true,
     },
     landsort: {
+        orientation: 'portrait',
         title: 'Arholma - Landsort',
         coords: [18.63, 59.32],
         zoom: 9.24,
@@ -198,6 +201,18 @@ const charts = {
         noPointLabels: true
     },
     // landscape
+    aland: {
+        orientation: 'landscape',
+        title: 'Ålands och Åbolands skärgårdar',
+        coords: [21.12, 60.06],
+        zoom: 9.4,
+        pointRanges: [[1,999],[1200,6399]],
+        logoTop: '1%',
+        logoLeft: '85%',
+        headerTop: '1%',
+        headerLeft: '57%',
+        headerBackground: true
+    },
     sthlmN: {
         orientation: 'landscape',
         title: 'Stockholms norra skärgård',
