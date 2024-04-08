@@ -774,6 +774,9 @@ function mkLegStyleFunc(color) {
                     }
                 }
             }
+            if (curState.mode.get() == 'showChart' && chart && chart.noLegs) {
+                return [];
+            }
             if (showLegs &&
                 (forceLegDistances == 1 ||
                  (forceLegDistances == 0 &&
