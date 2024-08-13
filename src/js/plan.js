@@ -264,7 +264,10 @@ Plan.prototype.getTimes = function(point) {
     for (var i = 0; i < this.entries.length; i++) {
         var e = this.entries[i];
         if (e.point == point) {
-            r.push({eta: e.eta, rta: e.rta});
+            r.push({eta: e.eta,
+                    rta: e.rta,
+                    avgSpeed: e.avgSpeed,
+                    planSpeed: e.planSpeed});
         }
     }
     return r;
@@ -391,11 +394,13 @@ Plan.prototype._updateState = function(informSubscribers) {
                 planDist += this.entries[j].dist;
                 offset = 60 * planDist / avgSpeed;
                 // clone the moment time
+                this.entries[j].avgSpeed = avgSpeed;
                 this.entries[j].eta = moment(time).add(offset, 'minutes');
             }
             if (planSpeed > 0) {
                 offset = 60 * planDist / planSpeed;
                 // clone the moment time
+                this.entries[j].planSpeed = planSpeed;
                 this.entries[j].rta = moment(time).add(offset, 'minutes');
             }
         }

@@ -294,24 +294,32 @@ var pointPopup;
 var plannedPointPopup;
 var chartPopup;
 
-function mkPointPopupHTML(number, name, descr, footnote, times) {
+function mkPointPopupHTML(number, name, descr, footnote, plan) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p>' + descr + '</p>';
     if (footnote) {
         s += '<p class="font-italic">' + footnote + '</p>';
     }
+    var times = [];
+    var logBook = undefined;
+    if (plan) {
+        times = curState.curPlan.get().getTimes(number);
+        logBook = plan.logbook;
+    }
     for (var i = 0; i < times.length; i++) {
         if (times[i].eta) {
-            s += '<p>Planerad rundningstid:<br/>' +
+            window.ddd = times[i];
+            s += '<p>Planerad rundningstid (med nuvarande snittfart ' +
+                times[i].avgSpeed.toFixed(1) + ' kn):<br/>' +
                 times[i].eta.format('HH:mm D MMM') + '</p>';
         }
         if (times[i].rta) {
-            s += '<p>Rundning för målgång i tid:<br/>' +
+            s += '<p>Rundning för målgång i tid (kräver ' +
+                times[i].planSpeed.toFixed(1) + ' kn i snitt):<br/>' +
                 times[i].rta.format('HH:mm D MMM') + '</p>';
         }
     }
-    var curLogBook = curState.curLogBook.get();
-    if (curLogBook && !curLogBook.isReadOnly()) {
+    if (logBook && !logBook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
         // and w/o href in a bad way
         s += '<p><a class="log-point-button" tabindex="0"' +
@@ -413,16 +421,13 @@ function handleMapClick(event) {
                             // react directly to the click
                             return;
                         }
-                        var times = [];
-                        if (curState.curPlan.get()) {
-                            times = curState.curPlan.get().getTimes(number);
-                        }
+                        var plan = curState.curPlan.get();
                         // show the popup from the center of the point
                         var footnote = feature.get('footnote');
                         pointPopup.show(
                             coord,
                             mkPointPopupHTML(number, name, descr,
-                                             footnote, times));
+                                             footnote, plan));
                     }
                 }
             }
