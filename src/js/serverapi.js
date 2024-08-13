@@ -350,7 +350,7 @@ export function getTeamLogP(teamId, client, updatedAfter) {
 };
 
 export function getNewRegattaLogP(regattaId, teamId, updatedAfter) {
-    var url = '/api/v1/logs?from_regatta=' + regattaId + '&has_type=round';
+    var url = '/api/v1/logs?from_regatta=' + regattaId + '&has_type=round,retire';
     if (teamId) {
         url += '&not_team=' + teamId;
     }

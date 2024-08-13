@@ -29,7 +29,7 @@ export function openPage(options) {
 
     fillStartList(regatta, fontclass);
 
-    fillLeaderBoard(regatta, options.displayView);
+    fillLeaderBoard(regatta, fontclass, options.displayView);
 
     if (options.adminView) {
         fillResult(regatta);
@@ -157,7 +157,7 @@ function fillStartList(regatta, fontclass) {
     $('#boats-start').html(html);
 };
 
-function fillLeaderBoard(regatta, displayView) {
+function fillLeaderBoard(regatta, fontclass, displayView) {
     var html = '';
 
     var pod = regatta.getPod();
@@ -168,58 +168,132 @@ function fillLeaderBoard(regatta, displayView) {
     // that we've seen it.
     regatta.log_updated = false;
     $('#tf-nav-boats-badge').hide(); // and immediately hide the info badge
-    curRegatta = regatta;
-    for (var i = 0; i < leaderboard.length; i++) {
-        var e = leaderboard[i];
-        var logbook = e.logbook;
 
-        var last = logbook.getLastPointAndTime();
-        var lastPoint = '';
-        var lastPointName = '';
-        var lastTime = '';
-        var finish = '';
-        if (last) {
-            lastPoint = last.point;
-            if (last.finish) {
-                finish += ' (Målgång)';
-            }
-
-            var p = pod.getPoint(lastPoint);
-            if (p) {
-                lastPointName = p.name;
-            }
-            lastTime = last.time.format('HH:mm');
-        }
-
-        if (displayView) {
-            html += '<tr onclick="window.tfUiBoatsSelect(' +
-                logbook.teamData.id +
-                ')">';
+    var races = getRacesData(regatta.getId());
+    races.sort(function(a, b) {
+        if (a.start_from.isBefore(b.start_from)) {
+            return -1;
+        } else if (a.start_from.isSame(b.start_from)) {
+            return 0;
         } else {
-            html += '<tr>';
+            return 1;
         }
-        var dist = e.plaquedist.toFixed(1);
-        switch (logbook.state) {
-        case 'finished-early':
-        case 'dnf':
-            dist = 'DNF';
-            break;
-        case 'dsq':
-            dist = 'DSQ';
+    });
+
+    curRegatta = regatta;
+    var i, j, k;
+    for (k = 0; k < races.length; k++) {
+        var r = races[k];
+        // check if there are any teams in this race; if not, don't show it
+        var found = false;
+        for (j = 0; !found && j < leaderboard.length; j++) {
+            if (leaderboard[j].logbook.race.getId() == r.id) {
+                found = true;
+            }
         }
-        html += '<td>' + dist + '</td>' +
-            '<td>' + logbook.teamData.boat_name + '</td>' +
-            '<td>' + lastPoint + ' <i>' + lastPointName + finish + '</i></td>' +
-            '<td>' + lastTime + '</td>' +
-            '<td>' + logbook.teamData.boat_type_name + '</td>' +
-            //'<td>' + (logbook.teamData.boat_sail_number || '-') + '</td>' +
+        if (!found) {
+            continue;
+        }
+        var padding = '';
+        if (k > 0) {
+            padding = ' pt-4';
+        }
+        html += '<div class="row' + padding + '"><div>' +
+            '<div class="' + fontclass + '"><b>' + r.period + '-timmars';
+        if (r.description) {
+            html += ' ' + r.description;
+        }
+        html += '</b></div>';
+        var startDateFrom = r.start_from.format('YYYY-MM-DD');
+        var startTimeFrom = r.start_from.format('HH:mm');
+        var startDateTo = r.start_to.format('YYYY-MM-DD');
+        var startTimeTo = r.start_to.format('HH:mm');
+        html +=
+            '<p class="font-italic">Starttid: ' +
+            startDateFrom + ' ' + startTimeFrom;
+        if (startDateTo != startDateFrom) {
+            html += ' - ' + startDateTo + ' ' + startTimeTo;
+        } else if (startTimeTo != startTimeFrom) {
+            html += ' - ' + startTimeTo;
+        }
+        html += '</p></div></div>';
+
+        html += '<div class="table-responsive row">' +
+            '<table class="table table-sm">' +
+            '<colgroup>' +
+            '<col class="tf-col-1"></col>' +
+            '<col class="tf-col-3"></col>' +
+            '<col class="tf-col-3"></col>' +
+            '<col class="tf-col-1"></col>' +
+            '<col class="tf-col-4"></col>' +
+            '</colgroup>' +
+
+            '<thead>' +
+            '<tr>' +
+            '<th>Plakett-distans</th>' +
+            '<th>Båtnamm</th>' +
+            '<th>Senaste punkt</th>' +
+            '<th>Tid</th>' +
+            '<th>Båttyp</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+
+        for (i = 0; i < leaderboard.length; i++) {
+            var e = leaderboard[i];
+            var logbook = e.logbook;
+            if (logbook.race.getId() != r.id) {
+                continue;
+            }
+
+            var last = logbook.getLastPointAndTime();
+            var lastPoint = '';
+            var lastPointName = '';
+            var lastTime = '';
+            var finish = '';
+            if (last) {
+                lastPoint = last.point;
+                if (last.finish) {
+                    finish += ' (Målgång)';
+                }
+
+                var p = pod.getPoint(lastPoint);
+                if (p) {
+                    lastPointName = p.name;
+                }
+                lastTime = last.time.format('HH:mm');
+            }
+
+            if (displayView) {
+                html += '<tr onclick="window.tfUiBoatsSelect(' +
+                    logbook.teamData.id +
+                    ')">';
+            } else {
+                html += '<tr>';
+            }
+            var dist = e.plaquedist.toFixed(1);
+            switch (logbook.state) {
+            case 'finished-early':
+            case 'dnf':
+                dist = 'DNF';
+                break;
+            case 'dsq':
+                dist = 'DSQ';
+            }
+            html += '<td>' + dist + '</td>' +
+                '<td>' + logbook.teamData.boat_name + '</td>' +
+                '<td>' + lastPoint + ' <i>' + lastPointName + finish + '</i></td>' +
+                '<td>' + lastTime + '</td>' +
+                '<td>' + logbook.teamData.boat_type_name + '</td>' +
             '</tr>';
+        }
+        html += '</tbody></table></div>';
     }
 
     if (updated) {
         $('#boats-lb-updated').html(updated.format('YYYY-MM-DD HH:mm:ss'));
     }
-    $('#boats-lb-tbody').html(html);
+    $('#boats-lb-body').html(html);
 };
 
 function fillResult(regatta) {

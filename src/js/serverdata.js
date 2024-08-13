@@ -500,10 +500,13 @@ function mkLogSummaryData(s) {
         id:               s.id,                // int
         team_id:          s.team_id,           // int
         time:             moment(s.time),      // date and time
-        point:            s.point,             // int
+        type:             s.log_type,          // string
         deleted:          s.deleted,           // boolean
         updated_at:       moment(s.updated_at) // date and time
     };
+    if (s.point) {
+        r.point = s.point;                     // int
+    }
     return r;
 };
 
