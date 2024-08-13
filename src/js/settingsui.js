@@ -25,12 +25,6 @@ export function openPage() {
     $('#settings-client-id').val(curState.clientId.get());
     $('#settings-poll-interval').removeClass('is-invalid');
     $('#settings-poll-interval').val(curState.pollInterval.get());
-    $('#settings-tracker-interval').removeClass('is-invalid');
-    $('#settings-tracker-interval').val(curState.trackerInterval.get());
-    $('#settings-tracker-distance').removeClass('is-invalid');
-    $('#settings-tracker-distance').val(curState.trackerDistance.get());
-    $('#settings-tracker-enabled').prop(
-        'checked', curState.trackerEnabled.get());
     $('#settings-font-size').val(curState.fontSize.get());
     $('#settings-immediate-log-send').prop(
         'checked', curState.immediateSendToServer.get());
@@ -120,12 +114,6 @@ $(document).ready(function() {
         curState.numberOfDebugLogEntries.set(numberOfDebugLogEntries);
         var pollInterval = parseInt($('#settings-poll-interval').val());
         curState.pollInterval.set(pollInterval);
-        var trackerInterval = parseInt($('#settings-tracker-interval').val());
-        curState.trackerInterval.set(trackerInterval);
-        var trackerDistance = parseInt($('#settings-tracker-distance').val());
-        curState.trackerDistance.set(trackerDistance);
-        curState.trackerEnabled.set(
-            $('#settings-tracker-enabled').prop('checked'));
         curState.clientId.set($('#settings-client-id').val().trim());
         curState.fontSize.set($('#settings-font-size').val());
         curState.immediateSendToServer.set(
@@ -169,22 +157,6 @@ $(document).ready(function() {
         }
     });
 
-    $('#settings-tracker-interval').blur(function() {
-        var trackerInterval = parseInt($('#settings-tracker-interval').val());
-        if (trackerInterval >= 0 && trackerInterval <= 3600) {
-            $('#settings-tracker-interval').removeClass('is-invalid');
-        } else {
-            $('#settings-tracker-interval').addClass('is-invalid');
-        }
-    });
-
-    $('#settings-tracker-distance').blur(function() {
-        var trackerDistance = parseInt($('#settings-tracker-distance').val());
-        if (trackerDistance >= 0 && trackerDistance <= 3704) {
-            $('#settings-tracker-distance').removeClass('is-invalid');
-        } else {
-            $('#settings-tracker-distance').addClass('is-invalid');
-        }
-    });
 
 });
+

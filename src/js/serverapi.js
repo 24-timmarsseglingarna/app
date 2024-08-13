@@ -14,11 +14,8 @@ var stagingS3URL = 'https://gionastage.s3.amazonaws.com';
 var productionS3URL = 'https://gionaprod.s3.amazonaws.com';
 //var devS3URL = 'http://gionadev.s3.amazonaws.com';
 
-var productionTrackerURL = 'https://app.24-timmars.nu/track.php';
-
 export var URL = productionURL;
 export var S3URL = productionS3URL;
-export var TRACKERURL = productionTrackerURL;
 
 /*
 function setDevServer() {

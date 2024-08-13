@@ -13,7 +13,7 @@ import {initP as initStorageP,
         getRacePlan, setRacePlan} from './storage.js';
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
-        getTerrainP, getTSSP, TRACKERURL,
+        getTerrainP, getTSSP,
         getAPIVersionP, validateTokenP} from './serverapi';
 import {initP as initServerDataP, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
@@ -22,8 +22,6 @@ import {initP as initServerDataP, updateServerDataP,
 import {dbg, debugInfo} from './debug.js';
 import {basePodSpec} from '../../build/pod.js';
 import {baseTssSpec} from '../../build/tss.js';
-
-//import {alert} from './alertui.js';
 
 export var curState = {};
 
@@ -59,9 +57,6 @@ defineVariable(curState, 'immediateSendToServer', null);
 defineVariable(curState, 'serverId', null);
 defineVariable(curState, 'loggedInPersonId', null);
 defineVariable(curState, 'numberOfDebugLogEntries', null);
-defineVariable(curState, 'trackerEnabled', false);
-defineVariable(curState, 'trackerInterval', null);
-defineVariable(curState, 'trackerDistance', null);
 defineVariable(curState, 'tss', baseTssSpec);
 defineVariable(curState, 'curChart', null);
 
@@ -81,8 +76,6 @@ curState.boatState = {
 curState.activeInterrupt = false;
 
 curState.defaultPod = new Pod(basePodSpec);
-
-curState.bgLog = [];
 
 curState.mapURL = 'tiles/{z}/{x}/{y}.png';
 curState.mapMaxZoom = 13;
@@ -162,15 +155,6 @@ export function initP() {
         });
 };
 
-function isRacing() {
-    var logbook = curState.curLogBook.get();
-    if (logbook && logbook.isRacing()) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
 function init() {
     if (isCordova) {
         platform = device.platform;
@@ -220,34 +204,6 @@ function init() {
         setSettings({immediateSendToServer: val});
     });
 
-    
-    curState.trackerEnabled.set(
-        getSetting('trackerEnabled'));
-    curState.trackerEnabled.onChange(function(val) {
-        setSettings({trackerEnabled: val});
-        if (val && isRacing()) {
-            startTracker();
-        } else {
-            stopTracker();
-        }
-    });
-    curState.trackerInterval.set(getSetting('trackerInterval'));
-    curState.trackerInterval.onChange(function(val) {
-        setSettings({trackerInterval: val});
-        if (isRacing() && curState.trackerEnabled.get()) {
-            stopTracker();
-            startTracker();
-        }
-    });
-    curState.trackerDistance.set(getSetting('trackerDistance'));
-    curState.trackerDistance.onChange(function(val) {
-        setSettings({trackerDistance: val});
-        if (isRacing() && curState.trackerEnabled.get()) {
-            stopTracker();
-            startTracker();
-        }
-    });
-
     var serverId = getSetting('serverId');
     curState.serverId.set(serverId);
     curState.serverId.onChange(function(val) {
@@ -265,151 +221,7 @@ function init() {
         setProductionServer();
     }
 
-
     document.addEventListener('resume', onResume, false);
-
-    // FIXME: use BackgroundGeolocation instead of navigator.location,
-    // in order to not ask permission twice.
-
-};
-
-var bgGeoStatus = {};
-var bgGeoDbg = [];
-
-var isTracking = false;
-
-function startTracker() {
-    if (isTracking) {
-        return;
-    }
-    if (isCordova && BackgroundGeolocation) {
-        debugInfo['bgGeo'] = function() {
-            return [{key: 'bgGeo', val: curState.bgLog.join('<br/>\n')}];
-        };
-        debugInfo['bgGeoStatus'] = function() {
-            BackgroundGeolocation.checkStatus(function(status) {
-                bgGeoStatus = status;
-            });
-            return [{key: 'bgGeoIsRunning', val: bgGeoStatus.isRunning},
-                    {key: 'bgGeoLocEna', val: bgGeoStatus.locationServiceEnabled}];
-        };
-        debugInfo['bgGeoDbg'] = function() {
-            // this is a promise, so first time it will get the value, and
-            // next time the value is printed...
-            BackgroundGeolocation.getLogEntries(100, 0, 'TRACE',
-                                                function(entries) {
-                                                    bgGeoDbg = entries;
-                                                });
-            var sss = '';
-            for (var i = 0; i < bgGeoDbg.length; i++) {
-                sss += JSON.stringify(bgGeoDbg[i]) + '<br/>\n';
-            }
-            return [{key: 'bgGeoDbg', val: sss}];
-        };
-
-        var trackerInterval = curState.trackerInterval.get();
-        var trackerDistance = curState.trackerDistance.get();
-        var logbook = curState.curLogBook.get();
-        var teamId = 0;
-        if (logbook) {
-            teamId = logbook.teamData.id;
-        }
-        dbg('start tracker team' + teamId);
-        var provider;
-        if (trackerDistance == 0) {
-            BackgroundGeolocation.RAW_PROVIDER;
-            trackerDistance = 1;
-        } else {
-            BackgroundGeolocation.DISTANCE_FILTER_PROVIDER;
-        }
-        BackgroundGeolocation.configure({
-            locationProvider: provider,
-            notificationTitle: '24-timmars GPS spår',
-            notificationText: 'aktivt',
-            notificationIconLarge: null,
-            notificationIconSmall: '24h-notif.png',
-            startForeground: true, // used on android
-            distanceFilter: trackerDistance,
-            maxLocations: 2880, // 24h w/ 30s poll
-            interval: trackerInterval * 1000,
-            url: TRACKERURL,
-            syncUrl: TRACKERURL,
-            //syncThreshold: Math.max(Math.round(600 / trackerInterval), 1),
-            syncThreshold: 1,
-            postTemplate: {
-                lat: '@latitude',
-                lon: '@longitude',
-                time: '@time',
-                team: teamId
-            }
-        });
-        BackgroundGeolocation.on('location', function() {
-//        BackgroundGeolocation.on('location', function(location) {
-/*
-            var s = new Date(location.time).toISOString();
-            curState.bgLog.push('time: ' + s +
-                                ' lat:' + location.latitude +
-                                ' lng:' + location.longitude);
-*/
-        });
-
-        BackgroundGeolocation.on('stationary', function() {
-            // handle stationary locations here
-        });
-
-        BackgroundGeolocation.on('error', function(error) {
-            curState.bgLog.push('error: ' + error.code + ' ' + error.message);
-            //alert('<p>[ERROR] BackgroundGeolocation error:' +
-            //error.code + ' ' + error.message);
-        });
-
-        BackgroundGeolocation.on('start', function() {
-            curState.bgLog.push('start');
-            //alert('<p>[INFO] BackgroundGeolocation started');
-        });
-
-        BackgroundGeolocation.on('stop', function() {
-            curState.bgLog.push('stop');
-            //alert('<p>[INFO] BackgroundGeolocation stopped');
-        });
-
-        BackgroundGeolocation.on('authorization', function(status) {
-            if (status !== BackgroundGeolocation.AUTHORIZED) {
-                // we need to set delay or otherwise alert may not be shown
-                setTimeout(function() {
-                    var showSettings =
-                        confirm('App requires location tracking ' +
-                                'permission. Would you like to ' +
-                                'open app settings?');
-                    if (showSettings) {
-                        return BackgroundGeolocation.showAppSettings();
-                    }
-                }, 1000);
-            }
-        });
-
-        BackgroundGeolocation.on('background', function() {
-            curState.bgLog.push('background');
-
-        });
-
-        BackgroundGeolocation.on('foreground', function() {
-            curState.bgLog.push('foreground');
-        });
-
-        BackgroundGeolocation.start();
-    } else {
-        dbg('would start tracker');
-    }
-    isTracking = true;
-};
-
-
-function stopTracker() {
-    if (isCordova && BackgroundGeolocation) {
-        dbg('stop tracker');
-        BackgroundGeolocation.stop();
-    }
 };
 
 function hasNetwork() {
@@ -749,19 +561,10 @@ function setActiveRace2(raceId) {
         curState.boatState.engine = curLogBook.getEngine();
         curState.boatState.lanterns = curLogBook.getLanterns();
         curState.activeInterrupt = curLogBook.getInterrupt();
-        curState.curRegatta.set(curRegatta);
-        curState.curRace.set(curRace);
-        curState.curLogBook.set(curLogBook);
-        curState.curPlan.set(null);
         curLogBook.onLogUpdate(function(logBook) {
             curState.boatState.engine = logBook.getEngine();
             curState.boatState.lanterns = logBook.getLanterns();
             curState.activeInterrupt = logBook.getInterrupt();
-            if (logBook.isRacing() && curState.trackerEnabled.get()) {
-                startTracker();
-            } else {
-                stopTracker();
-            }
         }, 90);
         curLogBook.onLogUpdate(function(logBook) {
             setRaceLog(logBook.race.getId(), logBook.getLog());
@@ -774,9 +577,12 @@ function setActiveRace2(raceId) {
                 forceTimeout();
             }
         }, 120);
+        curState.curRegatta.set(curRegatta);
+        curState.curRace.set(curRace);
+        curState.curLogBook.set(curLogBook);
+        curState.curPlan.set(null);
         return true;
     } else {
-        stopTracker();
         if (curState.mode.get() != 'showRegatta') {
             // FIXME: tmp code
             curState.curRegatta.set(null);
@@ -900,10 +706,6 @@ export function reset(keepauth, doLoginFn) {
             curState.immediateSendToServer.set(
                 getSetting('immediateSendToServer'));
             curState.serverId.set(getSetting('serverId'));
-            curState.trackerEnabled.set(
-                getSetting('trackerEnabled'));
-            curState.trackerInterval.set(getSetting('trackerInterval'));
-            curState.trackerDistance.set(getSetting('trackerDistance'));
 
             return setupLoginP()
                 .catch(function(reason) {

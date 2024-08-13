@@ -454,10 +454,6 @@ LogBook.prototype.getFinishPoint = function() {
     }
 };
 
-LogBook.prototype.isRacing = function() {
-    return this.state == 'started';
-};
-
 LogBook.prototype.isReadOnly = function() {
     if (this.readOnly || this.signed != false) {
         return true;
