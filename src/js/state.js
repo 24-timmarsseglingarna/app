@@ -691,7 +691,8 @@ function serverDataUpdateDone() {
             setActiveRace2(null);
         } else {
             var curRace = curState.curRace.get();
-            if (!objectsEqual(curRace.raceData, newRaceData)) {
+            if (curRace != null &&
+                !objectsEqual(curRace.raceData, newRaceData)) {
                 dbg('race ' + curActiveRaceId + ' has been updated on server');
                 var pod = getPod(newRaceData.terrain_id);
                 if (pod) {

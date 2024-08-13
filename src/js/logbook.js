@@ -53,6 +53,7 @@ export function LogBook(teamData, race, log, readOnly) {
     this.signed = false; // | 'signed' | 'signed-sync'
 
     this.lastServerUpdate = null;
+    this.isUpdatedFromServer = false;
     this._updateLog('init');
 };
 
@@ -401,6 +402,12 @@ LogBook.prototype._updateLog = function(reason) {
 };
 
 LogBook.prototype.onLogUpdate = function(fn, prio) {
+    for (var i = 0; i < this.onLogUpdateFns.length; i++) {
+        if (this.onLogUpdateFns[i].fn == fn) {
+            dbg('duplicate log update function' + fn);
+            return;
+        }
+    }
     this.onLogUpdateFns.push({fn: fn, prio: prio});
     this.onLogUpdateFns.sort(function(a, b) { return a.prio - b.prio; });
 };
@@ -689,6 +696,7 @@ LogBook.prototype.updateFromServerP = function() {
     }
     return getTeamLogP(this.teamData.id, lastUpdate)
         .then(function(log) {
+            logBook.isUpdatedFromServer = true;
             return logBook.addLogFromServer(log);
         });
 };
