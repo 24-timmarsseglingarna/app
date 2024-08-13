@@ -308,7 +308,6 @@ function mkPointPopupHTML(number, name, descr, footnote, plan) {
     }
     for (var i = 0; i < times.length; i++) {
         if (times[i].eta) {
-            window.ddd = times[i];
             s += '<p>Planerad rundningstid (med nuvarande snittfart ' +
                 times[i].avgSpeed.toFixed(1) + ' kn):<br/>' +
                 times[i].eta.format('HH:mm D MMM') + '</p>';
@@ -1691,7 +1690,7 @@ export function checkLogBook(logBook) {
             } else {
                 reason = 'Målgång';
             }
-            alert('<p>Du har loggat "' + reason + '.</p>' +
+            alert('<p>Du har loggat "' + reason + '".</p>' +
                   // '" men du har inte signerat loggboken.</p>' +
                   '<p>Kontrollera loggboken och signera' +
                   ' den sedan.</p>');

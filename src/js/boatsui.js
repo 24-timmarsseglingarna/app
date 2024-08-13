@@ -162,7 +162,7 @@ function fillLeaderBoard(regatta, displayView) {
 
     var pod = regatta.getPod();
     var leaderboard = regatta.getLeaderBoard(curState.curLogBook.get());
-    leaderboard.sort(function(a, b) { return b.netdist - a.netdist; });
+    leaderboard.sort(function(a, b) { return b.plaquedist - a.plaquedist; });
     var updated = regatta.getLeaderBoardUpdatedTime();
     // clear 'updated' flag in the regatta in order to mark
     // that we've seen it.
@@ -177,8 +177,13 @@ function fillLeaderBoard(regatta, displayView) {
         var lastPoint = '';
         var lastPointName = '';
         var lastTime = '';
+        var finish = '';
         if (last) {
             lastPoint = last.point;
+            if (last.finish) {
+                finish += ' (Målgång)';
+            }
+
             var p = pod.getPoint(lastPoint);
             if (p) {
                 lastPointName = p.name;
@@ -193,9 +198,18 @@ function fillLeaderBoard(regatta, displayView) {
         } else {
             html += '<tr>';
         }
-        html += '<td>' + e.netdist.toFixed(1) + '</td>' +
+        var dist = e.plaquedist.toFixed(1);
+        switch (logbook.state) {
+        case 'finished-early':
+        case 'dnf':
+            dist = 'DNF';
+            break;
+        case 'dsq':
+            dist = 'DSQ';
+        }
+        html += '<td>' + dist + '</td>' +
             '<td>' + logbook.teamData.boat_name + '</td>' +
-            '<td>' + lastPoint + ' <i>' + lastPointName + '</i></td>' +
+            '<td>' + lastPoint + ' <i>' + lastPointName + finish + '</i></td>' +
             '<td>' + lastTime + '</td>' +
             '<td>' + logbook.teamData.boat_type_name + '</td>' +
             //'<td>' + (logbook.teamData.boat_sail_number || '-') + '</td>' +
@@ -266,6 +280,9 @@ function fillResult(regatta) {
         case 'finished-early':
         case 'dnf':
             dist = 'DNF';
+            break;
+        case 'dsq':
+            dist = 'DSQ';
         }
 
         html += '<tr onclick="window.tfUiBoatsSelect(' + logbook.teamData.id +

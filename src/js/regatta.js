@@ -125,7 +125,7 @@ Regatta.prototype.isOngoing = function() {
 };
 
 /*
- * Returns: [ { 'netdist': <Net distance logged>
+ * Returns: [ { 'plaquedist': <Plaquette distance logged>
  *              'logbook': <LogBook> } ]
  */
 Regatta.prototype.getLeaderBoard = function(curLogBook) {
@@ -133,13 +133,15 @@ Regatta.prototype.getLeaderBoard = function(curLogBook) {
     if (curLogBook && !this.teams[curLogBook.teamData.id]
         && curLogBook.getLastPoint() != null) {
         // add ourselves if we have logged a point
-        res.push({ netdist: curLogBook.getNetDistance(),
+        res.push({ plaquedist: curLogBook.getPlaqueDistance(),
                    logbook: curLogBook });
     }
     for (var teamId in this.teams) {
         var logbook = this.teams[teamId];
-        res.push({ netdist: logbook.getNetDistance(),
-                   logbook: logbook });
+        if (logbook.state != 'dns') {
+            res.push({ plaquedist: logbook.getPlaqueDistance(),
+                       logbook: logbook });
+        }
     }
     return res;
 };

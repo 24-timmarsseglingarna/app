@@ -256,7 +256,7 @@ LogBook.prototype._updateLog = function(reason) {
         e._invalidLeg = null;
         e._interruptStatus = null;
         if (e.point) {
-            points.push({point: e.point, time: e.time});
+            points.push({point: e.point, time: e.time, finish: e.finish});
             if (!npoints[e.point]) {
                 npoints[e.point] = 0;
             }
