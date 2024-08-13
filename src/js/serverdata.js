@@ -465,13 +465,6 @@ function mkRaceData(s) {
         min_period:     s.minimal,             // int (11,23,43,...)
         description:    s.description          // string
     };
-    // In order to disable tracking, the server should set
-    // tracker_url to false.
-    if (s.tracker_url == undefined) {
-        r.tracker_url = serverAPI.TRACKERURL + '?regatta=' + s.regatta_id;
-    } else {
-        r.tracker_url = s.tracker_url;
-    }
     return r;
 };
 
