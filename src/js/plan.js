@@ -266,11 +266,23 @@ Plan.prototype.getRaceLeftMinutes = function() {
 
 Plan.prototype.getTimes = function(point) {
     var r = [];
-    for (var i = 0; i < this.entries.length; i++) {
+    var dist = 0;
+    var totalDist = 0;
+    for (var j = this.firstPlanned; j < this.entries.length; j++) {
+        if (this.entries[j].dist != undefined) {
+            totalDist += this.entries[j].dist;
+        }
+    }
+    for (var i = this.firstPlanned; i < this.entries.length; i++) {
         var e = this.entries[i];
+        if (e.dist != undefined) {
+            dist += e.dist;
+        }
         if (e.point == point) {
             r.push({eta: e.eta,
                     rta: e.rta,
+                    distToPoint: dist,
+                    distToEnd: totalDist - dist,
                     avgSpeed: e.avgSpeed,
                     planSpeed: e.planSpeed});
         }

@@ -315,6 +315,10 @@ function mkPointPopupHTML(number, name, descr, footnote, plan, logbook) {
                 plan.planSpeed.toFixed(1) + ' kn i snitt):<br/>' +
                 times[i].rta.format('HH:mm D MMM') + '</p>';
         }
+        s += '<p>Distans till punkten: ' +
+            times[i].distToPoint.toFixed(1) + ' M</p>';
+        s += '<p>Distans kvar av planen: ' +
+            times[i].distToEnd.toFixed(1) + ' M</p>';
     }
     if (logbook && !logbook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
@@ -1193,6 +1197,12 @@ function initNavbar() {
               return false;
               }
             */
+            var curLogBook = curState.curLogBook.get();
+            if (curLogBook && curLogBook.isReadOnly()) {
+                alert('<p>När loggboken är signerad går det inte att' +
+                      ' planera.</p>');
+                return false;
+            }
             openPlanMenuPage();
             return false;
         });
