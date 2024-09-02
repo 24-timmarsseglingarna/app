@@ -242,7 +242,11 @@ Plan.prototype.getPlannedSpeed = function() {
     if (this.logbook.getFinishPoint() != lastPlannedPoint) {
         return -1;
     }
-    var dist = this.totalDist / 10;
+    // totalDist is in 1/10 M
+    return this.totalDist * 6 / this.getRaceLeftMinutes();
+};
+
+Plan.prototype.getRaceLeftMinutes = function() {
     var raceLengthMinutes = this.logbook.race.getRaceLengthHours() * 60;
     var raceLeftMinutes = raceLengthMinutes - this.logbook.getSailedTime();
     var startTime = this.logbook.getRealStartTime();
@@ -256,8 +260,9 @@ Plan.prototype.getPlannedSpeed = function() {
             raceLeftMinutes -= startTimes.start_from.diff(startTime, 'minutes');
         }
     }
-    return dist * 60 / raceLeftMinutes;
+    return raceLeftMinutes;
 };
+
 
 Plan.prototype.getTimes = function(point) {
     var r = [];
@@ -386,21 +391,19 @@ Plan.prototype._updateState = function(informSubscribers) {
     if (loggedPoints.length > 0) {
         var time = loggedPoints[loggedPoints.length - 1].time;
         var offset;
-        var planSpeed = this.getPlannedSpeed();
-        var avgSpeed = this.logbook.getAverageSpeed();
+        this.planSpeed = this.getPlannedSpeed();
+        this.avgSpeed = this.logbook.getAverageSpeed();
         var planDist = 0;
         for (j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
-            if (avgSpeed > 0) {
+            if (this.avgSpeed > 0) {
                 planDist += this.entries[j].dist;
-                offset = 60 * planDist / avgSpeed;
+                offset = 60 * planDist / this.avgSpeed;
                 // clone the moment time
-                this.entries[j].avgSpeed = avgSpeed;
                 this.entries[j].eta = moment(time).add(offset, 'minutes');
             }
-            if (planSpeed > 0) {
-                offset = 60 * planDist / planSpeed;
+            if (this.planSpeed > 0) {
+                offset = 60 * planDist / this.planSpeed;
                 // clone the moment time
-                this.entries[j].planSpeed = planSpeed;
                 this.entries[j].rta = moment(time).add(offset, 'minutes');
             }
         }

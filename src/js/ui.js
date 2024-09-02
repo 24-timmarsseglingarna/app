@@ -303,18 +303,18 @@ function mkPointPopupHTML(number, name, descr, footnote, plan) {
     var times = [];
     var logBook = undefined;
     if (plan) {
-        times = curState.curPlan.get().getTimes(number);
+        times = plan.getTimes(number);
         logBook = plan.logbook;
     }
     for (var i = 0; i < times.length; i++) {
         if (times[i].eta) {
             s += '<p>Planerad rundningstid (med nuvarande snittfart ' +
-                times[i].avgSpeed.toFixed(1) + ' kn):<br/>' +
+                plan.avgSpeed.toFixed(1) + ' kn):<br/>' +
                 times[i].eta.format('HH:mm D MMM') + '</p>';
         }
         if (times[i].rta) {
             s += '<p>Rundning för målgång i tid (kräver ' +
-                times[i].planSpeed.toFixed(1) + ' kn i snitt):<br/>' +
+                plan.planSpeed.toFixed(1) + ' kn i snitt):<br/>' +
                 times[i].rta.format('HH:mm D MMM') + '</p>';
         }
     }
