@@ -294,17 +294,15 @@ var pointPopup;
 var plannedPointPopup;
 var chartPopup;
 
-function mkPointPopupHTML(number, name, descr, footnote, plan) {
+function mkPointPopupHTML(number, name, descr, footnote, plan, logbook) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p>' + descr + '</p>';
     if (footnote) {
         s += '<p class="font-italic">' + footnote + '</p>';
     }
     var times = [];
-    var logBook = undefined;
     if (plan) {
         times = plan.getTimes(number);
-        logBook = plan.logbook;
     }
     for (var i = 0; i < times.length; i++) {
         if (times[i].eta) {
@@ -318,7 +316,7 @@ function mkPointPopupHTML(number, name, descr, footnote, plan) {
                 times[i].rta.format('HH:mm D MMM') + '</p>';
         }
     }
-    if (logBook && !logBook.isReadOnly()) {
+    if (logbook && !logbook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
         // and w/o href in a bad way
         s += '<p><a class="log-point-button" tabindex="0"' +
@@ -423,10 +421,11 @@ function handleMapClick(event) {
                         var plan = curState.curPlan.get();
                         // show the popup from the center of the point
                         var footnote = feature.get('footnote');
+                        var logbook = curState.curLogBook.get();
                         pointPopup.show(
                             coord,
                             mkPointPopupHTML(number, name, descr,
-                                             footnote, plan));
+                                             footnote, plan, logbook));
                     }
                 }
             }
