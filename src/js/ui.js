@@ -15,7 +15,9 @@ import {Popup} from './ol-popup.js';
 
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
-import {curState, setupLoginP, setupContinue} from './state.js';
+import {confirm} from './confirmui.js';
+import {getSetting} from './storage.js';
+import {logout, curState, setupLoginP, setupContinue} from './state.js';
 import {getRegattaLogsP, getRegattaTeamsP, getPodP,
         getRegattaRacesP} from './serverdata.js';
 import {openLogEntry} from './logentryui.js';
@@ -1220,6 +1222,27 @@ function initNavbar() {
         });
     }
 
+    $('#tf-nav-login').on('click', function() {
+        // close the dropdown
+        $('#tf-nav-more').dropdown('toggle');
+        openLoginPage();
+        return false;
+    });
+
+    $('#tf-nav-logout').on('click', function() {
+        // close the dropdown
+        $('#tf-nav-more').dropdown('toggle');
+        confirm('<p>Du är inloggad som ' + getSetting('email') + '.</p>' +
+                '<p>Är du säker att du vill logga ut?</p>',
+                'Nej',
+                'Ja',
+                null,
+                function() {
+                    logout();
+                });
+        return false;
+    });
+
     $('#tf-nav-show-settings').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');
@@ -1711,6 +1734,16 @@ export function checkLogBook(logBook) {
     }
 };
 
+function setAuthText() {
+    if (curState.loggedInPersonId.get()) {
+        $('.tf-nav-login').hide();
+        $('.tf-nav-logout').show();
+    } else {
+        $('.tf-nav-login').show();
+        $('.tf-nav-logout').hide();
+    }
+};
+
 export function initMapUI() {
     initMap();
     initPopup();
@@ -1796,7 +1829,9 @@ export function initMapUI() {
 
     maybeOpenChartPage();
 
+    setAuthText();
     curState.loggedInPersonId.onChange(function() {
+        setAuthText();
         updateAll();
     });
 
