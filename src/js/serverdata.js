@@ -500,6 +500,11 @@ function mkLogSummaryData(s) {
     if (s.point) {
         r.point = s.point;                     // int
     }
+    var x = {};
+    parseJSONLogData(x, s.data);
+    if (x.finish) {
+        r.finish = x.finish;
+    }
     return r;
 };
 

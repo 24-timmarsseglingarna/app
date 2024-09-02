@@ -29,12 +29,18 @@ export function openPage(options) {
 
     fillStartList(regatta, fontclass);
 
-    fillLeaderBoard(regatta, fontclass, options.displayView);
-
+    var n = fillLeaderBoard(regatta, fontclass, options.displayView);
     if (options.adminView) {
         fillResult(regatta);
     } else {
         $('#boats-result-tab').hide();
+    }
+
+    if (n > 0) {
+        console.log('n=' + n);
+        $('#boats-lb-tab').tab('show');
+    } else {
+        $('#boats-start-tab').tab('show');
     }
 
     var page = $('#boats-page')[0];
@@ -109,7 +115,7 @@ function fillStartList(regatta, fontclass) {
             '<thead>' +
             '<tr>' +
             '<th>Nr</th>' +
-            '<th>Båtnamm</th>' +
+            '<th>Båtnamn</th>' +
             '<th>Båttyp</th>' +
             '<th>Segelnr</th>' +
             '<th>SXK-tal</th>' +
@@ -157,12 +163,26 @@ function fillStartList(regatta, fontclass) {
     $('#boats-start').html(html);
 };
 
+function distx(e) {
+    if (e.logbook.state == 'finished-early' ||
+        e.logbook.state == 'dnf') {
+        return -1;
+    }
+    if (e.logbook.state == 'dsq') {
+        return -2;
+    }
+    if (e.logbook.state == 'dns') {
+        return -3;
+    }
+    return e.plaquedist;
+};
+
 function fillLeaderBoard(regatta, fontclass, displayView) {
     var html = '';
 
     var pod = regatta.getPod();
     var leaderboard = regatta.getLeaderBoard(curState.curLogBook.get());
-    leaderboard.sort(function(a, b) { return b.plaquedist - a.plaquedist; });
+    leaderboard.sort(function(a, b) { return distx(b) - distx(a); });
     var updated = regatta.getLeaderBoardUpdatedTime();
     // clear 'updated' flag in the regatta in order to mark
     // that we've seen it.
@@ -182,6 +202,7 @@ function fillLeaderBoard(regatta, fontclass, displayView) {
 
     curRegatta = regatta;
     var i, j, k;
+    var n_items = 0;
     for (k = 0; k < races.length; k++) {
         var r = races[k];
         // check if there are any teams in this race; if not, don't show it
@@ -231,9 +252,9 @@ function fillLeaderBoard(regatta, fontclass, displayView) {
             '<thead>' +
             '<tr>' +
             '<th>Plakett-distans</th>' +
-            '<th>Båtnamm</th>' +
+            '<th>Båtnamn</th>' +
             '<th>Senaste punkt</th>' +
-            '<th>Tid</th>' +
+            '<th>Rapporterad tid</th>' +
             '<th>Båttyp</th>' +
             '</tr>' +
             '</thead>' +
@@ -276,9 +297,21 @@ function fillLeaderBoard(regatta, fontclass, displayView) {
             case 'finished-early':
             case 'dnf':
                 dist = 'DNF';
+                n_items += 1;
                 break;
             case 'dsq':
                 dist = 'DSQ';
+                n_items += 1;
+                break;
+            case 'dns':
+                // DNS may be reported before the race starts.  Don't
+                // count this as contributing to the leaderboard; this means
+                // that unless we have a non-DNS entry in the leaderboard,
+                // we won't show it by default.
+                dist = 'DNS';
+                break;
+            default:
+                n_items += 1;
             }
             html += '<td>' + dist + '</td>' +
                 '<td>' + logbook.teamData.boat_name + '</td>' +
@@ -294,6 +327,7 @@ function fillLeaderBoard(regatta, fontclass, displayView) {
         $('#boats-lb-updated').html(updated.format('YYYY-MM-DD HH:mm:ss'));
     }
     $('#boats-lb-body').html(html);
+    return n_items;
 };
 
 function fillResult(regatta) {

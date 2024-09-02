@@ -138,10 +138,11 @@ Regatta.prototype.getLeaderBoard = function(curLogBook) {
     }
     for (var teamId in this.teams) {
         var logbook = this.teams[teamId];
-        if (logbook.state != 'dns') {
-            res.push({ plaquedist: logbook.getPlaqueDistance(),
-                       logbook: logbook });
+        if (logbook.getLog().length == 0) {
+            continue;
         }
+        res.push({ plaquedist: logbook.getPlaqueDistance(),
+                   logbook: logbook });
     }
     return res;
 };
