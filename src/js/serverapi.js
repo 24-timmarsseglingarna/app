@@ -10,17 +10,17 @@ var stagingURL = 'https://segla-stage.24-timmars.nu';
 var productionURL = 'https://segla.24-timmars.nu';
 //var devURL = 'http://192.168.0.6:3000';
 
-var stagingS3URL = 'https://gionastage.s3.amazonaws.com';
-var productionS3URL = 'https://gionaprod.s3.amazonaws.com';
-//var devS3URL = 'http://gionadev.s3.amazonaws.com';
+var stagingDataURL = 'https://app.24-timmars.nu/data';
+var productionDataURL = 'https://app.24-timmars.nu/data';
+//var devDataURL = 'http://gionadev.s3.amazonaws.com';
 
 export var URL = productionURL;
-export var S3URL = productionS3URL;
+export var DataURL = productionDataURL;
 
 /*
 function setDevServer() {
     URL = devURL;
-    S3URL = devS3URL;
+    DataURL = devDataURL;
     return;
 };
 */
@@ -29,13 +29,13 @@ function setDevServer() {
 
 export function setProductionServer() {
     URL = productionURL;
-    S3URL = productionS3URL;
+    DataURL = productionDataURL;
 //    setDevServer();
 };
 
 export function setStagingServer() {
     URL = stagingURL;
-    S3URL = stagingS3URL;
+    DataURL = stagingDataURL;
 //    setDevServer();
 };
 
@@ -229,7 +229,7 @@ export function getRaceP(raceId, prevetag) {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function getTerrainP(terrainId) {
-    return getS3JSONP('/terrain-' + terrainId + '.json.gz');
+    return getDataJSONP('/terrain-' + terrainId + '.json.gz');
 };
 
 /**
@@ -238,7 +238,7 @@ export function getTerrainP(terrainId) {
  * @reject :: { errorCode :: integer(), errorStr :: string() }
  */
 export function getTSSP() {
-    return getS3JSONP('/tss.json.gz');
+    return getDataJSONP('/tss.json.gz');
 };
 
 /**
@@ -445,8 +445,8 @@ function getAJAX(urlpath, etag, opaque) {
     });
 };
 
-function getS3JSONP(urlpath) {
-    var url = S3URL + urlpath;
+function getDataJSONP(urlpath) {
+    var url = DataURL + urlpath;
     return new Promise(function(resolve, reject) {
         $.ajax({
             url: url,
@@ -458,7 +458,7 @@ function getS3JSONP(urlpath) {
             error: function(jqXHR, textStatus, errorThrown) {
                 var errorstr = 'req error for ' + urlpath + ': ' +jqXHR.status;
                 dbg(errorstr);
-                debugInfo['gets3error'] = errorstr + ' ' +
+                debugInfo['getdataerror'] = errorstr + ' ' +
                     moment().format();
                 reject(mkError(jqXHR, url, textStatus, errorThrown));
             }
