@@ -360,7 +360,7 @@ export function checkServerCompatibleP() {
                             var re = new RegExp(r[i].app_version);
                             if (re.test(tfAppVsn)) {
                                 curState.isServerCompatible = false;
-                                throw r[i].upgrade_text;
+                                throw {errorStr: r[i].upgrade_text};
                             }
                         }
                     }
@@ -368,7 +368,8 @@ export function checkServerCompatibleP() {
                 if (data.api_version) {
                     var x = data.api_version.split('.');
                     var major = parseInt(x[0]) || 0;
-                    if (major == 1) {
+                    if (major == 1 || major == 2) {
+                        //  handle 1 until we have updated the server
                         curState.isServerCompatible = true;
                         return true;
                     } else {
