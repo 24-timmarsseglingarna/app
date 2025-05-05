@@ -143,6 +143,7 @@ build-app: 24h-app
 	    -e 's/org.homenet.mbj.tjugofyratimmars/$(APPID)/' \
 	    config.xml > c.xml; mv c.xml config.xml; \
 	cordova platform add $(PLATFORM)$(PLATFORM_VSN); \
+	rm -f www/tiles; \
 	cp -r ../tiles www
 
 cordova-template/template_src/res: \
