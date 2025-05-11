@@ -141,7 +141,7 @@ function mkError(jqXHR, url, textStatus, errorThrown) {
     var errorStr = undefined;
     if (jqXHR.status == 0) {
         // unknown connection error
-        errorStr = 'Kan inte kontakta servern';
+        errorStr = 'Kan inte kontakta servern ' + url;
     } else if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
         // error string sent from server
         errorStr = jqXHR.responseJSON.error;
