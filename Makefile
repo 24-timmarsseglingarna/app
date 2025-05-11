@@ -242,4 +242,4 @@ node_modules/rollup-plugin-jscc:
 	npm install --save-dev rollup-plugin-jscc --no-audit
 
 tiles:
-	wget https://4668.se/24h/map.tgz -O - | tar zx
+	wget --no-check-certificate https://4668.se/24h/map.tgz -O - | tar zx
