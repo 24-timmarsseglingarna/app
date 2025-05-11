@@ -2,7 +2,7 @@ workflows:
   ios-workflow:
     name: iOS workflow
     integrations:
-      app_store_connect: MM9QRJ266K
+      app_store_connect: build
     environment:
       ios_signing:
         distribution_type: app_store # or: ad_hoc | development | enterprise
