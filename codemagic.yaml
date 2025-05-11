@@ -73,7 +73,7 @@ workflows:
           EOF
           cordova build ios --release --device --buildConfig='build.json'
     artifacts:
-      - /Users/builder/clone/platforms/ios/build/device/*.ipa
+      - /Users/builder/clone/24h-app/platforms/ios/build/*/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       # See the following link for details about email publishing - https://docs.codemagic.io/publishing-yaml/distribution/#email
