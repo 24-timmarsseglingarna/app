@@ -41,6 +41,11 @@
           <string>Din position används för att automatiskt fylla i
           loggboken i de fall en positionsangivelse krävs.</string>
         </edit-config>
+        <edit-config target="NSLocationAlwaysAndWhenInUseUsageDescription"
+                     file="*-Info.plist" mode="merge">
+          <string>Din position används för att automatiskt fylla i
+          loggboken i de fall en positionsangivelse krävs.</string>
+        </edit-config>
     </platform>
 
     <!-- make sure we don't overwrite the iOS statusbar -->
