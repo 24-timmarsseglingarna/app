@@ -26,7 +26,7 @@ var params = {};
 
 function onDeviceReady() {
     if (!isCordova) {
-        var query = window.location.search.slice(1);
+        var query = decodeURIComponent(window.location.search.slice(1));
         if (query) {
             var arr = query.split('&');
             for (var i = 0; i < arr.length; i++) {
