@@ -46,6 +46,10 @@
           <string>Din position används för att automatiskt fylla i
           loggboken i de fall en positionsangivelse krävs.</string>
         </edit-config>
+        <edit-config target="ITSAppUsesNonExemptEncryption"
+                     file="*-Info.plist" mode="add" >
+          <false/>
+        </edit-config>
         <preference name="scheme" value="app" />
         <preference name="hostname" value="localhost" />
     </platform>
