@@ -26,6 +26,7 @@ export function openPage() {
     $('#settings-poll-interval').removeClass('is-invalid');
     $('#settings-poll-interval').val(curState.pollInterval.get());
     $('#settings-font-size').val(curState.fontSize.get());
+    $('#settings-font-label-size').val(curState.fontLabelSize.get());
     $('#settings-immediate-log-send').prop(
         'checked', curState.immediateSendToServer.get());
     switch (curState.serverId.get()) {
@@ -116,6 +117,7 @@ $(document).ready(function() {
         curState.pollInterval.set(pollInterval);
         curState.clientId.set($('#settings-client-id').val().trim());
         curState.fontSize.set($('#settings-font-size').val());
+        curState.fontLabelSize.set($('#settings-font-label-size').val());
         curState.immediateSendToServer.set(
             $('#settings-immediate-log-send').prop('checked'));
         var serverId = 1;

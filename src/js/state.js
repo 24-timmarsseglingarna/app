@@ -51,6 +51,7 @@ defineVariable(curState, 'curPlan', null);
 defineVariable(curState, 'numberOfPlans', null);
 defineVariable(curState, 'clientId', null);
 defineVariable(curState, 'fontSize', null);
+defineVariable(curState, 'fontLabelSize', null);
 defineVariable(curState, 'pollInterval', null);
 defineVariable(curState, 'sendLogToServer', null);
 defineVariable(curState, 'immediateSendToServer', null);
@@ -185,6 +186,11 @@ function init() {
     curState.fontSize.set(getSetting('fontSize'));
     curState.fontSize.onChange(function(val) {
         setSettings({fontSize: val});
+    });
+
+    curState.fontLabelSize.set(getSetting('fontLabelSize'));
+    curState.fontLabelSize.onChange(function(val) {
+        setSettings({fontLabelSize: val});
     });
 
     curState.pollInterval.set(getSetting('pollInterval'));
@@ -702,6 +708,7 @@ export function reset(keepauth, doLoginFn) {
                 getSetting('numberOfDebugLogEntries'));
             curState.clientId.set(getSetting('clientId'));
             curState.fontSize.set(getSetting('fontSize'));
+            curState.fontLabelSize.set(getSetting('fontLabelSize'));
             curState.pollInterval.set(getSetting('pollInterval'));
             curState.sendLogToServer.set(getSetting('sendLogToServer'));
             curState.immediateSendToServer.set(

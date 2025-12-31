@@ -39,27 +39,36 @@ import {dbg} from './debug.js';
  * Font for point labels on zoom levels 1-3
  * @const {string}
  */
-var POINT_LABEL_FONT_ZOOM_MIN = 'bold 13px sans-serif';
+function POINT_LABEL_FONT(sz) {
+    return 'bold ' + sz + 'px sans-serif';
+}
 
-var POINT_LABEL_FONT_SHOW_CHART = 'bold 14px sans-serif';
+const POINT_LABEL_FONT_SIZE_ZOOM_MIN = 13;
+
+const POINT_LABEL_FONT_SIZE_SHOW_CHART = 14;
 
 /**
  * Font for point labels on zoom levels 4-5.
  * @const {string}
  */
-var POINT_LABEL_FONT_ZOOM_MED = 'bold 15px sans-serif';
+const POINT_LABEL_FONT_SIZE_ZOOM_MED = 15;
 
 /**
  * Font for leg labels on zoom levels 1-4.
  * @const {string}
  */
-var LEG_LABEL_FONT_ZOOM_MED = 'bold 13px sans-serif';
+function LEG_LABEL_FONT(sz) {
+    return 'bold ' + sz + 'px sans-serif';
+}
+
+const LEG_LABEL_FONT_SIZE_ZOOM_MED = 13;
 
 /**
  * Font for leg labels on zoom level 5.
  * @const {string}
  */
-var LEG_LABEL_FONT_ZOOM_MAX = 'bold 15px sans-serif';
+const LEG_LABEL_FONT_SIZE_ZOOM_MAX = 15;
+
 
 /**
  * Radius of visible circle around point
@@ -526,6 +535,19 @@ function initPopup() {
 */
 };
 
+function fontSizeOffset(sz) {
+    switch (sz) {
+    case 'small':
+        return -1;
+    case 'normal':
+        return 0;
+    case 'large':
+        return 1;
+    case 'x-large':
+        return 2;
+    }
+};
+
 /**
  * Points handling
  */
@@ -582,22 +604,27 @@ function mkPointStyleFunc(isStartPoint, color) {
 
     var pointStyleFunction =
         function(feature, resolution) {
+            var lfs = curState.fontLabelSize.get();
+            var szOffset = fontSizeOffset(lfs);
             var number = feature.get('number');
             var label = number + ' ' + feature.get('name');
-            var styleName = number + '.1';
-            var font = POINT_LABEL_FONT_ZOOM_MIN;
+            var styleNamePrefix = number + '.' + lfs;
+            var styleName = styleNamePrefix + '.1';
+            var sz = POINT_LABEL_FONT_SIZE_ZOOM_MIN + szOffset;
+            var font = POINT_LABEL_FONT(sz);
             var pointStyle = zoomMinPointStyle;
             if (getZoomLevel(resolution) > 3) {
-                font = POINT_LABEL_FONT_ZOOM_MED;
-                styleName = number + '.2';
+                sz = POINT_LABEL_FONT_SIZE_ZOOM_MED + szOffset;
+                font = POINT_LABEL_FONT(sz);
+                styleName = styleNamePrefix + '.2';
                 pointStyle = basicPointStyle;
             }
             if (getZoomLevel(resolution) < 3 || noPointLabels) {
-                styleName = number + '.3';
+                styleName = styleNamePrefix + '.3';
                 label = number;
             }
             if (curState.mode.get() == 'showChart') {
-                font = POINT_LABEL_FONT_SHOW_CHART;
+                font = POINT_LABEL_FONT(POINT_LABEL_FONT_SIZE_SHOW_CHART);
             }
             var labelStyle = styleCache[styleName];
             if (!labelStyle) {
@@ -791,18 +818,21 @@ function mkLegStyleFunc(color) {
                  (forceLegDistances == 0 &&
                   getZoomLevel(resolution) > 3))) {
                 // If zoomed in - show the distance as a text string
-                var label = src + '-' + dst + labelNo;
+                var lfs = curState.fontLabelSize.get();
+                var label = src + '-' + dst + labelNo + lfs;
                 var labelStyle = styleCache[label];
                 if (!labelStyle) {
-                    var descr = feature.get('dist') + ' M';
+                    var descr = feature.get('dist').toString();
                     var geometry = feature.getGeometry();
                     var rotation;
                     var offsetX;
                     var offsetY;
-                    var font = LEG_LABEL_FONT_ZOOM_MED;
+                    var szOffset = fontSizeOffset(lfs);
+                    var sz = LEG_LABEL_FONT_SIZE_ZOOM_MED + szOffset;
                     if (getZoomLevel(resolution) > 4) {
-                        font = LEG_LABEL_FONT_ZOOM_MAX;
+                        sz = LEG_LABEL_FONT_SIZE_ZOOM_MAX + szOffset;
                     }
+                    var font = LEG_LABEL_FONT(sz);
                     geometry.forEachSegment(function(start, end) {
                         var dx;
                         var dy;
@@ -1881,6 +1911,26 @@ export function initMapUI() {
             curState.fontSize.set('large');
         } else {
             curState.fontSize.set('normal');
+        }
+    }
+
+    curState.fontLabelSize.onChange(function() {
+        if (turningPointsLayer) {
+            turningPointsLayer.changed();
+            startPointsLayer.changed();
+        }
+        if (inshoreLegsLayer) {
+            inshoreLegsLayer.changed();
+            offshoreLegsLayer.changed();
+        }
+    });        
+    var lfs = curState.fontLabelSize.get();
+    if (lfs == null) {
+        if (window.devicePixelRatio > 1.5 &&
+            $('#tf-media').css('content') == '"md+"') {
+            curState.fontLabelSize.set('large');
+        } else {
+            curState.fontLabelSize.set('normal');
         }
     }
 

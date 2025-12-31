@@ -90,6 +90,7 @@ export function initP(doClear) {
         'numberOfPlans': 3, // int() 1-9
         'numberOfDebugLogEntries': 50, // int() 0-1000
         'fontSize': null, // null | 'small' | 'normal' | 'large' | 'x-large'
+        'fontLabelSize': null, // null | 'small' | 'normal' | 'large' | 'x-large'
         'pollInterval': 600, // seconds; int() 0-3600
         'immediateSendToServer': true, // boolean()
         'sendLogToServer': true, // boolean()
