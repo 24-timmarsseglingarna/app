@@ -28,9 +28,7 @@ import {openPage as openPlanMenuPage} from './planmenuui.js';
 import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
-/*#if _WEBAPP
 import {openPage as openChartPage} from './chartui.js';
-//#endif */
 import {isTouch, isCordova} from './util.js';
 import {URL} from './serverapi.js';
 import {dbg} from './debug.js';
@@ -468,13 +466,13 @@ function handleMapClick(event) {
 };
 
 function maybeOpenChartPage() {
-/*#if _WEBAPP
-    if (curState.mode.get() == 'showChart') {
-        var coords = transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
-        curState.view = view;
-        openChartPage(coords, view.getZoom());
+    if (__WEBAPP__) {
+        if (curState.mode.get() == 'showChart') {
+            var coords = transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
+            curState.view = view;
+            openChartPage(coords, view.getZoom());
+        }
     }
-//#endif */
 };
 
 function handleMapPointerDown(event) {

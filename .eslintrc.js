@@ -16,7 +16,9 @@ module.exports = {
         "SafariViewController": true,
         "device": true,
         // from pod.js
-        "basePodSpec": true
+        "basePodSpec": true,
+        // frm rollup.config.js
+        __WEBAPP__: 'readonly'
     },
     "rules": {
         // don't warn about console.log

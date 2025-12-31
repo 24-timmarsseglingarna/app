@@ -1,6 +1,6 @@
 {
   "name": "24h",
-  "version": "2.0.2",
+  "version": "3.1.0",
   "description": "App för SXK 24-timmarsseglingar",
   "main": "main.js",
   "directories": {
@@ -29,6 +29,8 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@rollup/plugin-terser": "^0.4.4",
     "bootstrap": "^4.5.3",
     "bootstrap-select": "^1.13.18",
     "eslint-config-mourner": "^3.0.0",
@@ -39,8 +41,6 @@
     "tempusdominus-core": "^5.19.0"
   },
   "devDependencies": {
-    "rollup": "^4.12.0",
-    "rollup-plugin-jscc": "^2.0.0",
-    "rollup-plugin-uglify": "^6.0.4"
+    "rollup": "^4.54.0"
   }
 }

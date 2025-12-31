@@ -164,8 +164,8 @@ depsjs: node_modules/ol \
 	node_modules/rollup \
 	node_modules/@rollup/plugin-node-resolve \
 	node_modules/@rollup/plugin-commonjs \
-	node_modules/rollup-plugin-uglify \
-	node_modules/rollup-plugin-jscc \
+	node_modules/@rollup/plugin-terser \
+	node_modules/@rollup/plugin-replace \
 	node_modules/@rollup/plugin-eslint \
 	node_modules/eslint-config-mourner
 
@@ -235,11 +235,12 @@ node_modules/@rollup/plugin-eslint:
 node_modules/eslint-config-mourner:
 	npm install --save eslint-config-mourner
 
-node_modules/rollup-plugin-uglify:
-	npm install --save-dev rollup-plugin-uglify --no-audit
+node_modules/@rollup/plugin-terser:
+	npm install --save @rollup/plugin-terser
 
-node_modules/rollup-plugin-jscc:
-	npm install --save-dev rollup-plugin-jscc --no-audit
+node_modules/@rollup/plugin-replace:
+	npm install --save @rollup/plugin-replace
+
 
 tiles:
 	wget --no-check-certificate https://4668.se/24h/map.tgz -O - | tar zx
