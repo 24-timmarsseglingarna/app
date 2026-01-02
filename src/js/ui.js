@@ -2023,13 +2023,10 @@ function showRegatta(regattaId) {
             if (teams.length > 0 && !initialCenterChanged) {
                 var point = showPod.getPoint(teams[0].start_point);
                 if (point) {
-                    var center = transform(point.coords,
-                                           'EPSG:4326', 'EPSG:3857');
-
+                    var center = transform(point.coords, 'EPSG:4326', 'EPSG:3857');
                     view.setCenter(center);
                 }
             }
-
             return getRegattaLogsP(regattaId);
         })
         .then(function(logs) {

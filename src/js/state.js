@@ -36,30 +36,61 @@ export var curState = {};
  */
 
 
-// mode :: 'race'
-//       | 'logbook'
-//       | 'showRegatta'
-//       | 'showChart'  // experimental
+// mode :: 'race'        // "normal" - log my race
+//       | 'logbook'     // used by admin to fill in logbooks
+//       | 'showRegatta' // view all boats in a regatta
+//       | 'showChart'   // used by admin to create PoD charts ("punktkort")
 defineVariable(curState, 'mode', null);
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
 defineVariable(curState, 'planMode', false); // if mode == 'race'
 
+// curRegatta :: Regatta - if mode == 'race': the regatta object associated with curRace
+//                         if mode == 'showRegatta': the regatta object to show
 defineVariable(curState, 'curRegatta', null);
+// curRace :: Race - the race object of the activated race
 defineVariable(curState, 'curRace', null);
+// curLogBook :: LogBook - the logbook that is currently displayed
 defineVariable(curState, 'curLogBook', null);
+// myLogBook :: LogBook - the logbook of the user's team in the activated race
+defineVariable(curState, 'myLogBook', null);
+// curPlan :: Plan - the currently selected plan, i
 defineVariable(curState, 'curPlan', null);
-defineVariable(curState, 'numberOfPlans', null);
-defineVariable(curState, 'clientId', null);
-defineVariable(curState, 'fontSize', null);
-defineVariable(curState, 'fontLabelSize', null);
-defineVariable(curState, 'pollInterval', null);
-defineVariable(curState, 'sendLogToServer', null);
-defineVariable(curState, 'immediateSendToServer', null);
-defineVariable(curState, 'serverId', null);
-defineVariable(curState, 'loggedInPersonId', null);
-defineVariable(curState, 'numberOfDebugLogEntries', null);
+// tss :: GeoJson()
 defineVariable(curState, 'tss', baseTssSpec);
+// curChart :: object() - see chartui.js
 defineVariable(curState, 'curChart', null);
+
+/*
+ * Configuration parameters - mapped to settings in storage.js
+ */
+
+// numberOfPlans :: integer()
+defineVariable(curState, 'numberOfPlans', null);
+// clientId :: string()
+defineVariable(curState, 'clientId', null);
+// fontSize :: 'small' | 'normal' | 'large' | 'x-large'
+defineVariable(curState, 'fontSize', null);
+// fontLabelSize :: 'small' | 'normal' | 'large' | 'x-large'
+defineVariable(curState, 'fontLabelSize', null);
+// pollInterval :: integer [seconds]
+defineVariable(curState, 'pollInterval', null);
+// serverId :: 1 // production
+//           | 2 // staging
+defineVariable(curState, 'serverId', null);
+// numberOfDebugLogEntries :: integer()
+defineVariable(curState, 'numberOfDebugLogEntries', null);
+
+// loggedInPersonId :: integer()
+defineVariable(curState, 'loggedInPersonId', null);
+
+/*
+ * Not used anymore
+ */
+// sendLogToServer :: boolean()
+defineVariable(curState, 'sendLogToServer', null);
+// immediateSendToServer :: boolean()
+defineVariable(curState, 'immediateSendToServer', null);
+
 
 /**
  * Initialize ephemeral state variables.
