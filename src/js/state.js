@@ -49,16 +49,22 @@ defineVariable(curState, 'planMode', false); // if mode == 'race'
 defineVariable(curState, 'curRegatta', null);
 // curRace :: Race - the race object of the activated race
 defineVariable(curState, 'curRace', null);
-// curLogBook :: LogBook - the logbook that is currently displayed
+// curLogBook :: LogBook - the logbook of the user's team in the activated race
 defineVariable(curState, 'curLogBook', null);
-// myLogBook :: LogBook - the logbook of the user's team in the activated race
-defineVariable(curState, 'myLogBook', null);
-// curPlan :: Plan - the currently selected plan, i
+// displayLogBook :: LogBook - the logbook that is currently displayed
+defineVariable(curState, 'displayLogBook', null);
+// curPlan :: Plan - the currently selected plan
 defineVariable(curState, 'curPlan', null);
+
 // tss :: GeoJson()
 defineVariable(curState, 'tss', baseTssSpec);
-// curChart :: object() - see chartui.js
+
+// curChart :: object() - see chartui.js // if mode == 'showChart'
 defineVariable(curState, 'curChart', null);
+
+// loggedInPersonId :: integer()
+defineVariable(curState, 'loggedInPersonId', null);
+
 
 /*
  * Configuration parameters - mapped to settings in storage.js
@@ -79,9 +85,6 @@ defineVariable(curState, 'pollInterval', null);
 defineVariable(curState, 'serverId', null);
 // numberOfDebugLogEntries :: integer()
 defineVariable(curState, 'numberOfDebugLogEntries', null);
-
-// loggedInPersonId :: integer()
-defineVariable(curState, 'loggedInPersonId', null);
 
 /*
  * Not used anymore
@@ -520,7 +523,7 @@ function onAuthenticatedOnline(personId) {
 export function setupContinue() {
     var activeRaceId = getSetting('activeRaceId');
     forceTimeout();
-    setActiveRace2(activeRaceId);
+    setActiveRace(activeRaceId);
 };
 
 function serverDataUpdateDone() {
@@ -536,7 +539,7 @@ function serverDataUpdateDone() {
         var newRaceData = getRaceData(curActiveRaceId);
         if (newRaceData == null) {
             // current activeRaceId is not valid
-            setActiveRace2(null);
+            setActiveRace(null);
         } else {
             var curRace = curState.curRace.get();
             if (curRace != null &&
@@ -559,13 +562,13 @@ export function activateRace(raceId) {
     if (raceId == getSetting('activeRaceId')) {
         return true;
     }
-    var r = setActiveRace2(raceId);
+    var r = setActiveRace(raceId);
     // force an update of serverdata when a new race is activated
     forceTimeout();
     return r;
 };
 
-function setActiveRace2(raceId) {
+function setActiveRace(raceId) {
 
     setSettings({activeRaceId: raceId});
 
@@ -622,7 +625,6 @@ function setActiveRace2(raceId) {
         return true;
     } else {
         if (curState.mode.get() != 'showRegatta') {
-            // FIXME: tmp code
             curState.curRegatta.set(null);
         }
         curState.curRace.set(null);
