@@ -477,7 +477,7 @@ export function gcTerrainsP(keepTerrainIds, retval) {
 };
 
 function removeTerrainIdsP(removeTerrainIds, retval) {
-    if (removeTerrainIds.length > 0) {
+    if (fs && removeTerrainIds.length > 0) {
         var id = removeTerrainIds.pop();
         return fs.remove('terrains/' + id)
             .then(function() {

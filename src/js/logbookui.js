@@ -98,6 +98,7 @@ function refreshLogBook(options) {
     var pod = logBook.race.getPod();
     var prev;
     var rows = '';
+    var hasWind = false;
 
     $('#log-book-help').hide();
     if (logBook.standaloneUI && !isTouch) {
@@ -130,8 +131,13 @@ function refreshLogBook(options) {
     $('#log-book-comp-elem').hide();
     $('#log-book-approved-elem').hide();
     $('#log-book-admin-dist-elem').hide();
-    $('#log-book-plaque-elem').hide();
-    $('#log-book-net-elem2').hide();
+    // re-add this class if we have removed it
+    $('.log-book-wind').addClass('d-sm-table-cell');
+
+    var allowAdminChanges = false;
+    if (curState.mode.get() == 'logbook') {
+        allowAdminChanges = true;
+    }
 
     // no header and no arrow in the popup
     var popover_template = '<div class=\'popover log-book-edit-popover\'' +
@@ -189,6 +195,7 @@ function refreshLogBook(options) {
 
         var wind = '';
         if (e.wind) {
+            hasWind = true;
             if (e.wind.dir == '-' && e.wind.speed == '-') {
                 wind = '-';
             } else {
@@ -274,8 +281,8 @@ function refreshLogBook(options) {
 
         rows += '<tr data-logid="' + e.id + '">';
         if (isReadOnly &&
-            !(e.class == 'AdminLog' && hasOfficerRights()) &&
-            !hasAdminRights()) {
+            !(e.class == 'AdminLog' && allowAdminChanges && hasOfficerRights()) &&
+            !(allowAdminChanges && hasAdminRights())) {
             // An officer can edit Admin entries, and an admin can edit
             // everything
             rows += '<td></td>';
@@ -307,11 +314,11 @@ function refreshLogBook(options) {
             ' mr-2 align-middle">' +
             point + '</span>' + pointName + '</td>' +
             distTD + distance + distPost + '</td>' +
-            '<td class="d-none d-sm-table-cell">' + wind + '</td>' +
+            '<td class="d-none d-sm-table-cell log-book-wind">' + wind + '</td>' +
             '<td>' + note + '</td>' +
             '</tr>';
     }
-    if (!isReadOnly || hasOfficerRights()) {
+    if (!isReadOnly || (allowAdminChanges && hasOfficerRights())) {
         // An officer can modify a signed loggbook by adding
         // entries of type 'admin'
         var args = '';
@@ -326,7 +333,6 @@ function refreshLogBook(options) {
             '</tr>';
     }
     var dist = logBook.getSailedDistance();
-    var netdist = logBook.getNetDistance();
     var earlydist = logBook.getEarlyStartDistance();
     var earlytime = logBook.getEarlyStartTime();
     var latedist = logBook.getLateFinishDistance();
@@ -352,16 +358,7 @@ function refreshLogBook(options) {
     if (admindist != 0) {
         $('#log-book-admin-dist-elem').show();
     }
-    if (logBook.state == 'finished' ||
-        logBook.state == 'finished-early' ||
-        logBook.state == 'dns' ||
-        logBook.state == 'dnf') {
-        $('#log-book-plaque-elem').show();
-    } else {
-        $('#log-book-net-elem2').show();
-    }
-
-    if (isSkipper(logBook) || hasOfficerRights()) {
+    if (isSkipper(logBook) || (allowAdminChanges && hasOfficerRights())) {
         $('#log-book-sign').show();
     } else {
         $('#log-book-sign').hide();
@@ -421,18 +418,15 @@ function refreshLogBook(options) {
     $('#log-book-sxk').text(sxk);
     // header
     $('#log-book-sailed-dist').text(dist.toFixed(1) + ' M');
-    $('#log-book-net-dist').text(netdist.toFixed(1) + ' M');
+    $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
     // footer
     $('#log-book-sailed-dist2').text(dist.toFixed(1) + ' M');
-    $('#log-book-net-dist2').text(netdist.toFixed(1) + ' M');
-    $('#log-book-early-dist').text(earlydist.toFixed(1) + ' M' +
-                                  ' (' + earlytime + ' min)');
-    $('#log-book-late-dist').text(latedist.toFixed(1) + ' M' +
-                                  ' (' + latetime + ' min)');
+    $('#log-book-early-dist').text(earlydist.toFixed(1) + ' M' + ' (' + earlytime + ' min)');
+    $('#log-book-late-dist').text(latedist.toFixed(1) + ' M' + ' (' + latetime + ' min)');
     $('#log-book-comp-dist').text(compdist.toFixed(1) + ' M');
     $('#log-book-approved-dist').text(approveddist.toFixed(1) + ' M');
     $('#log-book-admin-dist').text(admindist.toFixed(1) + ' M');
-    $('#log-book-plaque-dist').text(plaquedist.toFixed(1) + ' M');
+    $('#log-book-plaque-dist2').text(plaquedist.toFixed(1) + ' M');
     $('#log-book-speed').text(speed.toFixed(1) + ' kn');
     $('#log-book-entries').html(rows);
     $('.log-book-edit').popover();
@@ -449,6 +443,12 @@ function refreshLogBook(options) {
             $('#log-book-footer')[0].scrollIntoView();
         }, 1);
     }
+
+    // don't show wind on pure read-only logbooks - we don't get the wind from the server anyway
+    if (logBook.readOnly && !hasWind) {
+        $('.log-book-wind').removeClass('d-sm-table-cell');
+    }
+
     var logBookPage = $('#log-book-page')[0];
     // save the current logBook in the page
     logBookPage.logBook = logBook;

@@ -29,7 +29,7 @@ import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
 import {openPage as openLoginPage} from './loginui.js';
 import {openPage as openChartPage} from './chartui.js';
-import {isTouch, isCordova} from './util.js';
+import {isTouch, isCordova, isAdminRights} from './util.js';
 import {URL} from './serverapi.js';
 import {dbg} from './debug.js';
 
@@ -303,7 +303,7 @@ var pointPopup;
 var plannedPointPopup;
 var chartPopup;
 
-function mkPointPopupHTML(number, name, descr, footnote, plan, logbook) {
+function mkPointPopupHTML(number, name, descr, footnote, plan, curLogbook) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>' +
         '<p>' + descr + '</p>';
     if (footnote) {
@@ -329,7 +329,7 @@ function mkPointPopupHTML(number, name, descr, footnote, plan, logbook) {
         s += '<p>Distans kvar av planen: ' +
             times[i].distToEnd.toFixed(1) + ' M</p>';
     }
-    if (logbook && !logbook.isReadOnly()) {
+    if (curLogbook && !curLogbook.isReadOnly()) {
         // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
         // and w/o href in a bad way
         s += '<p><a class="log-point-button" tabindex="0"' +
@@ -763,9 +763,9 @@ function mkLegStyleFunc(color) {
             var src = feature.get('src');
             var dst = feature.get('dst');
             var logged = 0;
-            var curLogBook = curState.curLogBook.get();
-            if (curLogBook) {
-                logged = curLogBook.getLegSailed(src, dst);
+            var logBook = getLogBook();
+            if (logBook) {
+                logged = logBook.getLegSailed(src, dst);
             }
             var planned = 0;
             var curPlan = curState.curPlan.get();
@@ -799,10 +799,10 @@ function mkLegStyleFunc(color) {
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
-                } else if (curLogBook &&
-                           !(curLogBook.hasFinished() ||
-                             curLogBook.isReadOnly())) {
-                    p = curLogBook.getLastPoint();
+                } else if (logBook &&
+                           !(logBook.hasFinished() ||
+                             logBook.isReadOnly())) {
+                    p = logBook.getLastPoint();
                     if (p == src || p == dst) {
                         legStyle = nextLegStyle;
                     }
@@ -1172,9 +1172,8 @@ function initNavbar() {
             return false;
         }
         var opts = {regatta: curRegatta};
-        if (curState.mode.get() == 'showRegatta') {
-            opts['displayView'] = true;
-            // opts['adminView'] = true;
+        if (curState.mode.get() == 'showRegatta' && isAdminRights(getSetting('role'))) {
+            opts['adminView'] = true;
         }
         openBoatsPage(opts);
         return false;
@@ -1209,12 +1208,12 @@ function initNavbar() {
         });
 
         $('#tf-nav-logbook').on('click', function() {
-            var curLogBook = curState.curLogBook.get();
-            if (!curLogBook) {
+            var logBook = getLogBook();
+            if (!logBook) {
                 alertNoRace('öppna loggboken');
             } else {
                 openLogBook({
-                    logBook: curLogBook
+                    logBook: logBook
                 });
             }
             return false;
@@ -1313,6 +1312,15 @@ function alertNoRace(w) {
  * Status bar handling
  */
 
+function initStatusBar() {
+    $('#tf-status-boat-reset').hide();
+    $('#tf-status-boat-reset').on('click', function() {
+        curState.displayLogBook.set(null);
+        return false;
+    });
+
+};
+
 function updateStatusBar() {
     if (!curState.curRace.get()) {
         $('#tf-status-time').text('--:--');
@@ -1335,15 +1343,15 @@ function updateStatusBar() {
     }
 
     var dist = 0;
-    var curLogBook = curState.curLogBook.get();
-    if (curLogBook) {
-        var start = curLogBook.getStartTime();
-        var speed = curLogBook.getAverageSpeed();
-        var finished = curLogBook.hasFinished();
-        dist = curLogBook.getSailedDistance();
-        var netDist = curLogBook.getNetDistance();
+    var logBook = getLogBook();
+    if (logBook) {
+        var start = logBook.getStartTime();
+        var speed = logBook.getAverageSpeed();
+        var finished = logBook.hasFinished();
+        dist = logBook.getSailedDistance();
+        var plaqueDist = logBook.getPlaqueDistance();
 
-        $('#tf-status-boat').text(curLogBook.teamData.boat_name);
+        $('#tf-status-boat').text(logBook.teamData.boat_name);
 
         if (start) {
             if (!headerTimer && !finished) {
@@ -1366,15 +1374,16 @@ function updateStatusBar() {
         }
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
-        $('#tf-status-net-distance').text(netDist.toFixed(1) + ' M');
-        if (curLogBook.hasConflict()) {
+        $('#tf-status-plaque-distance').text(plaqueDist.toFixed(1) + ' M');
+        var curLogBook = curState.curLogBook.get();
+        if (curLogBook && curLogBook.hasConflict()) {
             $('#tf-nav-logbook-badge').show();
         } else {
             $('#tf-nav-logbook-badge').hide();
         }
     } else {
         $('#tf-status-distance').text('-.- M');
-        $('#tf-status-net-distance').text('-.- M');
+        $('#tf-status-plaque-distance').text('-.- M');
         $('#tf-status-speed').text('-.- kn');
         $('#tf-status-boat').text('');
         $('.tf-status-plan').hide();
@@ -1415,9 +1424,9 @@ function updateStatusBarTime() {
     function p(num) {
         return (num < 10 ? '0' : '') + num;
     }
-    var curLogBook = curState.curLogBook.get();
-    if (curLogBook) {
-        var raceLeft = curLogBook.getRaceLeftMinutes();
+    var logBook = getLogBook();
+    if (logBook) {
+        var raceLeft = logBook.getRaceLeftMinutes();
         if (raceLeft < 0) {
             sign = '-';
             raceLeft = -raceLeft;
@@ -1639,6 +1648,28 @@ function setShipsRouteingLayers() {
     map.addLayer(tssRoutesLayer);
 };
 
+function maybeSetCenter(logBook) {
+    if (logBook) {
+        var p = logBook.getLastPoint();
+        if (!p) {
+            p = logBook.getStartPoint();
+        }
+        if (p) {
+            var pod = logBook.getRace().getPod();
+            if (pod) {
+                var point = pod.getPoint(p);
+                if (point) {
+                    var center = transform(point.coords,
+                                           'EPSG:4326', 'EPSG:3857');
+                    view.setCenter(center);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+};
+
 function stateSetupDone() {
     if (!tssZonesLayer) {
         setShipsRouteingLayers();
@@ -1662,23 +1693,8 @@ function stateSetupDone() {
 
     var centerSet = false;
     var curLogBook = curState.curLogBook.get();
-    if (curLogBook) {
-        var p = curLogBook.getLastPoint();
-        if (!p) {
-            p = curLogBook.getStartPoint();
-        }
-        if (p) {
-            var pod = curState.curRace.get().getPod();
-            if (pod) {
-                var point = pod.getPoint(p);
-                if (point && !initialCenterChanged) {
-                    var center = transform(point.coords,
-                                           'EPSG:4326', 'EPSG:3857');
-                    view.setCenter(center);
-                    centerSet = true;
-                }
-            }
-        }
+    if (!initialCenterChanged) {
+        centerSet = maybeSetCenter(curLogBook);
     }
     if (!centerSet && navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -1776,6 +1792,7 @@ export function initMapUI() {
     initMap();
     initPopup();
     initNavbar();
+    initStatusBar();
 
     var mapLayer = mkMapLayer();
 
@@ -1880,6 +1897,21 @@ export function initMapUI() {
         updateAll();
     });
 
+    curState.displayLogBook.onChange(function(logbook) {
+        if (curState.mode.get() != 'showRegatta') {
+            if (logbook)  {
+                $('#tf-nav-log').hide();
+                $('#tf-status-boat-reset').show();
+            } else {
+                $('#tf-nav-log').show();
+                $('#tf-status-boat-reset').hide();
+            }
+        }
+        // call getLogBook handles the case that displayLogBook is null
+        maybeSetCenter(getLogBook());
+        updateAll();
+    });
+
     curState.curPlan.onChange(function(plan) {
         if (!plan) {
             $('#tf-nav-plan-name').html('');
@@ -1921,7 +1953,7 @@ export function initMapUI() {
             inshoreLegsLayer.changed();
             offshoreLegsLayer.changed();
         }
-    });        
+    });
     var lfs = curState.fontLabelSize.get();
     if (lfs == null) {
         if (window.devicePixelRatio > 1.5 &&
@@ -2035,4 +2067,12 @@ function showRegatta(regattaId) {
             $('#tf-nav-boats-badge').show();
             curState.curRegatta.set(regatta);
         });
+};
+
+function getLogBook() {
+    var logBook = curState.displayLogBook.get();
+    if (logBook) {
+        return logBook;
+    }
+    return curState.curLogBook.get();
 };

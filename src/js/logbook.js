@@ -91,6 +91,10 @@ LogBook.prototype.getRace = function() {
     return this.race;
 };
 
+LogBook.prototype.getTeamId = function() {
+    return this.teamData.id;
+};
+
 LogBook.prototype.hasConflict = function() {
     for (var i = 0; i < this.log.length; i++) {
         if (this.log[i].state == 'conflict') {

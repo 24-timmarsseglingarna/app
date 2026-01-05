@@ -5,8 +5,12 @@
 
 <div id="tf-status-bar" class="tf-default-race-hidden">
   <div class="tf-status-row">
+    <div class="tf-status-cell" id="tf-status-boat-reset">
+      <span class="text-danger icon-close tf-status-large"></span>
+    </div>
     <!-- don't show boatname on phone -->
-    <div class="tf-status-cell d-none d-sm-block" id="tf-status-cell-boat">
+<!--    <div class="tf-status-cell d-none d-sm-block" id="tf-status-cell-boat"> -->
+    <div class="tf-status-cell" id="tf-status-cell-boat">
       <div id="tf-status-boat" class="tf-status-val"></div>
       <div class="tf-status-label">Båt</div>
     </div>
@@ -18,10 +22,10 @@
       <div id="tf-status-distance" class="tf-status-val"></div>
       <div class="tf-status-label">Seglad distans</div>
     </div>
-    <!-- don't show net distance on phone -->
+    <!-- don't show plaque distance on small phone -->
     <div class="tf-status-cell d-none d-sm-block">
-      <div id="tf-status-net-distance" class="tf-status-val"></div>
-      <div class="tf-status-label">Nettodistans</div>
+      <div id="tf-status-plaque-distance" class="tf-status-val"></div>
+      <div class="tf-status-label">Plakettdistans</div>
     </div>
 
     <div class="tf-status-cell">

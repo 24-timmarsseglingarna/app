@@ -29,7 +29,7 @@ export function openPage(options) {
 
     fillStartList(regatta, fontclass);
 
-    var n = fillLeaderBoard(regatta, fontclass, options.displayView);
+    var n = fillLeaderBoard(regatta, fontclass);
     if (options.adminView) {
         fillResult(regatta);
     } else {
@@ -37,7 +37,6 @@ export function openPage(options) {
     }
 
     if (n > 0) {
-        console.log('n=' + n);
         $('#boats-lb-tab').tab('show');
     } else {
         $('#boats-start-tab').tab('show');
@@ -151,11 +150,14 @@ function fillStartList(regatta, fontclass) {
                 'Startpunkt ' + p + name + '</th></tr>';
             for (var k = 0; k < ts.length; k++) {
                 t = ts[k];
-                html += '<tr><td>' + t.start_number + '</td>' +
+                html +=
+                    '<tr onclick="window.tfUiBoatsSelect(' + t.id + ')">' +
+                    '<td>' + t.start_number + '</td>' +
                     '<td>' + t.boat_name + '</td>' +
                     '<td>' + t.boat_type_name + '</td>' +
                     '<td>' + (t.boat_sail_number || '-') + '</td>' +
-                    '<td>' + t.sxk_handicap + '</td></tr>';
+                    '<td>' + t.sxk_handicap + '</td>' +
+                    '</tr>';
             }
         }
         html += '</tbody></table></div>';
@@ -177,7 +179,7 @@ function distx(e) {
     return e.plaquedist;
 };
 
-function fillLeaderBoard(regatta, fontclass, displayView) {
+function fillLeaderBoard(regatta, fontclass) {
     var html = '';
 
     var pod = regatta.getPod();
@@ -285,13 +287,7 @@ function fillLeaderBoard(regatta, fontclass, displayView) {
                 lastTime = last.time.format('HH:mm');
             }
 
-            if (displayView) {
-                html += '<tr onclick="window.tfUiBoatsSelect(' +
-                    logbook.teamData.id +
-                    ')">';
-            } else {
-                html += '<tr>';
-            }
+            html += '<tr onclick="window.tfUiBoatsSelect(' + logbook.teamData.id + ')">';
             var dist = e.plaquedist.toFixed(1);
             switch (logbook.state) {
             case 'finished-early':
@@ -409,7 +405,13 @@ function fillResult(regatta) {
 
 window.tfUiBoatsSelect = function(teamId) {
     var logbook = curRegatta.getTeamLogbook(teamId);
-    curState.curLogBook.set(logbook);
+    var curLogBook = curState.curLogBook.get();
+    if (curLogBook && curLogBook.getTeamId() == teamId) {
+        // reset displayLogBook
+        curState.displayLogBook.set(null);
+    } else {
+        curState.displayLogBook.set(logbook);
+    }
     popPage();
 
 /*

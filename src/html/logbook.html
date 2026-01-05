@@ -59,9 +59,9 @@
             <b>Startnummer:</b> <span id="log-book-startno"></span>
           </div>
           <div class="col-6">
-            <b class="d-inline d-sm-none">Nettodist:</b>
-            <b class="d-none d-sm-inline">Nettodistans:</b>
-            <span id="log-book-net-dist"></span>
+            <b class="d-inline d-sm-none">Plakettdist:</b>
+            <b class="d-none d-sm-inline">Plakettdistans:</b>
+            <span id="log-book-plaque-dist"></span>
           </div>
         </div>
         <div class="row">
@@ -78,10 +78,10 @@
               <tr>
                 <th></th>
                 <th>Tid</th>
-                <th class="tf-col-2">Punkt</th>
+                <th class="col-auto">Punkt</th>
                 <th>Distans</th>
                 <!-- don't show wind on small screens -->
-                <th class="d-none d-sm-table-cell">Vind</th>
+                <th class="d-none d-sm-table-cell log-book-wind">Vind</th>
                 <th class="tf-col-4">Notering</th>
               </tr>
             </thead>
@@ -120,22 +120,16 @@
           </div>
         </div>
         <div class="border-top">
-          <div class="row" id="log-book-net-elem2">
-            <div class="col-12">
-              <b>Nettodistans:</b>
-              <span id="log-book-net-dist2"></span>
-            </div>
-          </div>
           <div class="row" id="log-book-admin-dist-elem">
             <div class="col-6">
               <b>Distansavdrag:</b> <span
               id="log-book-admin-dist"></span>
             </div>
           </div>
-          <div class="row" id="log-book-plaque-elem">
+          <div class="row">
             <div class="col-12">
               <b>Plakettdistans:</b> <span
-              id="log-book-plaque-dist"></span>
+              id="log-book-plaque-dist2"></span>
               <span id="log-book-plaque-reason" class="font-italic"></span>
             </div>
           </div>
