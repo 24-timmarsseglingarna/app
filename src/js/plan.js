@@ -122,7 +122,7 @@ Plan.prototype.delPoint = function(point) {
         this._updateState();
         return true;
     }
-    for (var i = this.entries.length - 2; i > 1; i--) {
+    for (var i = this.entries.length - 2; i > 0; i--) {
         if (this.entries[i].point == point) {
             var prev = this.entries[i - 1].point;
             var next = this.entries[i + 1].point;
@@ -134,9 +134,12 @@ Plan.prototype.delPoint = function(point) {
             var tail = this.entries.splice(i + 1);
             // remove point
             this.entries.pop();
-            // add the new paths
+            // remove next point from tail - it is the first element
+            // it is also present in path so it will be re-added below
+            tail.splice(0, 1);
 
-            // start from 1; the first point is always the starting point
+            // add the new path
+            // start from 1; the first point is same as `prev`
             for (var j = 1; j < path.points.length; j++) {
                 var cur = path.points[j];
                 var entry = {point: cur,
@@ -145,13 +148,14 @@ Plan.prototype.delPoint = function(point) {
                 prev = cur;
             }
             // add the tail
-            Array.prototype.push.apply(this.entries, tail);
+            this.entries = this.entries.concat(tail);
+            // this.entries.push(...tail);
+            // Array.prototype.push.apply(this.entries, tail);
 
             this._updateState();
             return true;
         }
     }
-
 };
 
 Plan.prototype.delTail = function(point) {
@@ -197,8 +201,11 @@ Plan.prototype.rePlan = function(oldPoint, newPoint) {
             var tail = this.entries.splice(i + 1);
             // remove oldPoint
             this.entries.pop();
-            // add the new paths
+            // remove first entry in tail (if there is one)
+            // it is also present in `path2` so it will be re-added below
+            tail.splice(0, 1);
 
+            // add the new paths
             // start from 1; the first point is always the starting point
             var cur, entry;
             for (var j = 1; j < path1.points.length; j++) {
@@ -218,7 +225,9 @@ Plan.prototype.rePlan = function(oldPoint, newPoint) {
                 }
             }
             // add the tail
-            Array.prototype.push.apply(this.entries, tail);
+            this.entries = this.entries.concat(tail);
+            // this.entries.push(...tail);
+            // Array.prototype.push.apply(this.entries, tail);
 
             this._updateState();
             return true;
