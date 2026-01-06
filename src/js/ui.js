@@ -303,16 +303,34 @@ var pointPopup;
 var plannedPointPopup;
 var chartPopup;
 
-function mkPointPopupHTML(number, name, descr, footnote, plan, curLogbook) {
-    var s = '<p><b>' + number + ' ' + name + '</b></p>' +
-        '<p>' + descr + '</p>';
+function mkPointPopupHTML(number, name, descr, footnote, plan, curLogbook, extra) {
+    var s = '<p><b>' + number + ' ' + name + '</b></p>';
+    if (extra) {
+        s += '<p class="font-italic"><span class="icon-exclamation-circle"></span> ' + extra + '</p>';
+    }
+    if (descr) {
+        s += '<p>' + descr + '</p>';
+    }
     if (footnote) {
         s += '<p class="font-italic">' + footnote + '</p>';
     }
-    var times = [];
-    if (plan) {
-        times = plan.getTimes(number);
+    s += mkPlanPointHTML(number, plan);
+    if (curLogbook && !curLogbook.isReadOnly()) {
+        // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
+        // and w/o href in a bad way
+        s += '<p><a class="log-point-button" tabindex="0"' +
+            ' onclick="window.tfUiLogPoint(\'' + number + '\')">' +
+            'Logga denna punkt</a></p>';
     }
+    return s;
+};
+
+function mkPlanPointHTML(number, plan) {
+    if (!plan) {
+        return '';
+    }
+    var s = '';
+    var times = plan.getTimes(number);
     for (var i = 0; i < times.length; i++) {
         if (times[i].eta) {
             s += '<p>Planerad rundningstid (med nuvarande snittfart ' +
@@ -329,13 +347,6 @@ function mkPointPopupHTML(number, name, descr, footnote, plan, curLogbook) {
         s += '<p>Distans kvar av planen: ' +
             times[i].distToEnd.toFixed(1) + ' M</p>';
     }
-    if (curLogbook && !curLogbook.isReadOnly()) {
-        // we use a tabindex b/c bootstrap v4 styles a's w/o tabindex
-        // and w/o href in a bad way
-        s += '<p><a class="log-point-button" tabindex="0"' +
-            ' onclick="window.tfUiLogPoint(\'' + number + '\')">' +
-            'Logga denna punkt</a></p>';
-    }
     return s;
 };
 
@@ -351,8 +362,10 @@ window.tfUiLogPoint = function(number) {
                   logBook: curState.curLogBook.get()});
 };
 
-function mkPlannedPointPopupHTML(number, name) {
-    var s = '<p><b>' + number + ' ' + name + '</b></p>' +
+function mkPlannedPointPopupHTML(number, name, plan) {
+    var s = '<p><b>' + number + ' ' + name + '</b></p>';
+    s += mkPlanPointHTML(number, plan);
+    s +=
         '<p><a class="log-point-button" tabindex="0"' +
         ' onclick="window.tfUiDelPlannedPoint(\'' + number + '\')">' +
         'Tag bort denna punkt</a></p>' +
@@ -393,8 +406,9 @@ function handleMapClick(event) {
                 var number = feature.get('number');
                 var name = feature.get('name');
                 var descr = feature.get('descr');
+                var plan = curState.curPlan.get();
                 handled = true;
-                if (descr) {
+                if (name) {
                     if (curState.planMode.get()) {
                         /*
                          * In plan mode:
@@ -415,7 +429,7 @@ function handleMapClick(event) {
                             } else if (event.type === 'dblclick') {
                                 plannedPointPopup.show(
                                     coord,
-                                    mkPlannedPointPopupHTML(number, name));
+                                    mkPlannedPointPopupHTML(number, name, plan));
                             }
                         } else {
                             if (event.type === 'singleclick') {
@@ -431,7 +445,6 @@ function handleMapClick(event) {
                             // react directly to the click
                             return;
                         }
-                        var plan = curState.curPlan.get();
                         // show the popup from the center of the point
                         var footnote = feature.get('footnote');
                         var logbook = curState.curLogBook.get();
