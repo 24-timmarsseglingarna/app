@@ -41,8 +41,13 @@ export var curState = {};
 //       | 'showRegatta' // view all boats in a regatta
 //       | 'showChart'   // used by admin to create PoD charts ("punktkort")
 defineVariable(curState, 'mode', null);
+// secondaryMode :: null
+//                | 'plan'
+//                | 'displayLogBook'
+defineVariable(curState, 'secondaryMode', null); // if mode == 'race'
+// planMode :: boolean() // if mode == 'race' && secondaryMode == 'plan'
+defineVariable(curState, 'planMode', false);
 defineVariable(curState, 'showRegattaId', null); // if mode == 'showRegatta'
-defineVariable(curState, 'planMode', false); // if mode == 'race'
 
 // curRegatta :: Regatta - if mode == 'race': the regatta object associated with curRace
 //                         if mode == 'showRegatta': the regatta object to show

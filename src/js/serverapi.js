@@ -3,27 +3,27 @@
 import {dbg, debugInfo} from './debug.js';
 
 /**
- * Base URL for server requests.
+ * Base URLs for server requests.
  * @const {string}
  */
 var stagingURL = 'https://segla-stage.24-timmars.nu';
 var productionURL = 'https://segla.24-timmars.nu';
-//var devURL = 'http://192.168.0.6:3000';
+var devURL = 'http://192.168.0.6:3000';
 
 var stagingDataURL = 'https://app.24-timmars.nu/data';
 var productionDataURL = 'https://app.24-timmars.nu/data';
-//var devDataURL = 'http://gionadev.s3.amazonaws.com';
+var devDataURL = 'https://4668.se/24h';
 
 export var URL = productionURL;
 export var DataURL = productionDataURL;
 
-/*
+
 function setDevServer() {
     URL = devURL;
     DataURL = devDataURL;
     return;
 };
-*/
+
 
 //setDevServer();
 

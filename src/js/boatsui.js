@@ -2,7 +2,8 @@
 
 import {curState} from './state.js';
 import {pushPage, popPage} from './pageui.js';
-import {getTeamsData, getRacesData} from './serverdata.js';
+import {getTeamsData, getTeamData, getRacesData} from './serverdata.js';
+import {LogBook} from './logbook.js';
 
 var curRegatta;
 
@@ -409,7 +410,11 @@ window.tfUiBoatsSelect = function(teamId) {
     if (curLogBook && curLogBook.getTeamId() == teamId) {
         // reset displayLogBook
         curState.displayLogBook.set(null);
+    } else if (logbook) {
+        curState.displayLogBook.set(logbook);
     } else {
+        var teamData = getTeamData(curRegatta.getId(), teamId);
+        logbook = new LogBook(teamData, curLogBook.getRace(), [], true);
         curState.displayLogBook.set(logbook);
     }
     popPage();

@@ -423,6 +423,23 @@ function handleMapClick(event) {
                             // for the other event (single/dbl).
                             return;
                         }
+                        if (event.type === 'singleclick') {
+                            if (curState.curPlan.get().isPointPlanned(number)) {
+                                plannedPointPopup.show(
+                                    coord,
+                                    mkPlannedPointPopupHTML(number, name, plan));
+                            } else {
+                                var extra =
+                                    'Dubbelklicka på punkten för att lägga till den till planen';
+                                pointPopup.show(
+                                    coord,
+                                    mkPointPopupHTML(number, name, descr,
+                                                     footnote, plan, logbook, extra));
+                            }
+                        } else if (event.type === 'dblclick') {
+                            curState.curPlan.get().addPoint(number);
+                        }
+/*
                         if (curState.curPlan.get().isPointPlanned(number)) {
                             if (event.type === 'singleclick') {
                                 curState.curPlan.get().addPoint(number);
@@ -436,6 +453,7 @@ function handleMapClick(event) {
                                 curState.curPlan.get().addPoint(number);
                             }
                         }
+*/
                     } else {
                         /*
                          * In normal mode:
@@ -1108,15 +1126,27 @@ function mkTssRoutesLayer(tss) {
 
 function planModeActivate(active) {
     if (active) {
-        $('#tf-nav-plan-mode').addClass('tf-plan-active');
+        $('#tf-nav-plan-list').show();
+        $('#tf-nav-plan-menu').addClass('tf-plan-active');
     } else {
-        $('#tf-nav-plan-mode').removeClass('tf-plan-active');
+        $('#tf-nav-plan-list').hide();
+        $('#tf-nav-plan-menu').removeClass('tf-plan-active');
     }
     if (inshoreLegsLayer) {
         inshoreLegsLayer.changed();
         offshoreLegsLayer.changed();
     }
     updateStatusBar();
+};
+
+function displayLogBookModeActivate(active) {
+    if (active)  {
+        $('#tf-nav-log').hide();
+        $('#tf-status-boat-reset').show();
+    } else {
+        $('#tf-nav-log').show();
+        $('#tf-status-boat-reset').hide();
+    }
 };
 
 function showLegsActivate(active) {
@@ -1192,15 +1222,17 @@ function initNavbar() {
         return false;
     });
 
+    $('#tf-nav-plan-list').hide();
+
     if (curState.mode.get() == 'showRegatta') {
         $('#tf-nav-log').hide();
         $('#tf-nav-logbook').hide();
-        $('#tf-nav-plan-mode').hide();
+        $('#tf-nav-plan-menu').hide();
         $('#tf-nav-show-activate-race').hide();
     } else if (curState.mode.get() == 'showChart') {
         $('#tf-nav-log').hide();
         $('#tf-nav-logbook').hide();
-        $('#tf-nav-plan-mode').hide();
+        $('#tf-nav-plan-menu').hide();
         $('#tf-nav-show-activate-race').hide();
 
     } else {
@@ -1232,7 +1264,7 @@ function initNavbar() {
             return false;
         });
 
-        $('#tf-nav-plan-mode').on('click', function() {
+        $('#tf-nav-plan-menu').on('click', function() {
             /*
               if (!curState.curRace.get()) {
               alertNoRace('planera en rutt');
@@ -1912,32 +1944,54 @@ export function initMapUI() {
 
     curState.displayLogBook.onChange(function(logbook) {
         if (curState.mode.get() != 'showRegatta') {
-            if (logbook)  {
-                $('#tf-nav-log').hide();
-                $('#tf-status-boat-reset').show();
+            var active = false;
+            if (logbook) {
+                curState.secondaryMode.set('displayLogBook');
+                active = true;
             } else {
-                $('#tf-nav-log').show();
-                $('#tf-status-boat-reset').hide();
+                if (curState.secondaryMode.get() == 'displayLogBook') {
+                    curState.secondaryMode.set(null);
+                }
+                active = false;
             }
+            displayLogBookModeActivate(active);
         }
-        // call getLogBook handles the case that displayLogBook is null
+        // call getLogBook, handles the case that displayLogBook is null
         maybeSetCenter(getLogBook());
         updateAll();
     });
 
     curState.curPlan.onChange(function(plan) {
-        if (!plan) {
-            $('#tf-nav-plan-name').html('');
-            planModeActivate(false);
-        } else {
-            $('#tf-nav-plan-name').html(plan.name);
+        if (plan) {
+            curState.secondaryMode.set('plan');
+            $('#tf-nav-plan-name-1').html('&nbsp;' + plan.name);
+            $('#tf-nav-plan-name-2').html(plan.name);
             updateAll();
             plan.onPlanUpdate(updateAll);
+        } else {
+            if (curState.secondaryMode.get() == 'plan') {
+                curState.secondaryMode.set(null);
+            }
+            $('.tf-nav-plan-name').html('');
+            planModeActivate(false);
         }
     });
 
     curState.planMode.onChange(function(val) {
         planModeActivate(val);
+    });
+
+    curState.secondaryMode.onChange(function(mode) {
+        if (mode == null) {
+            curState.curPlan.set(null);
+            curState.planMode.set(false);
+            curState.displayLogBook.set(null);
+        } else if (mode == 'plan') {
+            curState.displayLogBook.set(null);
+        } else if (mode == 'displayLogBook') {
+            curState.curPlan.set(null);
+            curState.planMode.set(false);
+        }
     });
 
     $('#tf-nav-boats-badge').hide();
