@@ -109,6 +109,9 @@ export function objectsEqual(a, b) {
  * Detect environment
  */
 
-export var isCordova = 'cordova' in window;
+export var isCordova =
+    typeof window !== 'undefined' && 'cordova' in window;
 
-export var isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints > 0;
+export var isTouch =
+    typeof window !== 'undefined' && 'ontouchstart' in window
+    || typeof navigator !== 'undefined' && navigator.msMaxTouchPoints > 0;

@@ -5,8 +5,10 @@ export var debugLog = [];
 
 var maxLogLen = 50;
 
-window.onerror = function(errorMsg, url, lineNumber, column) {
-    addLog(['ERR: ' + errorMsg + ' ' + url + ':' + lineNumber + ':' + column]);
+if (typeof window !== 'undefined') {
+    window.onerror = function(errorMsg, url, lineNumber, column) {
+        addLog(['ERR: ' + errorMsg + ' ' + url + ':' + lineNumber + ':' + column]);
+    };
 };
 
 export function dbg() {

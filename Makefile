@@ -167,7 +167,8 @@ depsjs: node_modules/ol \
 	node_modules/@rollup/plugin-terser \
 	node_modules/@rollup/plugin-replace \
 	node_modules/@rollup/plugin-eslint \
-	node_modules/eslint-config-mourner
+	node_modules/eslint-config-mourner \
+	node_modules/mocha
 
 deps:
 	mkdir deps; \
@@ -184,6 +185,13 @@ deps-clean:
 mrproper: clean deps-clean
 	rm -f start_points.xml
 	rm -rf cordova-template/template_src/res
+
+.PHONY: test
+test: testjs
+
+.PHONY: testjs
+testjs:
+	NODE_PATH=`pwd`/src/js npx mocha
 
 JQUERY_VSN=3.4.1
 node_modules/jquery:
@@ -240,6 +248,9 @@ node_modules/@rollup/plugin-terser:
 
 node_modules/@rollup/plugin-replace:
 	npm install --save @rollup/plugin-replace
+
+node_modules/mocha:
+	npm install --save-dev mocha
 
 
 tiles:

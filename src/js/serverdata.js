@@ -5,7 +5,7 @@ import {getCachedMyTeams, getCachedTeams,
         setCachedMyTeams, setCachedTeams,
         setCachedRaces, setCachedTerrain,
         gcTerrainsP} from './storage.js';
-import * as serverAPI from './serverapi';
+import * as serverAPI from './serverapi.js';
 import {Pod} from './pod.js';
 import {dbg} from './debug.js';
 

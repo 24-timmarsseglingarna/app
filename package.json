@@ -41,6 +41,7 @@
     "tempusdominus-core": "^5.19.0"
   },
   "devDependencies": {
+    "mocha": "^11.7.5",
     "rollup": "^4.54.0"
   }
 }
