@@ -13,12 +13,18 @@ export function openPage() {
     $('#plan-list-start-time').removeClass('is-invalid');
     $('#plan-list-start-date').removeClass('is-invalid');
     $('#plan-list-period').removeClass('is-invalid');
+    $('#plan-list-finish-point').removeClass('is-invalid');
 
+    var hasRace = Boolean(curPlan.logbook && curPlan.logbook.getRace());
     var startTime = null;
+    var allowStartTimeMod = !hasRace;
     if (curPlan.startTime) {
         startTime = curPlan.startTime;
-    } else if (curPlan.logbook && curPlan.logbook.getRace()) {
+    } else if (hasRace) {
         startTime = curPlan.logbook.getRace().getStartTimes().start_from;
+        if (!startTime.isSame(curPlan.logbook.getRace().getStartTimes().start_to)) {
+            allowStartTimeMod = true;
+        }
     }
     if (startTime) {
         var dt = moment(startTime);
@@ -38,11 +44,13 @@ export function openPage() {
     
     $('#plan-list-period').val(period);
 
-    if (curPlan.logbook && curPlan.logbook.getRace()) {
-        $('#plan-list-start-time').attr('disabled', true);
-        $('#plan-list-start-date').attr('disabled', true);
-        $('#plan-list-period').attr('disabled', true);        
-    }
+    var finishPoint = curPlan.getFinishPoint();
+    $('#plan-list-finish-point').val(finishPoint);
+
+    $('#plan-list-start-time').attr('disabled', !allowStartTimeMod);
+    $('#plan-list-start-date').attr('disabled', hasRace);
+    $('#plan-list-period').attr('disabled', hasRace);        
+    $('#plan-list-finish-point').attr('disabled', hasRace);        
 
     if (curPlan.getRequiredSpeed() <= 0) {
         $('#plan-list-req-speed').val('--');
@@ -51,21 +59,26 @@ export function openPage() {
     }
 
     var rows = '';
+    var eta = '';
+    var rta = '';
+    var point = '';
+    var pointName;
+    var p;
     for (var i = curPlan.firstPlanned; i >= 0 && i < curPlan.entries.length; i++) {
         var e = curPlan.entries[i];
-        var eta = '';
-        var rta = '';
+        eta = '';
         if (e.eta) {
             eta = fmtTimeHTML(e.eta);
         }
+        rta = '';
         if (e.rta) {
             rta = fmtTimeHTML(e.rta);
         }
-        var point = e.point || '';
-        var pointName = '';
+        point = e.point || '';
+        pointName = '';
         var media = $('#tf-media').css('content');
         if (e.point && (media == '"sm"' || media == '"md+"')) {
-            var p = pod.getPoint(point);
+            p = pod.getPoint(point);
             if (p) {
                 pointName = p.name;
             }
@@ -88,6 +101,42 @@ export function openPage() {
         }
         rows += '</tr>';
     }
+
+    // add "syntetic" row
+    eta = '';
+    if (curPlan.calculatedFinishETA) {
+        eta = fmtTimeHTML(curPlan.calculatedFinishETA);
+    }
+    rta = '';
+    if (curPlan.calculatedFinishRTA) {
+        rta = fmtTimeHTML(curPlan.calculatedFinishRTA);
+    }
+    point = curPlan.getFinishPoint();
+    pointName = '';
+    if (point) {
+        p = pod.getPoint(point);
+        if (p) {
+            pointName = p.name;
+        }
+    }
+    rows += '<tr class="font-italic">';
+    rows += '<td id="plan-list-eta-finish">' + eta + '</td>';
+    rows += '<td id="plan-list-rta-finish">' + rta + '</td>';
+    rows += '<td id="plan-list-point-finish">';
+    if (point && curPlan.calculatedDistToFinish != undefined) {
+        rows += '<span class="badge badge-pill badge-secondary mr-2 align-middle">' +
+            point + '</span>' + pointName;
+    }
+    rows += '</td>';
+    rows += '<td id="plan-list-dist-finish">';
+    if (curPlan.calculatedDistToFinish != undefined) {
+        rows += curPlan.calculatedDistToFinish.toFixed(1);
+    }
+    rows += '</td>';
+    rows += '<td></td>';
+    rows += '</tr>';
+
+
     $('#plan-list-entries').html(rows);
 
     $('.plan-list-planned-speed').on('blur', function(event) {
@@ -117,10 +166,11 @@ export function openPage() {
 };
 
 function reDisplay(curPlan) {
+    var e, eta, rta;
     for (var i = curPlan.firstPlanned; i >= 0 && i < curPlan.entries.length; i++) {
-        var e = curPlan.entries[i];
-        var eta = '';
-        var rta = '';
+        e = curPlan.entries[i];
+        eta = '';
+        rta = '';
         if (e.eta) {
             eta = fmtTimeHTML(e.eta);
         }
@@ -130,6 +180,39 @@ function reDisplay(curPlan) {
         $('#plan-list-eta-' + i).html(eta);
         $('#plan-list-rta-' + i).html(rta);
     }
+
+    eta = '';
+    if (curPlan.calculatedFinishETA) {
+        eta = fmtTimeHTML(curPlan.calculatedFinishETA);
+    }
+    $('#plan-list-eta-finish').html(eta);
+
+    rta = '';
+    if (curPlan.calculatedFinishRTA) {
+        rta = fmtTimeHTML(curPlan.calculatedFinishRTA);
+    }
+    $('#plan-list-rta-finish').html(rta);
+
+    var point = curPlan.getFinishPoint();
+    var pointName = '';
+    if (point && curPlan.calculatedDistToFinish != undefined) {
+        var pod = curPlan.pod;
+        var p = pod.getPoint(point);
+        if (p) {
+            pointName = p.name;
+        }
+        $('#plan-list-point-finish').html(
+            '<span class="badge badge-pill badge-secondary mr-2 align-middle">' +
+                point + '</span>' + pointName);
+    } else {
+        $('#plan-list-point-finish').html('');
+    }
+    if (curPlan.calculatedDistToFinish) {
+        $('#plan-list-dist-finish').html(curPlan.calculatedDistToFinish.toFixed(1));
+    } else {
+        $('#plan-list-dist-finish').html('');
+    }
+
     if (curPlan.getRequiredSpeed() <= 0) {
         $('#plan-list-req-speed').val('--');
     } else {
@@ -222,14 +305,28 @@ $(document).ready(function() {
         }
     });
 
-    $('#plan-list-period').on('blur', function() {
+    $('#plan-list-period').on('change', function() {
         var period = parseInt($('#plan-list-period').val());
         if (isNaN(period)) {
             $('#plan-list-period').addClass('is-invalid');
         } else {
-            $('#plan-list-start-date').removeClass('is-invalid');
+            $('#plan-list-period').removeClass('is-invalid');
             var curPlan = curState.curPlan.get();
             curPlan.setPeriod(period);
+            reDisplay(curPlan);
+        }
+    });
+
+    $('#plan-list-finish-point').on('change', function() {
+        var finishPoint = Number($('#plan-list-finish-point').val());
+        if (!Number.isInteger(finishPoint)) {
+            $('#plan-list-finish-point').addClass('is-invalid');
+        } else if (curState.curPlan.get().pod.getPoint(finishPoint) == undefined) {
+            $('#plan-list-finish-point').addClass('is-invalid');
+        } else {            
+            $('#plan-list-finish-point').removeClass('is-invalid');
+            var curPlan = curState.curPlan.get();
+            curPlan.setFinishPoint(finishPoint);
             reDisplay(curPlan);
         }
     });

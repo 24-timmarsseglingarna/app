@@ -63,10 +63,22 @@
           <div class="form-group row">
             <label class="col-6 col-md-4 col-form-label
                           text-md-right font-weight-bold"
+                   for="plan-list-period">Målgångspunkt</label>
+            <div class="col-6 col-md-4">
+              <input type="text" inputmode="numeric"
+                     class="form-control"
+                     id="plan-list-finish-point"/>
+              <div class="invalid-feedback">Ogiltigt punktnummer.</div>
+            </div>
+            <div class="offset-md-4"></div>
+          </div>
+          <div class="form-group row">
+            <label class="col-6 col-md-4 col-form-label
+                          text-md-right font-weight-bold"
                    for="plan-list-req-speed">Fart för målgång i tid</label>
             <div class="col-6 col-md-4">
               <input type="text" readonly="readonly"
-                     class="form-control-plaintext"
+                     class="form-control"
                      id="plan-list-req-speed"/>
             </div>
             <div class="offset-md-4"></div>

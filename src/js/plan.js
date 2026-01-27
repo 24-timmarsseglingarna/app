@@ -40,7 +40,7 @@ function Entry(point, dist = undefined) {
  *
  * @constructor
  */
-export function Plan(name, pod, logbook, entries = [], period, startTime) {
+export function Plan(name, pod, logbook, entries = [], period, startTime, finishPoint) {
     this.pod = pod;
     this.onPlanUpdateFns = [];
     this.name = name;
@@ -48,7 +48,11 @@ export function Plan(name, pod, logbook, entries = [], period, startTime) {
     this.firstPlanned = -1;
     this.entries = entries; // [ Entry() ]
     this.period = period;
-    this.startTime = startTime;
+    this.startTime = startTime || moment();
+    this.finishPoint = finishPoint;
+    this.calculatedDistToFinish = undefined;
+    this.calculatedFinishETA = undefined;
+    this.calculatedFinishRTA = undefined;
     /* keep track of how many times a leg is planned */
     this.nlegs = {};
     /* total planned distance, in 1/10 M */
@@ -70,6 +74,9 @@ Plan.prototype.attachLogBook = function(logbook) {
     this.logbook = logbook;
     if (logbook != undefined) {
         this.pod = logbook.getRace().getPod();
+        this.startTime = undefined;
+        this.period = undefined;
+        this.finishPoint = undefined;
         this._podChanged();
         this._logBookChanged();
         var self = this;
@@ -112,7 +119,7 @@ Plan.prototype.addPoint = function(point) {
     if (this.firstPlanned == -1) {
         this.firstPlanned = prevLength;
     }
-    this._updateState();
+    this._updateState(true);
 };
 
 Plan.prototype.isPointPlanned = function(point) {
@@ -141,7 +148,7 @@ Plan.prototype.setPlannedSpeed = function(idx, plannedSpeed) {
     } else {
         this.entries[idx].plannedSpeed = plannedSpeed;
     }
-    this._updateState(false);
+    this._updateState(true);
 };
 
 Plan.prototype.delPoint = function(point) {
@@ -151,7 +158,7 @@ Plan.prototype.delPoint = function(point) {
     if (this.entries[this.entries.length - 1].point == point) {
         // remove last point
         this.entries.pop();
-        this._updateState();
+        this._updateState(true);
         return true;
     }
     for (var i = this.entries.length - 2; i > 0; i--) {
@@ -183,7 +190,7 @@ Plan.prototype.delPoint = function(point) {
             // this.entries.push(...tail);
             // Array.prototype.push.apply(this.entries, tail);
 
-            this._updateState();
+            this._updateState(true);
             return true;
         }
     }
@@ -199,6 +206,11 @@ Plan.prototype.setStartTime = function(startTime) {
     this._updateState(true);
 };
 
+Plan.prototype.setFinishPoint = function(finishPoint) {
+    this.finishPoint = finishPoint;
+    this._updateState(true);
+};
+
 Plan.prototype.delTail = function(point) {
     if (this.entries.length == 0) {
         return false;
@@ -206,7 +218,7 @@ Plan.prototype.delTail = function(point) {
     for (var i = this.entries.length - 2; i > 0; i--) {
         if (this.entries[i].point == point) {
             this.entries.splice(i + 1, this.entries.length - i + 1);
-            this._updateState();
+            this._updateState(true);
             return;
         }
     }
@@ -268,7 +280,7 @@ Plan.prototype.rePlan = function(oldPoint, newPoint) {
             // this.entries.push(...tail);
             // Array.prototype.push.apply(this.entries, tail);
 
-            this._updateState();
+            this._updateState(true);
             return true;
         }
     }
@@ -283,17 +295,10 @@ Plan.prototype.getPlannedDistance = function() {
  * Return the speed necessary to sail to finish in time.
  */
 Plan.prototype.getRequiredSpeed = function() {
-    if (this._getStartTime() == undefined) {
+    if (this.reqSpeed == undefined || this.reqSpeed < 0) {
         return -1;
     }
-    if (this.logbook && this.firstPlanned > 0) {
-        var lastPlannedPoint = this.entries[this.entries.length - 1].point;
-        if (this.logbook.getFinishPoint() != lastPlannedPoint) {
-            return -1;
-        }
-    }
-    // totalDist is in 1/10 M
-    return this.totalDist * 6 / this.getRaceLeftMinutes();
+    return this.reqSpeed;
 };
 
 Plan.prototype.getRaceLeftMinutes = function() {
@@ -382,6 +387,25 @@ Plan.prototype._getSailedTime = function() {
         return this.logbook.getSailedTime();
     } else {
         return 0;
+    }
+};
+
+Plan.prototype.getFinishPoint = function() {
+    if (this.logbook && this.logbook.getRace()) {
+        var r = this.logbook.getRace();
+        var f = r.getCommonFinish();
+        if (f) {
+            return f;
+        } else if (this.logbook.teamData) {
+            return this.logbook.teamData.start_point;
+        }
+    }
+    if (this.finishPoint) {
+        return this.finishPoint;
+    }
+    if (this.entries.length > 0) {
+        // assume finish is start
+        return this.entries[0].point;
     }
 };
 
@@ -490,13 +514,15 @@ Plan.prototype._updateState = function(informSubscribers) {
     }
     this.totalDist = totalDist;
     this.nlegs = nlegs;
+    this.calculatedDistToFinish = undefined;
+    this.calculatedFinishETA = undefined;
+    this.calculatedFinishRTA = undefined;
     var loggedPoints = this.logbook ? this.logbook.getPoints() : [];
     var time = this._getStartTime();
     if (loggedPoints.length > 0) {
         time = loggedPoints[loggedPoints.length - 1].time;
     }
     if (time) {
-        this.reqSpeed = this.getRequiredSpeed();
         this.avgSpeed = this.logbook? this.logbook.getAverageSpeed() : -1;
         var unhandledDist = 0;
         var handledMinutes = 0;
@@ -507,17 +533,28 @@ Plan.prototype._updateState = function(informSubscribers) {
                 handledMinutes += 60 * this.entries[j].dist / this.entries[j].plannedSpeed;
             }
         }
+        var finishPoint = this.getFinishPoint();
+        if (finishPoint && this.entries.length > 0) {
+            var lastPoint = this.entries[this.entries.length - 1].point;
+            if (lastPoint != finishPoint) {
+                var path = this.pod.getShortestPath(lastPoint, finishPoint, 20);
+                if (path) {
+                    this.calculatedDistToFinish = path.dist;
+                    unhandledDist += path.dist;
+                }
+            }
+        }
         var minutesToEnd = this.getRaceLeftMinutes();
-        var reqSpeed = undefined;
+        this.reqSpeed = undefined;
         if (minutesToEnd != undefined) {
-            reqSpeed = 60 * unhandledDist / (minutesToEnd - handledMinutes);
+            this.reqSpeed = 60 * unhandledDist / (minutesToEnd - handledMinutes);
         }
         var doEta = false;
         var doRta = false;
         if (this.avgSpeed > 0) {
             doEta = true;
         }
-        if (this.reqSpeed > 0 && reqSpeed != undefined) {
+        if (this.reqSpeed != undefined) {
             doRta = true;
         }
         var eta = moment(time);
@@ -536,8 +573,8 @@ Plan.prototype._updateState = function(informSubscribers) {
             if (doRta) {
                 if (this.entries[j].plannedSpeed != undefined) {
                     this.entries[j].rs = this.entries[j].plannedSpeed;
-                } else if (reqSpeed > 0) {
-                    this.entries[j].rs = reqSpeed;
+                } else if (this.reqSpeed > 0) {
+                    this.entries[j].rs = this.reqSpeed;
                 } else {
                     // will not finish in time
                 }
@@ -546,6 +583,19 @@ Plan.prototype._updateState = function(informSubscribers) {
                     rta = moment(rta).add(distMinutes, 'minutes');
                     this.entries[j].rta = rta;
                 }
+            }
+        }
+
+        if (this.calculatedDistToFinish != undefined) {
+            if (doEta) {
+                distMinutes = 60 * this.calculatedDistToFinish / this.avgSpeed;
+                eta = moment(eta).add(distMinutes, 'minutes');
+                this.calculatedFinishETA = eta;
+            }
+            if (doRta) {
+                distMinutes = 60 * this.calculatedDistToFinish / this.reqSpeed;
+                rta = moment(rta).add(distMinutes, 'minutes');
+                this.calculatedFinishRTA = rta;
             }
         }
     }

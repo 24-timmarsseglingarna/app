@@ -1456,7 +1456,7 @@ function updateStatusBar() {
         var planDist = curPlan.getPlannedDistance();
         var planReqSpeed = curPlan.getRequiredSpeed();
         var totalDist = planDist + dist;
-        if (finished || planReqSpeed == -1) {
+        if (finished || planReqSpeed <= 0) {
             $('#tf-status-required-speed').text('-.- kn');
         } else {
             $('#tf-status-required-speed').text(planReqSpeed.toFixed(1) + ' kn');
@@ -1958,12 +1958,10 @@ export function initMapUI() {
         if (curState.mode.get() != 'showRegatta') {
             var active = false;
             if (logbook) {
-                console.log('SSS 1');
                 curState.secondaryMode.set('displayLogBook');
                 active = true;
             } else {
                 if (curState.secondaryMode.get() == 'displayLogBook') {
-                    console.log('SSS 1');
                     curState.secondaryMode.set(null);
                 }
                 active = false;
@@ -1977,7 +1975,6 @@ export function initMapUI() {
 
     curState.curPlan.onChange(function(plan) {
         if (plan) {
-            console.log('SSS 3');
             curState.secondaryMode.set('plan');
             $('#tf-nav-plan-name-1').html('&nbsp;' + plan.name);
             $('#tf-nav-plan-name-2').html(plan.name);
@@ -1985,7 +1982,6 @@ export function initMapUI() {
             plan.onPlanUpdate(updateAll);
         } else {
             if (curState.secondaryMode.get() == 'plan') {
-                console.log('SSS 4');
                 curState.secondaryMode.set(null);
             }
             $('.tf-nav-plan-name').html('');

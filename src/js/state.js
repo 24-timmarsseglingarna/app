@@ -14,7 +14,7 @@ import {initP as initStorageP,
 import {loginP as serverAPILoginP, logout as serverAPILogout,
         setStagingServer, setProductionServer,
         getTerrainP, getTSSP,
-        getAPIVersionP, validateTokenP} from './serverapi';
+        getAPIVersionP, validateTokenP} from './serverapi.js';
 import {initP as initServerDataP, updateServerDataP,
         getMyRaces, getRaceData, getMyTeamData, getRacesData, getPod,
         getPodP,
@@ -601,7 +601,7 @@ function setActiveRace(raceId) {
         var plans = getRacePlan(raceId) || [];
         for (var i = 0; i < plans.length; i++) {
             mkNewPlan(plans[i].name, curRace, curLogBook, plans[i].entries,
-                      plans[i].period, plans[i].startTime);
+                      plans[i].period, plans[i].startTime, plans[i].finishPoint);
         }
 
         curState.boatState.engine = curLogBook.getEngine();
@@ -632,9 +632,16 @@ function setActiveRace(raceId) {
         if (curState.mode.get() != 'showRegatta') {
             curState.curRegatta.set(null);
         }
+        if (curState.curPlan.get() != null) {
+            if (curState.curRace.get() == null &&
+                curState.curLogBook.get() == null) {
+                // keep curPlan - it was created w/o race and logbook anyway
+            } else {
+                curState.curPlan.set(null);
+            }
+        }
         curState.curRace.set(null);
         curState.curLogBook.set(null);
-        curState.curPlan.set(null);
         curState.boatState.engine = false;
         curState.boatState.lanterns = false;
         curState.activeInterrupt = false;
@@ -642,8 +649,8 @@ function setActiveRace(raceId) {
     }
 };
 
-export function mkNewPlan(name, race, logbook, entries = [], period, startTime) {
-    var plan = new Plan(name, race.getPod(), logbook, entries, period, startTime);
+export function mkNewPlan(name, race, logbook, entries = [], period, startTime, finishPoint) {
+    var plan = new Plan(name, race.getPod(), logbook, entries, period, startTime, finishPoint);
     race.setPlan(plan);
     // add a function that checks if the plan no longer matches
     // the logbook, and the plan is current, then we no longer
