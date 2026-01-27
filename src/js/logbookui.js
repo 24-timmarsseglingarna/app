@@ -13,7 +13,7 @@ import {getRaceP, getPodP, getRegattaTeamsP,
 import {Regatta} from './regatta.js';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
-import {isOfficerRights, isAdminRights, isTouch} from './util.js';
+import {isOfficerRights, isAdminRights, isTouch, fmtTimeHTML} from './util.js';
 
 export function openLogBook(options) {
     refreshLogBook(options);
@@ -306,7 +306,7 @@ function refreshLogBook(options) {
         }
         var ts = '';
         if (e.class != 'AdminLog') {
-            ts = e.time.format('HH:mm DD MMM').replace(/\s/g, '&nbsp;');
+            ts = fmtTimeHTML(e.time);
         }
         rows +=
             '<td>' + ts + '</td>' +

@@ -25,18 +25,18 @@ function setDevServer() {
 };
 
 
-//setDevServer();
+setDevServer();
 
 export function setProductionServer() {
     URL = productionURL;
     DataURL = productionDataURL;
-//    setDevServer();
+    setDevServer();
 };
 
 export function setStagingServer() {
     URL = stagingURL;
     DataURL = stagingDataURL;
-//    setDevServer();
+    setDevServer();
 };
 
 export function setServerURL(url) {

@@ -48,6 +48,7 @@ function itemClick(event) {
     var name = $(event.target).data('name'); // html5 data-name attribute
     var plan = null;
     var curRace = curState.curRace.get();
+
     if (name == 'none') {
         $('#tf-plan-plan').addClass('disabled');
         curState.curPlan.set(null);
@@ -61,7 +62,15 @@ function itemClick(event) {
     } else {
         $('#tf-plan-plan').removeClass('disabled');
         // When no race is activated, we create ephemeral plans
-        plan = new Plan(name, curState.defaultPod, undefined);
+        var period;
+        var startTime;
+        // if we have a current plan, inherit period and startTime from it
+        plan = curState.curPlan.get();
+        if (plan) {
+            period = plan.period;
+            startTime= plan.startTime;
+        }
+        plan = new Plan(name, curState.defaultPod, undefined, period, startTime);
         curState.curPlan.set(plan);
     }
     $('.tf-plan-item').removeClass('active');

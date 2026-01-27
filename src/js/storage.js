@@ -182,7 +182,7 @@ export function initP(doClear) {
         key = 'raceplan-' + raceId;
         try {
             var racePlan = JSON.parse(window.localStorage.getItem(key));
-            racePlans[raceId] = racePlan;
+            racePlans[raceId] = mkRacePlan(racePlan);
         } catch (err) {
             // bad data, remove from storage
             window.localStorage.removeItem(key);
@@ -350,6 +350,7 @@ export function setRacePlan(raceId, plans) {
         plans: plans
     };
     window.localStorage.setItem(key, JSON.stringify(racePlan));
+    console.log('stored plan ' + JSON.stringify(racePlan));
     if (!(raceId in raceIds)) {
         raceIds[raceId] = true;
         window.localStorage.setItem('raceIds', JSON.stringify(raceIds));
@@ -500,4 +501,16 @@ function mkRace(r) {
 function mkLog(e) {
     e.time = moment(e.time);
     return e;
+};
+
+function mkRacePlan(r) {
+    r.plans.map(mkPlan);
+    return r;
+};
+
+function mkPlan(p) {
+    if (p.startTime) {
+        p.startTime = moment(p.startTime);
+    }
+    return p;
 };

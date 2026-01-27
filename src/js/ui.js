@@ -24,6 +24,7 @@ import {openLogEntry} from './logentryui.js';
 import {openLogBook} from './logbookui.js';
 import {openPage as openAddLogEntryPage} from './addlogentryui.js';
 import {openPage as openBoatsPage} from './boatsui.js';
+import {openPage as openPlanListPage} from './planlistui.js';
 import {openPage as openPlanMenuPage} from './planmenuui.js';
 import {openPage as openActivateRacePage} from './activateraceui.js';
 import {openPage as openSettingsPage} from './settingsui.js';
@@ -330,22 +331,22 @@ function mkPlanPointHTML(number, plan) {
         return '';
     }
     var s = '';
-    var times = plan.getTimes(number);
-    for (var i = 0; i < times.length; i++) {
-        if (times[i].eta) {
+    var roundings = plan.getPlannedRoundings(number);
+    for (var i = 0; i < roundings.length; i++) {
+        if (roundings[i].eta) {
             s += '<p>Planerad rundningstid (med nuvarande snittfart ' +
                 plan.avgSpeed.toFixed(1) + ' kn):<br/>' +
-                times[i].eta.format('HH:mm D MMM') + '</p>';
+                roundings[i].eta.format('HH:mm D MMM') + '</p>';
         }
-        if (times[i].rta) {
+        if (roundings[i].rta) {
             s += '<p>Rundning för målgång i tid (kräver ' +
-                plan.planSpeed.toFixed(1) + ' kn i snitt):<br/>' +
-                times[i].rta.format('HH:mm D MMM') + '</p>';
+                plan.reqSpeed.toFixed(1) + ' kn i snitt):<br/>' +
+                roundings[i].rta.format('HH:mm D MMM') + '</p>';
         }
         s += '<p>Distans till punkten: ' +
-            times[i].distToPoint.toFixed(1) + ' M</p>';
+            roundings[i].distToPoint.toFixed(1) + ' M</p>';
         s += '<p>Distans kvar av planen: ' +
-            times[i].distToEnd.toFixed(1) + ' M</p>';
+            roundings[i].distToEnd.toFixed(1) + ' M</p>';
     }
     return s;
 };
@@ -1264,6 +1265,17 @@ function initNavbar() {
             return false;
         });
 
+        $('#tf-nav-plan-list').on('click', function() {
+            var curLogBook = curState.curLogBook.get();
+            if (curLogBook && curLogBook.isReadOnly()) {
+                alert('<p>När loggboken är signerad går det inte att' +
+                      ' planera.</p>');
+                return false;
+            }
+            openPlanListPage();
+            return false;
+        });
+
         $('#tf-nav-plan-menu').on('click', function() {
             /*
               if (!curState.curRace.get()) {
@@ -1442,12 +1454,12 @@ function updateStatusBar() {
     var curPlan = curState.curPlan.get();
     if (curPlan) {
         var planDist = curPlan.getPlannedDistance();
-        var planSpeed = curPlan.getPlannedSpeed();
+        var planReqSpeed = curPlan.getRequiredSpeed();
         var totalDist = planDist + dist;
-        if (finished || planSpeed == -1) {
-            $('#tf-status-planned-speed').text('-.- kn');
+        if (finished || planReqSpeed == -1) {
+            $('#tf-status-required-speed').text('-.- kn');
         } else {
-            $('#tf-status-planned-speed').text(planSpeed.toFixed(1) + ' kn');
+            $('#tf-status-required-speed').text(planReqSpeed.toFixed(1) + ' kn');
         }
         $('#tf-status-planned-distance').text(totalDist.toFixed(1) + ' M');
         $('.tf-status-plan').show();
@@ -1946,10 +1958,12 @@ export function initMapUI() {
         if (curState.mode.get() != 'showRegatta') {
             var active = false;
             if (logbook) {
+                console.log('SSS 1');
                 curState.secondaryMode.set('displayLogBook');
                 active = true;
             } else {
                 if (curState.secondaryMode.get() == 'displayLogBook') {
+                    console.log('SSS 1');
                     curState.secondaryMode.set(null);
                 }
                 active = false;
@@ -1963,6 +1977,7 @@ export function initMapUI() {
 
     curState.curPlan.onChange(function(plan) {
         if (plan) {
+            console.log('SSS 3');
             curState.secondaryMode.set('plan');
             $('#tf-nav-plan-name-1').html('&nbsp;' + plan.name);
             $('#tf-nav-plan-name-2').html(plan.name);
@@ -1970,6 +1985,7 @@ export function initMapUI() {
             plan.onPlanUpdate(updateAll);
         } else {
             if (curState.secondaryMode.get() == 'plan') {
+                console.log('SSS 4');
                 curState.secondaryMode.set(null);
             }
             $('.tf-nav-plan-name').html('');

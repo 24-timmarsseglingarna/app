@@ -1,5 +1,6 @@
 /* -*- js -*- */
 
+import moment from 'moment';
 import {uuid, legName} from './util.js';
 import {getTeamLogP, postLogEntryP, patchLogEntryP} from './serverdata.js';
 import {dbg, debugInfo} from './debug.js';

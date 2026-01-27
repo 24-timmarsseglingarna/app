@@ -62,6 +62,12 @@ export function isOfficerRights(role) {
     }
 };
 
+// returns a formatted timestamp, rounded to nearest minute
+export function fmtTimeHTML(ts) {
+    ts = ts.clone().add(30, 'seconds').startOf('minute');
+    return ts.format('HH:mm DD MMM').replace(/\s/g, '&nbsp;');
+};
+
 export function isAdminRights(role) {
     if (role == 'admin') {
         return true;

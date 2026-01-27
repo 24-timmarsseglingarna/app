@@ -70,7 +70,6 @@ defineVariable(curState, 'curChart', null);
 // loggedInPersonId :: integer()
 defineVariable(curState, 'loggedInPersonId', null);
 
-
 /*
  * Configuration parameters - mapped to settings in storage.js
  */
@@ -601,7 +600,8 @@ function setActiveRace(raceId) {
         // get the stored plans from the app storage
         var plans = getRacePlan(raceId) || [];
         for (var i = 0; i < plans.length; i++) {
-            mkNewPlan(plans[i].name, curRace, curLogBook, plans[i].entries);
+            mkNewPlan(plans[i].name, curRace, curLogBook, plans[i].entries,
+                      plans[i].period, plans[i].startTime);
         }
 
         curState.boatState.engine = curLogBook.getEngine();
@@ -642,8 +642,8 @@ function setActiveRace(raceId) {
     }
 };
 
-export function mkNewPlan(name, race, logbook, entries = []) {
-    var plan = new Plan(name, race.getPod(), logbook, entries);
+export function mkNewPlan(name, race, logbook, entries = [], period, startTime) {
+    var plan = new Plan(name, race.getPod(), logbook, entries, period, startTime);
     race.setPlan(plan);
     // add a function that checks if the plan no longer matches
     // the logbook, and the plan is current, then we no longer
@@ -668,7 +668,14 @@ function mkRacePlans(race) {
     var p = [];
     var plans = race.getPlans();
     for (var name in plans) {
-        p.push({name: name, entries: plans[name].entries});
+        var obj = {name: name, entries: plans[name].entries};
+        if (plans[name].startTime) {
+            obj.startTime = plans[name].startTime;
+        }
+        if (plans[name].period) {
+            obj.period = plans[name].period;
+        }
+        p.push(obj);
     }
     return p;
 };

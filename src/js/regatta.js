@@ -1,5 +1,6 @@
 /* -*- js -*- */
 
+import moment from 'moment';
 import {Race} from './race.js';
 import {LogBook} from './logbook.js';
 import {getNewRegattaLogP, getTeamData, getRaceData} from './serverdata.js';

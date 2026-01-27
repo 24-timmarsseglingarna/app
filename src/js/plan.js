@@ -1,6 +1,22 @@
 /* -*- js -*- */
 
+import moment from 'moment';
 import {legName} from './util.js';
+
+function Entry(point, dist = undefined) {
+    this.point = point;
+    this.dist = dist;
+    // Estimated Time of Arrival - calculated property based on average speed and this.plannedSpeed
+    // If no average speed exists, eta is undefined.
+    this.eta = undefined;
+    // Required Time of Arrival - calculated property based on this.rs
+    this.rta = undefined;
+    // Planned speed - user-configured property
+    this.plannedSpeed = undefined;
+    // Required speed - calculated property
+    // If plannedSpeed is set, rs is equal to plannedSpeed
+    this.rs = undefined;
+};
 
 /**
  * A Plan is a representation of an intended list of legs
@@ -24,18 +40,23 @@ import {legName} from './util.js';
  *
  * @constructor
  */
-export function Plan(name, pod, logbook, entries = []) {
+export function Plan(name, pod, logbook, entries = [], period, startTime) {
     this.pod = pod;
     this.onPlanUpdateFns = [];
     this.name = name;
     /* keep track of the first entry that is not logged */
     this.firstPlanned = -1;
-    this.entries = entries;
+    this.entries = entries; // [ Entry() ]
+    this.period = period;
+    this.startTime = startTime;
     /* keep track of how many times a leg is planned */
     this.nlegs = {};
     /* total planned distance, in 1/10 M */
     this.totalDist = 0;
     this.attachLogBook(logbook);
+    this.avgSpeed = undefined;
+    this.reqSpeed = undefined;
+    this._updateState(false);
 };
 
 Plan.prototype.onPlanUpdate = function(fn) {
@@ -62,14 +83,14 @@ Plan.prototype.addPoint = function(point) {
     var prevLength = this.entries.length;
     if (this.entries.length == 0) {
         // first point in plan, just add it
-        this.entries.push({point: point, dist: 0});
+        this.entries.push(new Entry(point, 0));
     } else {
         var prev = this.entries[this.entries.length - 1].point;
         var path;
         var d = this.pod.getDistance(prev, point);
         if (d != -1) {
             // there is a direct leg between the points, use it.
-            // getShortestPath might actually return a short path involving
+            // getShortestPath might actually return a shorter path involving
             // more points, since some legs are 0-distances.
             path = {dist: d, points: [prev, point]};
         } else {
@@ -83,8 +104,7 @@ Plan.prototype.addPoint = function(point) {
         // always the starting point
         for (var i = 1; i < path.points.length; i++) {
             var cur = path.points[i];
-            var entry = {point: cur,
-                         dist: this.pod.getDistance(prev, cur)};
+            var entry = new Entry(cur, this.pod.getDistance(prev, cur));
             this.entries.push(entry);
             prev = cur;
         }
@@ -110,6 +130,18 @@ Plan.prototype.getLastPoint = function() {
     } else {
         return null;
     }
+};
+
+Plan.prototype.setPlannedSpeed = function(idx, plannedSpeed) {
+    if (idx <= 0 || idx >= this.entries.length) {
+        return;
+    }
+    if (plannedSpeed == undefined) {
+        delete this.entries[idx].plannedSpeed;
+    } else {
+        this.entries[idx].plannedSpeed = plannedSpeed;
+    }
+    this._updateState(false);
 };
 
 Plan.prototype.delPoint = function(point) {
@@ -142,8 +174,7 @@ Plan.prototype.delPoint = function(point) {
             // start from 1; the first point is same as `prev`
             for (var j = 1; j < path.points.length; j++) {
                 var cur = path.points[j];
-                var entry = {point: cur,
-                             dist: this.pod.getDistance(prev, cur)};
+                var entry = new Entry(cur, this.pod.getDistance(prev, cur));
                 this.entries.push(entry);
                 prev = cur;
             }
@@ -156,6 +187,16 @@ Plan.prototype.delPoint = function(point) {
             return true;
         }
     }
+};
+
+Plan.prototype.setPeriod = function(period) {
+    this.period = period;
+    this._updateState(true);
+};
+
+Plan.prototype.setStartTime = function(startTime) {
+    this.startTime = startTime;
+    this._updateState(true);
 };
 
 Plan.prototype.delTail = function(point) {
@@ -210,16 +251,14 @@ Plan.prototype.rePlan = function(oldPoint, newPoint) {
             var cur, entry;
             for (var j = 1; j < path1.points.length; j++) {
                 cur = path1.points[j];
-                entry = {point: cur,
-                         dist: this.pod.getDistance(prev, cur)};
+                entry = new Entry(cur, this.pod.getDistance(prev, cur));
                 this.entries.push(entry);
                 prev = cur;
             }
             if (next) {
                 for (var k = 1; k < path2.points.length; k++) {
                     cur = path2.points[k];
-                    entry = {point: cur,
-                             dist: this.pod.getDistance(prev, cur)};
+                    entry = new Entry(cur, this.pod.getDistance(prev, cur));
                     this.entries.push(entry);
                     prev = cur;
                 }
@@ -243,23 +282,29 @@ Plan.prototype.getPlannedDistance = function() {
 /**
  * Return the speed necessary to sail to finish in time.
  */
-Plan.prototype.getPlannedSpeed = function() {
-    if (this.logbook == undefined || this.firstPlanned < 1) {
+Plan.prototype.getRequiredSpeed = function() {
+    if (this._getStartTime() == undefined) {
         return -1;
     }
-    var lastPlannedPoint = this.entries[this.entries.length - 1].point;
-    if (this.logbook.getFinishPoint() != lastPlannedPoint) {
-        return -1;
+    if (this.logbook && this.firstPlanned > 0) {
+        var lastPlannedPoint = this.entries[this.entries.length - 1].point;
+        if (this.logbook.getFinishPoint() != lastPlannedPoint) {
+            return -1;
+        }
     }
     // totalDist is in 1/10 M
     return this.totalDist * 6 / this.getRaceLeftMinutes();
 };
 
 Plan.prototype.getRaceLeftMinutes = function() {
-    var raceLengthMinutes = this.logbook.race.getRaceLengthHours() * 60;
-    var raceLeftMinutes = raceLengthMinutes - this.logbook.getSailedTime();
-    var startTime = this.logbook.getRealStartTime();
-    if (startTime) {
+    var raceLengthHours = this._getRaceLengthHours();
+    if (raceLengthHours == undefined) {
+        return undefined;
+    }
+    var raceLengthMinutes =  raceLengthHours * 60;
+    var raceLeftMinutes = raceLengthMinutes - this._getSailedTime();
+    var startTime = this._getStartTime();
+    if (startTime && this.logbook) {
         var startTimes = this.logbook.race.getStartTimes();
         if (startTime.isAfter(startTimes.start_to)) {
             // too late start
@@ -272,17 +317,16 @@ Plan.prototype.getRaceLeftMinutes = function() {
     return raceLeftMinutes;
 };
 
-
-Plan.prototype.getTimes = function(point) {
+Plan.prototype.getPlannedRoundings = function(point) {
     var r = [];
     var dist = 0;
     var totalDist = 0;
-    for (var j = this.firstPlanned; j < this.entries.length; j++) {
+    for (var j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
         if (this.entries[j].dist != undefined) {
             totalDist += this.entries[j].dist;
         }
     }
-    for (var i = this.firstPlanned; i < this.entries.length; i++) {
+    for (var i = this.firstPlanned; i >= 0 && i < this.entries.length; i++) {
         var e = this.entries[i];
         if (e.dist != undefined) {
             dist += e.dist;
@@ -292,15 +336,47 @@ Plan.prototype.getTimes = function(point) {
                     rta: e.rta,
                     distToPoint: dist,
                     distToEnd: totalDist - dist,
-                    avgSpeed: e.avgSpeed,
-                    planSpeed: e.planSpeed});
+                    plannedSpeed: e.plannedSpeed});
         }
     }
     return r;
 };
 
 Plan.prototype.isLegPlanned = function(pointA, pointB) {
-    return this.nlegs[legName(pointA, pointB)];
+    return this.nlegs[legName(pointA, pointB)] != undefined;
+};
+
+
+Plan.prototype._getRaceLengthHours = function() {
+    if (this.logbook) {
+        return this.logbook.race.getRaceLengthHours();
+    }
+    if (this.period) {
+        return this.period;
+    }
+    return undefined;
+};
+
+Plan.prototype._getStartTime = function() {
+    var r;
+    if (this.logbook) {
+        r = this.logbook.getRealStartTime();
+        if (r) {
+            return r;
+        }
+    }
+    if (this.startTime) {
+        return this.startTime;
+    }
+    return undefined;
+};
+
+Plan.prototype._getSailedTime = function() {
+    if (this.logbook) {
+        return this.logbook.getSailedTime();
+    } else {
+        return 0;
+    }
 };
 
 Plan.prototype._resetPlan = function(nomatch) {
@@ -312,8 +388,7 @@ Plan.prototype._resetPlan = function(nomatch) {
     if (this.logbook != undefined) {
         var loggedPoints = this.logbook.getPoints();
         for (i = 0; i < loggedPoints.length; i++) {
-            entry = {};
-            entry.point = loggedPoints[i].point;
+            entry = new Entry(loggedPoints[i].point);
             this.entries.push(entry);
         }
     }
@@ -392,6 +467,7 @@ Plan.prototype._updateState = function(informSubscribers) {
     for (j = 0; j < this.entries.length; j++) {
         this.entries[j].eta = undefined;
         this.entries[j].rta = undefined;
+        this.entries[j].rs = undefined;
         var dist = this.entries[j].dist;
         if (dist != undefined) {
             totalDist += dist * 10;
@@ -409,30 +485,72 @@ Plan.prototype._updateState = function(informSubscribers) {
     this.totalDist = totalDist;
     this.nlegs = nlegs;
     var loggedPoints = this.logbook ? this.logbook.getPoints() : [];
+    var time = this._getStartTime();
     if (loggedPoints.length > 0) {
-        var time = loggedPoints[loggedPoints.length - 1].time;
-        var offset;
-        this.planSpeed = this.getPlannedSpeed();
-        this.avgSpeed = this.logbook.getAverageSpeed();
-        var planDist = 0;
+        time = loggedPoints[loggedPoints.length - 1].time;
+    }
+    if (time) {
+        this.reqSpeed = this.getRequiredSpeed();
+        this.avgSpeed = this.logbook? this.logbook.getAverageSpeed() : -1;
+        var unhandledDist = 0;
+        var handledMinutes = 0;
         for (j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
-            if (this.avgSpeed > 0) {
-                planDist += this.entries[j].dist;
-                offset = 60 * planDist / this.avgSpeed;
-                // clone the moment time
-                this.entries[j].eta = moment(time).add(offset, 'minutes');
+            if (this.entries[j].plannedSpeed == undefined) {
+                unhandledDist += this.entries[j].dist;
+            } else {
+                handledMinutes += 60 * this.entries[j].dist / this.entries[j].plannedSpeed;
             }
-            if (this.planSpeed > 0) {
-                offset = 60 * planDist / this.planSpeed;
-                // clone the moment time
-                this.entries[j].rta = moment(time).add(offset, 'minutes');
+        }
+        var minutesToEnd = this.getRaceLeftMinutes();
+        var reqSpeed = undefined;
+        if (minutesToEnd != undefined) {
+            reqSpeed = 60 * unhandledDist / (minutesToEnd - handledMinutes);
+        }
+        var doEta = false;
+        var doRta = false;
+        if (this.avgSpeed > 0) {
+            doEta = true;
+        }
+        if (this.reqSpeed > 0 && reqSpeed != undefined) {
+            doRta = true;
+        }
+        var eta = moment(time);
+        var rta = moment(time);
+        var distMinutes;
+        for (j = this.firstPlanned; j >= 0 && j < this.entries.length; j++) {
+            if (doEta) {
+                if (this.entries[j].plannedSpeed != undefined) {
+                    distMinutes = 60 * this.entries[j].dist / this.entries[j].plannedSpeed;
+                } else {
+                    distMinutes = 60 * this.entries[j].dist / this.avgSpeed;
+                }
+                eta = moment(eta).add(distMinutes, 'minutes');
+                this.entries[j].eta = eta;
+            }
+            if (doRta) {
+                if (this.entries[j].plannedSpeed != undefined) {
+                    this.entries[j].rs = this.entries[j].plannedSpeed;
+                } else if (reqSpeed > 0) {
+                    this.entries[j].rs = reqSpeed;
+                } else {
+                    // will not finish in time
+                }
+                if (this.entries[j].rs) {
+                    distMinutes = 60 * this.entries[j].dist / this.entries[j].rs;
+                    rta = moment(rta).add(distMinutes, 'minutes');
+                    this.entries[j].rta = rta;
+                }
             }
         }
     }
 
     if (informSubscribers != false) {
-        for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
-            this.onPlanUpdateFns[i](this, 'update');
-        }
+        this._informSubscribers();
+    }
+};
+
+Plan.prototype._informSubscribers = function() {
+    for (var i = 0; i < this.onPlanUpdateFns.length; i++) {
+        this.onPlanUpdateFns[i](this, 'update');
     }
 };
