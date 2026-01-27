@@ -364,6 +364,12 @@ Plan.prototype._getStartTime = function() {
         if (r) {
             return r;
         }
+        if (this.logbook.getRace()) {
+            r = this.logbook.getRace().getStartTimes().start_from;
+            if (r) {
+                return r;
+            }
+        }
     }
     if (this.startTime) {
         return this.startTime;

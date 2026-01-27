@@ -467,6 +467,26 @@ describe("#attachLogBook", function() {
     });
 });
 
+describe("getRequiredSpeed", function() {
+    let logbook;
+    let plan;
+    before(function() {
+        var pod = mkPod();
+        plan = new Plan("test", pod);
+        plan.addPoint("1");
+        plan.addPoint("2");
+        plan.addPoint("3");
+        plan.addPoint("4");
+        plan.addPoint("5");
+        plan.addPoint("1");
+        logbook = mkLogBook();
+        plan.attachLogBook(logbook);
+    });
+    it("should return properly", function() {
+        assert.equal(plan.getRequiredSpeed(), 4);
+    }
+});
+
 
 
 function chkTwoPoints() {
