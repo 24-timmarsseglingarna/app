@@ -85,19 +85,23 @@ export function openPage() {
         }
 
         rows += '<tr data-logid="' + i + '">';
-        rows += '<td id="plan-list-eta-' + i + '">' + eta + '</td>';
-        rows += '<td id="plan-list-rta-' + i + '">' + rta + '</td>';
         rows += '<td><span class="badge badge-pill badge-secondary mr-2 align-middle">' +
             point + '</span>' + pointName + '</td>';
         rows += '<td>' + e.dist.toFixed(1) + '</td>';
-        rows += '<td><input type="text" inputmode="numeric" ' +
-            'data-id="' + i + '" ' +
-            'class="form-control plan-list-planned-speed"' +
-            'id="plan-list-planned-speed-' + i + '"';
-        if (e.plannedSpeed) {
-            rows += ' value="' + e.plannedSpeed.toFixed(1) + '"></td>';
+        rows += '<td id="plan-list-eta-' + i + '">' + eta + '</td>';
+        rows += '<td id="plan-list-rta-' + i + '">' + rta + '</td>';
+        if (i == 0) {
+            rows += '<td><input type="text" disabled="true" class="form-control"/></td>';
         } else {
-            rows += '></td>';
+            rows += '<td><input type="text" inputmode="numeric" ' +
+                'data-id="' + i + '" ' +
+                'class="form-control plan-list-planned-speed"' +
+                'id="plan-list-planned-speed-' + i + '"';
+            if (e.plannedSpeed) {
+                rows += ' value="' + e.plannedSpeed.toFixed(1) + '"></td>';
+            } else {
+                rows += '></td>';
+            }
         }
         rows += '</tr>';
     }
@@ -120,8 +124,6 @@ export function openPage() {
         }
     }
     rows += '<tr class="font-italic">';
-    rows += '<td id="plan-list-eta-finish">' + eta + '</td>';
-    rows += '<td id="plan-list-rta-finish">' + rta + '</td>';
     rows += '<td id="plan-list-point-finish">';
     if (point && curPlan.calculatedDistToFinish != undefined) {
         rows += '<span class="badge badge-pill badge-secondary mr-2 align-middle">' +
@@ -133,6 +135,8 @@ export function openPage() {
         rows += curPlan.calculatedDistToFinish.toFixed(1);
     }
     rows += '</td>';
+    rows += '<td id="plan-list-eta-finish">' + eta + '</td>';
+    rows += '<td id="plan-list-rta-finish">' + rta + '</td>';
     rows += '<td></td>';
     rows += '</tr>';
 
