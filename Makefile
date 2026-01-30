@@ -154,6 +154,7 @@ cordova-template/template_src/res: \
 
 .PHONY: depsjs
 depsjs: node_modules/ol \
+	node_modules/ol-popup \
 	node_modules/jquery \
 	node_modules/popper.js \
 	node_modules/bootstrap \
@@ -197,12 +198,13 @@ JQUERY_VSN=3.4.1
 node_modules/jquery:
 	npm install jquery@$(JQUERY_VSN)
 
-# tapping on android doesn't work well in 6.x
-# can't pan in 6.2.x
-OL_VSN=5.3.3
-#OL_VSN=8.2.0
+OL_VSN=10.7.0
 node_modules/ol:
 	npm install ol@$(OL_VSN) --no-audit
+
+OL_POPUP_VSN=5.1.1
+node_modules/ol-popup:
+	npm install ol-popup@$(OL_POPUP_VSN) --no-audit
 
 MOMENT_VSN=2.24.0
 node_modules/moment:

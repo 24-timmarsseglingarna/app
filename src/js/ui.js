@@ -1,17 +1,18 @@
 /* -*- js -*- */
 
 import {pushPage, popPage} from './pageui.js';
-import {Map, View} from 'ol';
+import Map from 'ol/Map.js';
+import View from 'ol/View.js';
 import {defaults as defaultControls} from 'ol/control.js';
 import {defaults as defaultInteractions, Pointer} from 'ol/interaction.js';
 import {XYZ, Vector as VectorSource} from 'ol/source.js';
 import {Tile, Vector as VectorLayer} from 'ol/layer.js';
-import {Style,Circle,Fill,Text,Stroke} from 'ol/style.js';
+import {Style, Circle, Fill, Text, Stroke} from 'ol/style.js';
 import {GeoJSON} from 'ol/format.js';
 import {transform} from 'ol/proj.js';
 import {DEVICE_PIXEL_RATIO} from 'ol/has.js';
 
-import {Popup} from './ol-popup.js';
+import Popup from 'ol-popup/src/ol-popup.js';
 
 import {Regatta} from './regatta.js';
 import {alert, alertUpgrade} from './alertui.js';
@@ -551,7 +552,7 @@ function handleMapPointerUp (event) {
 function initPopup() {
     pointPopup = new Popup();
     plannedPointPopup = new Popup();
-    chartPopup = new Popup;
+    chartPopup = new Popup();
 
     map.on('click', handleMapClick);
     map.on('singleclick', handleMapClick);
@@ -619,7 +620,10 @@ function mkPointStyleFunc(isStartPoint, color) {
         tapPointStyle =
             new Style({
                 image: new Circle({
-                    radius: TAP_RADUIS
+                    radius: TAP_RADUIS,
+                    fill: new Fill({
+                        color: 'rgba(0,0,0,0)'
+                    })
                 })
             });
         styleCache['tapPoint'] = tapPointStyle;
