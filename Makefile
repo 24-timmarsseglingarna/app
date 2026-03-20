@@ -144,7 +144,7 @@ build-app: 24h-app
 	    config.xml > c.xml; mv c.xml config.xml; \
 	cordova platform add $(PLATFORM)$(PLATFORM_VSN); \
 	rm -f www/tiles; \
-	cp -r ../tiles www
+	cp -rL ../tiles www
 
 cordova-template/template_src/res: \
 	cordova-template/template_src/project/assets/icon.png \

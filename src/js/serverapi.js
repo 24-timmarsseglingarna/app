@@ -8,34 +8,35 @@ import {dbg, debugInfo} from './debug.js';
  */
 var productionURL = 'https://segla.24-timmars.nu';
 var stagingURL = 'https://segla-stage.24-timmars.nu';
-var devURL = 'http://192.168.0.6:3000';
+// var devURL = 'http://192.168.0.6:3000';
 
 var productionDataURL = 'https://app.24-timmars.nu/data';
 var stagingDataURL = 'https://app.24-timmars.nu/data';
-var devDataURL = 'https://4668.se/24h';
+// var devDataURL = 'https://4668.se/24h';
 
 export var URL = productionURL;
 export var DataURL = productionDataURL;
 
+/*
 function setDevServer() {
     URL = devURL;
     DataURL = devDataURL;
     return;
 };
+*/
 
-
-setDevServer();
+//setDevServer();
 
 export function setProductionServer() {
     URL = productionURL;
     DataURL = productionDataURL;
-    setDevServer();
+//    setDevServer();
 };
 
 export function setStagingServer() {
     URL = stagingURL;
     DataURL = stagingDataURL;
-    setDevServer();
+//    setDevServer();
 };
 
 export function setServerURL(url) {

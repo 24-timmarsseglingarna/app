@@ -33,7 +33,7 @@ export function openPage() {
     } else {
         $('#plan-list-start-timepicker').datetimepicker('date', null);
         $('#plan-list-start-datepicker').datetimepicker('date', null);
-    }        
+    }
 
     var period = null;
     if (curPlan.period) {
@@ -41,7 +41,7 @@ export function openPage() {
     } else if (curPlan.logbook && curPlan.logbook.getRace()) {
         period = curPlan.logbook.getRace().getRaceLengthHours();
     }
-    
+
     $('#plan-list-period').val(period);
 
     var finishPoint = curPlan.getFinishPoint();
@@ -49,8 +49,8 @@ export function openPage() {
 
     $('#plan-list-start-time').attr('disabled', !allowStartTimeMod);
     $('#plan-list-start-date').attr('disabled', hasRace);
-    $('#plan-list-period').attr('disabled', hasRace);        
-    $('#plan-list-finish-point').attr('disabled', hasRace);        
+    $('#plan-list-period').attr('disabled', hasRace);
+    $('#plan-list-finish-point').attr('disabled', hasRace);
 
     if (curPlan.getRequiredSpeed() <= 0) {
         $('#plan-list-req-speed').val('--');
@@ -327,7 +327,7 @@ $(document).ready(function() {
             $('#plan-list-finish-point').addClass('is-invalid');
         } else if (curState.curPlan.get().pod.getPoint(finishPoint) == undefined) {
             $('#plan-list-finish-point').addClass('is-invalid');
-        } else {            
+        } else {
             $('#plan-list-finish-point').removeClass('is-invalid');
             var curPlan = curState.curPlan.get();
             curPlan.setFinishPoint(finishPoint);
