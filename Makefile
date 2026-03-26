@@ -50,14 +50,31 @@ publish-tss-to-s3: tss.json.gz
 deps/vsn.js: deps vsn.mk
 	echo "export var tfAppVsn = '$(VSN)';" > $@
 
+# set PLATFORM_VSN to force a specific version of the cordova
+# platform plugin, e.g,: env PLATFORM_VSN=@7.1.0 make build-app
+ifeq ($(shell uname -s),Darwin)
+PLATFORM=ios
+APPID=nu.24-timmars
+else
+PLATFORM=android
+#PLATFORM_VSN=@12.0.0
+APPID=org.homenet.mbj.tjugofyratimmars
+endif
+
+
 PoD.xml:
 	curl -s "https://24-timmars.se/PoD/xmlapi_app.php" > $@
 
 build/icomoon.css: src/icomoon/style.css
 	cp $< $@
 
+ifeq ($(PLATFORM),ios)
+build/24h.css: src/css/ios.css src/css/24h.css
+	cat $^ > $@
+else
 build/24h.css: src/css/24h.css
 	cp $< $@
+endif
 
 build/fonts: src/icomoon/fonts
 	cp -r $< build/
@@ -107,17 +124,6 @@ copy-target:
 	cp -r build/* $(TGT_DIR)
 
 app: 24h-app
-
-# set PLATFORM_VSN to force a specific version of the cordova
-# platform plugin, e.g,: env PLATFORM_VSN=@7.1.0 make build-app
-ifeq ($(shell uname -s),Darwin)
-PLATFORM=ios
-APPID=nu.24-timmars
-else
-PLATFORM=android
-#PLATFORM_VSN=@12.0.0
-APPID=org.homenet.mbj.tjugofyratimmars
-endif
 
 apk: 24h-app
 	cd 24h-app; \
