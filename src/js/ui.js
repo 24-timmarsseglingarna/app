@@ -1354,6 +1354,16 @@ function initNavbar() {
         return false;
     });
 
+    $('#tf-nav-show-rules').on('click', function() {
+        // close the dropdown
+        $('#tf-nav-more').dropdown('toggle');
+        pushPage(
+            function() { $('#rules-page').modal({backdrop: 'static'}); },
+            function() { $('#rules-page').modal('hide'); });
+        document.activeElement.blur();
+        return false;
+    });
+
     $('#tf-nav-show-help').on('click', function() {
         // close the dropdown
         $('#tf-nav-more').dropdown('toggle');

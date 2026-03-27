@@ -449,3 +449,47 @@ html, body, #map {
         box-sizing: border-box;
     }
 }
+
+.rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.rules-table .rules-num-col {
+    width: 4rem;
+}
+
+.rules-table > tbody > tr > td {
+    padding: 0.1rem 0;
+    vertical-align: top;
+}
+
+.rules-table > tbody > tr > td:first-child {
+    padding-right: 0.5rem;
+}
+
+.rules-table h4 {
+    font-weight: bold;
+}
+
+.rules-table h4,
+.rules-table h5 {
+    text-transform: uppercase;
+}
+
+.rules-table > tbody > tr > td + td > h4 {
+    font-size: 1.2rem;
+}
+
+.rules-table > tbody > tr > td + td > h4::first-letter {
+    font-size: 1.5rem;
+}
+
+.rules-table > tbody > tr > td + td > h5 {
+    font-size: 1rem;
+}
+
+.rules-table > tbody > tr > td + td > h5::first-letter {
+    font-size: 1.25rem;
+}

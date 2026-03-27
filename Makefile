@@ -16,7 +16,8 @@ all: 	build/deps \
 	build/24h.css \
 	build/icomoon.css \
 	build/sxk.svg \
-	build/fonts
+	build/fonts \
+	build/img
 
 build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
 	m4 -D M4_APP_VERSION=$(VSN) -P -I src/html < $< > $@ || rm -f $@
@@ -81,6 +82,9 @@ build/24h.css: src/css/24h.css
 endif
 
 build/fonts: src/icomoon/fonts
+	cp -r $< build/
+
+build/img: src/img
 	cp -r $< build/
 
 # copy all dependencies except the compiler and the map
