@@ -412,13 +412,13 @@ html, body, #map {
 #tf-chart-header {
     text-align: center;
     position: absolute;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 0px;
+    padding-bottom: 2px;
     padding-left: 20px;
     padding-right: 20px;
 
     border: 2px solid black;
-    font: bold 17px sans-serif;
+    font: bold 20px sans-serif;
 }
 
 #tf-chart-header > p {
@@ -426,7 +426,7 @@ html, body, #map {
 }
 
 #tf-chart-header > p > span {
-    font: italic 13px sans-serif;
+    font: italic 16px sans-serif;
 }
 
 @media print {
@@ -435,7 +435,11 @@ html, body, #map {
         /* allows us to select orientation when printing charts */
         size: auto;
     }
-    body {
+    html {
         border: 2px solid black;
+        box-sizing: border-box;
+    }
+    body {
+        box-sizing: border-box;
     }
 }

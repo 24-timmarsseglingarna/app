@@ -15,6 +15,7 @@ all: 	build/deps \
 	build/24h.js \
 	build/24h.css \
 	build/icomoon.css \
+	build/sxk.svg \
 	build/fonts
 
 build/index.html: src/html/index.html.src $(HTML_SRC) vsn.mk
@@ -66,6 +67,9 @@ PoD.xml:
 	curl -s "https://24-timmars.se/PoD/xmlapi_app.php" > $@
 
 build/icomoon.css: src/icomoon/style.css
+	cp $< $@
+
+build/sxk.svg: sxk.svg
 	cp $< $@
 
 ifeq ($(PLATFORM),ios)

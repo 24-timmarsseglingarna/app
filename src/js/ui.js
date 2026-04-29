@@ -1871,6 +1871,8 @@ export function initMapUI() {
     curState.curChart.onChange(function() {
         chart = curState.curChart.get();
 
+        document.title = 'Punktkort-' + chart.filename + '-' + curState.defaultPod.getTerrain().id;
+
         var zoom = chart.zoom;
 
         if (chart.noPointLabels) {
@@ -1897,8 +1899,8 @@ export function initMapUI() {
         // the chart looks good on the screen, but the logo and header are too
         // big when printed.
         if (chart.orientation == 'landscape') {
-            $('#tf-sxk-logo-img').css('max-width', '65%');
-            $('#tf-chart-header').css('font', 'bold 13px sans-serif');
+            $('#tf-sxk-logo-img').css('max-width', '85%');
+            $('#tf-chart-header').css('font', 'bold 18px sans-serif');
         }
 
         var revision = new Date().getFullYear() + '.' +

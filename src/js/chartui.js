@@ -5,7 +5,8 @@ import {pushPage, popPage} from './pageui.js';
 
 export function openPage(coords, zoom) {
     setSizes();
-    var r = 297/210;
+    // A4 printable area with the 5mm @page margins set in 24h.css.
+    var r = 287/200;
     $('#chart-optimal-ratio').text(r.toFixed(4));
 
     $('#chart-coords').text(coords[0].toFixed(2) + ',' + coords[1].toFixed(2));
@@ -155,9 +156,10 @@ const organizerCharts = {
             hudik: {
                 orientation: 'portrait',
                 title: 'Hudiksvall - Sundsvall',
+                filename: 'Hudiksvall-Sundsvall',
                 coords: [17.58, 62.18],
                 //        startRanges: [[441,705], [905,905]],
-                zoom: 9.4,
+                zoom: 9.3,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -167,9 +169,10 @@ const organizerCharts = {
             jungfru: {
                 orientation: 'portrait',
                 title: 'Jungfrukusten',
+                filename: 'Jungfrukusten',
                 coords: [17.45, 61.18],
                 //        startRanges: [[441,705], [905,905]],
-                zoom: 9.4,
+                zoom: 9.3,
                 logoTop: '0%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -179,8 +182,9 @@ const organizerCharts = {
             sthlm: {
                 orientation: 'portrait',
                 title: 'Stockholms innerskärgård',
+                filename: 'Stockholm-Innerskärgård',
                 coords: [18.60, 59.30],
-                zoom: 9.97,
+                zoom: 9.87,
                 pointRanges: [[1,999],[1200,6399]],
                 logoTop: '1%',
                 logoLeft: '1%',
@@ -191,8 +195,9 @@ const organizerCharts = {
             arholma: {
                 orientation: 'portrait',
                 title: 'Arholma - Örskär',
+                filename: 'Arholma-Örskär',
                 coords: [18.81, 60.10],
-                zoom: 9.55,
+                zoom: 9.45,
                 pointRanges: [[1,999],[1200,6399]],
                 logoTop: '1%',
                 logoLeft: '70%',
@@ -203,8 +208,9 @@ const organizerCharts = {
             landsort: {
                 orientation: 'portrait',
                 title: 'Arholma - Landsort',
+                filename: 'Arholma-Landsort',
                 coords: [18.63, 59.32],
-                zoom: 9.24,
+                zoom: 9.14,
                 pointRanges: [[1,999],[1200,6399]],
                 logoTop: '1%',
                 logoLeft: '1%',
@@ -216,8 +222,9 @@ const organizerCharts = {
             gotska: {
                 orientation: 'portrait',
                 title: 'Gotska sjön',
+                filename: 'Gotska-Sjön',
                 coords: [18.10, 57.9],
-                zoom: 8.7,
+                zoom: 8.6,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -227,9 +234,10 @@ const organizerCharts = {
             stanna: {
                 orientation: 'portrait',
                 title: 'St Anna skärgård',
+                filename: 'St-Anna',
                 coords: [16.76, 58.05],
                 //        startRanges: [[441,705], [905,905]],
-                zoom: 9.1,
+                zoom: 9.0,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -240,8 +248,9 @@ const organizerCharts = {
             balt: {
                 orientation: 'portrait',
                 title: 'Gotland - Baltikum - Åland',
+                filename: 'Gotland-Baltikum-Åland',
                 coords: [20.65, 58.50],
-                zoom: 8.1,
+                zoom: 8.0,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -252,8 +261,9 @@ const organizerCharts = {
             oland: {
                 orientation: 'portrait',
                 title: 'Öland',
+                filename: 'Öland',
                 coords: [17.20, 56.985],
-                zoom: 9.1,
+                zoom: 9.0,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -265,8 +275,9 @@ const organizerCharts = {
             aland: {
                 orientation: 'landscape',
                 title: 'Ålands och Åbolands skärgårdar',
+                filename: 'Åland',
                 coords: [21.12, 60.06],
-                zoom: 9.4,
+                zoom: 9.3,
                 pointRanges: [[1,999],[1200,6399]],
                 logoTop: '1%',
                 logoLeft: '85%',
@@ -277,8 +288,9 @@ const organizerCharts = {
             sthlmN: {
                 orientation: 'landscape',
                 title: 'Stockholms norra skärgård',
+                filename: 'Stockholm-N',
                 coords: [19.10, 59.60],
-                zoom: 10.5,
+                zoom: 10.35,
                 pointRanges: [[1,999],[1200,6399]],
                 logoTop: '1%',
                 logoLeft: '1%',
@@ -289,9 +301,10 @@ const organizerCharts = {
             sthlmM: {
                 orientation: 'landscape',
                 title: 'Stockholms mellanskärgård',
+                filename: 'Stockholm-M',
                 coords: [18.80, 59.30],
                 pointRanges: [[1,999],[1200,6399]],
-                zoom: 10.5,
+                zoom: 10.35,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -301,9 +314,10 @@ const organizerCharts = {
             sthlmS: {
                 orientation: 'landscape',
                 title: 'Stockholms södra skärgård',
+                filename: 'Stockholm-S',
                 coords: [18.40, 59.00],
                 pointRanges: [[1,999],[1200,6399]],
-                zoom: 10.5,
+                zoom: 10.35,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -313,9 +327,10 @@ const organizerCharts = {
             sormland: {
                 orientation: 'landscape',
                 title: 'Sörmlands skärgård',
+                filename: 'Sörmland',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [17.19, 58.65],
-                zoom: 10.2,
+                zoom: 10.1,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '1%',
@@ -325,9 +340,10 @@ const organizerCharts = {
             uppland: {
                 orientation: 'landscape',
                 title: 'Upplandskusten',
+                filename: 'Uppland',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [17.88, 60.6],
-                zoom: 10.5,
+                zoom: 10.4,
                 logoTop: '1%',
                 logoLeft: '1%',
                 headerTop: '8%',
@@ -343,6 +359,7 @@ const organizerCharts = {
             bohus: {
                 orientation: 'portrait',
                 title: 'Bohuslän',
+                filename: 'Bohuslän',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [10.76, 58.38],
                 zoom: 8.9,
@@ -356,6 +373,7 @@ const organizerCharts = {
             olso: {
                 orientation: 'landscape',
                 title: 'Oslo - Grebbestad',
+                filename: 'Oslo-Grebbestad',
                 pointRanges: [[1,999],[1200,6399]],
 //                coords: [10.12, 59.29],
                 coords: [10.12, 59.08],
@@ -369,6 +387,7 @@ const organizerCharts = {
             stromstad: {
                 orientation: 'landscape',
                 title: 'Strömstad - Göteborg',
+                filename: 'Strömstad-Göteborg',
                 pointRanges: [[1,999],[1200,6399]],
 //                coords: [10.50, 58.33],
                 coords: [10.37, 58.34],
@@ -382,6 +401,7 @@ const organizerCharts = {
             smogen: {
                 orientation: 'landscape',
                 title: 'Smögen - Varberg',
+                filename: 'Smögen-Varberg',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [11.25, 57.70],
                 zoom: 9.0,
@@ -394,6 +414,7 @@ const organizerCharts = {
             marstrand: {
                 orientation: 'landscape',
                 title: 'Marstrand - Halmstad',
+                filename: 'Marstrand-Halmstad',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [11.15, 57.27],
                 zoom: 9.0,
@@ -406,6 +427,7 @@ const organizerCharts = {
             onsala: {
                 orientation: 'landscape',
                 title: 'Onsala - Öresund',
+                filename: 'Onsala-Öresund',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [11.56, 56.67],
                 zoom: 9.0,
@@ -418,6 +440,7 @@ const organizerCharts = {
             skagerack: {
                 orientation: 'landscape',
                 title: 'Skagerack',
+                filename: 'Skagerack',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [10.31, 58.25],
                 zoom: 8.7,
@@ -431,6 +454,7 @@ const organizerCharts = {
                 orientation: 'landscape',
                 alttitle: 'Skagerack - utan sträckor',
                 title: 'Skagerack',
+                filename: 'Skagerack-utan-sträckor',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [10.31, 58.25],
                 zoom: 8.7,
@@ -444,6 +468,7 @@ const organizerCharts = {
             kattegatt: {
                 orientation: 'landscape',
                 title: 'Kattegatt',
+                filename: 'Kattegatt',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [11.11, 56.95],
                 zoom: 8.7,
@@ -457,6 +482,7 @@ const organizerCharts = {
                 orientation: 'landscape',
                 alttitle: 'Kattegatt - utan sträckor',
                 title: 'Kattegatt',
+                filename: 'Kattegatt-utan-sträckor',
                 pointRanges: [[1,999],[1200,6399]],
                 coords: [11.11, 56.95],
                 zoom: 8.7,
