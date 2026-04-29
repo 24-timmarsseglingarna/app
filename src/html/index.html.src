@@ -53,7 +53,7 @@
     </div>
 
     <div id="tf-sxk-logo" style="display: none">
-         <image src="sxk.svg" id="tf-sxk-logo-img"/>
+         <image src="img/sxk.svg" id="tf-sxk-logo-img"/>
     </div>
 
     <div id="tf-chart-header" style="display: none">
