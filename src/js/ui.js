@@ -550,9 +550,15 @@ function handleMapPointerUp (event) {
 };
 
 function initPopup() {
-    pointPopup = new Popup();
-    plannedPointPopup = new Popup();
-    chartPopup = new Popup();
+    var popupOpts = {
+        autoPan: {
+            animation: {duration: 250},
+            margin: 80
+        }
+    };
+    pointPopup = new Popup(popupOpts);
+    plannedPointPopup = new Popup(popupOpts);
+    chartPopup = new Popup(popupOpts);
 
     map.on('click', handleMapClick);
     map.on('singleclick', handleMapClick);
