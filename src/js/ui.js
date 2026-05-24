@@ -304,6 +304,7 @@ var styleCache = {};
 var pointPopup;
 var plannedPointPopup;
 var chartPopup;
+var popupJustOpened = false;
 
 function mkPointPopupHTML(number, name, descr, footnote, plan, curLogbook, extra) {
     var s = '<p><b>' + number + ' ' + name + '</b></p>';
@@ -396,6 +397,9 @@ window.tfUiDelPlan = function() {
 };
 
 function handleMapClick(event) {
+    if (event.type === 'click') {
+        popupJustOpened = false;
+    }
     var handled = false;
     map.forEachFeatureAtPixel(
         event.pixel,
@@ -468,6 +472,7 @@ function handleMapClick(event) {
                         // show the popup from the center of the point
                         var footnote = feature.get('footnote');
                         var logbook = curState.curLogBook.get();
+                        popupJustOpened = true;
                         pointPopup.show(
                             coord,
                             mkPointPopupHTML(number, name, descr,
@@ -494,6 +499,11 @@ function handleMapClick(event) {
             });
     }
     if (!handled && event.type === 'singleclick') {
+        if (!popupJustOpened) {
+            pointPopup.hide();
+            plannedPointPopup.hide();
+            chartPopup.hide();
+        }
         maybeOpenChartPage();
     }
 };
