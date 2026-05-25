@@ -29,9 +29,19 @@ build/24h.js: $(JS_SRC) deps/vsn.js build/pod.js
 # download the correct PoD from the server.
 # You need to get a PoD.xml covering the entire area and
 # store it here.
-build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
-	tools/pod-xml-to-geojson.py --javascript --id 16 -i PoD.xml -o $@
+#build/pod.js: PoD.xml tools/pod-xml-to-geojson.py
+#	tools/pod-xml-to-geojson.py --javascript --id 16 -i PoD.xml -o $@
 
+build/pod.js: PoD.json
+	printf "/* eslint-disable */\n" > $@
+	printf "export var basePodSpec = " >> $@
+	cat PoD.json >> $@
+	printf ";\n" >> $@
+
+PoD.json:
+	id=`curl -s 'https://app.24-timmars.nu/data/terrain-latest.json.gz' | \
+	zcat | echo '{"id": 153}' | sed 's/[^0-9]//g'` && \
+	curl -s "https://app.24-timmars.nu/data/terrain-$${id}.json.gz" | zcat > $@
 
 # This is the base TSS file  built into the app. The app will download
 # the latest TSS from the server, if possible.
