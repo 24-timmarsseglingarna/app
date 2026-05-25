@@ -214,8 +214,12 @@ html, body, #map {
 .ol-popup {
     position: absolute;
     background-color: white;
-    -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+    /* box-shadow (not filter: drop-shadow) because on iOS WebKit a
+       drop-shadow filter smears into ghost trails while the overlay's
+       inline transform is updated every frame during a map pan */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     padding: 15px;
     border-radius: 10px;
     border: 1px solid #cccccc;
