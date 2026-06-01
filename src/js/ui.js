@@ -1429,6 +1429,11 @@ function updateStatusBar() {
         $('#tf-status-interrupt').hide();
     }
 
+    if (headerTimer) {
+        window.clearInterval(headerTimer);
+        headerTimer = null;
+    }
+
     var dist = 0;
     var logBook = getLogBook();
     if (logBook) {
@@ -1441,23 +1446,16 @@ function updateStatusBar() {
         $('#tf-status-boat').text(logBook.teamData.boat_name);
 
         if (start) {
-            if (!headerTimer && !finished) {
+            if (!finished) {
                 updateStatusBarTime();
                 headerTimer =
                     window.setInterval(updateStatusBarTime, 60000);
-            } else if (finished && headerTimer) {
-                window.clearInterval(headerTimer);
-                headerTimer = null;
             }
             if (finished) {
                 $('#tf-status-time').text('--:--');
             }
         } else {
             $('#tf-status-time').text('--:--');
-            if (headerTimer) {
-                window.clearInterval(headerTimer);
-                headerTimer = null;
-            }
         }
         $('#tf-status-speed').text(speed.toFixed(1) + ' kn');
         $('#tf-status-distance').text(dist.toFixed(1) + ' M');
@@ -1474,10 +1472,6 @@ function updateStatusBar() {
         $('#tf-status-speed').text('-.- kn');
         $('#tf-status-boat').text('');
         $('.tf-status-plan').hide();
-        if (headerTimer) {
-            window.clearInterval(headerTimer);
-            headerTimer = null;
-        }
         $('#tf-nav-logbook-badge').hide();
     }
 
