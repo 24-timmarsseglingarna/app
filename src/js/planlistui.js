@@ -93,15 +93,16 @@ export function openPage() {
         if (i == 0) {
             rows += '<td><input type="text" disabled="true" class="form-control"/></td>';
         } else {
-            rows += '<td><input type="text" inputmode="numeric" ' +
+            rows += '<td><input type="text" inputmode="decimal" ' +
                 'data-id="' + i + '" ' +
-                'class="form-control plan-list-planned-speed"' +
+                'class="form-control plan-list-planned-speed" ' +
                 'id="plan-list-planned-speed-' + i + '"';
             if (e.plannedSpeed) {
-                rows += ' value="' + e.plannedSpeed.toFixed(1) + '"></td>';
-            } else {
-                rows += '></td>';
+                rows += ' value="' + e.plannedSpeed.toFixed(1) + '"';
             }
+            rows += '>' +
+                '<div class="invalid-feedback">Ange fart, bara siffror och max en decimal</div>' +
+                '</td>';
         }
         rows += '</tr>';
     }
@@ -147,9 +148,12 @@ export function openPage() {
         var id = '#' + event.target.id;
         var val = $(id).val();
 
-        var plannedSpeed = parseInt(val);
+        // handle decimal comma and point
+        var plannedSpeed = Number(val.replace(',','.'));
         if (val != '' && (isNaN(plannedSpeed) || plannedSpeed <= 0)) {
             $(id).addClass('is-invalid');
+            // move focus back to the field so the user can correct it
+            setTimeout(function() { $(id).focus(); }, 0);
         } else {
             $(id).removeClass('is-invalid');
             if (val == '') {
