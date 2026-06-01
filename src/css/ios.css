@@ -1,9 +1,43 @@
-body {
-    padding-top: constant(safe-area-inset-top); /* iOS 11.0 */
-    padding-top: env(safe-area-inset-top); /* iOS 11.2+ */
+/* special css for iOS */
+
+/*
+ * The map (#map, height:100%) is intentionally full-bleed: it renders
+ * edge-to-edge under the notch / home indicator. The floating overlays below
+ * carry the safe-area offsets so their content stays inside the safe area.
+ * (Previously body had padding-top: env(safe-area-inset-top); removed so the
+ * map can use the full screen.)
+ */
+
+/* status bar: clear the notch (top) and, in landscape, the left/right safe
+   areas */
+#tf-status-bar {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
+/* OpenLayers controls: keep below the (notch-inset) status bar and inside the
+   horizontal safe area in landscape. 100px matches .ol-zoom top in 24h.css;
+   .ol-control.ol-zoom raises specificity above that rule, which is
+   concatenated after this file and would otherwise win the `top`. */
+.ol-control.ol-zoom {
+    top: calc(100px + env(safe-area-inset-top));
+    left: calc(.5em + env(safe-area-inset-left));
+}
+.ol-rotate, .ol-full-screen {
+    right: calc(.5em + env(safe-area-inset-right));
+}
+.ol-attribution:not(.ol-collapsed) {
+    right: calc(.5em + env(safe-area-inset-right));
+    bottom: calc(.5em + env(safe-area-inset-bottom));
+}
+
+/* nav bar / modal footer: above the home indicator (bottom) and, in
+   landscape, inside the left/right safe areas */
 .tf-footer, .modal-footer {
-    margin-bottom: constant(safe-area-inset-bottom); /* iOS 11.0 */
-    margin-bottom: env(safe-area-inset-bottom); /* iOS 11.2+ */
+    margin-bottom: env(safe-area-inset-bottom);
+}
+.tf-footer {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
