@@ -4,6 +4,8 @@
  * Handle the browser/phone back button.
  */
 
+import {isCordova} from './util.js';
+
 var pageStack = [];
 
 /*
@@ -60,6 +62,25 @@ export function popPage(continueFn) {
 
 // set pageStack length 0 as current state
 history.replaceState(0, document.title, location.href);
+
+/*
+ * On Cordova/Android the hardware back button does NOT navigate the
+ * WebView history by default anymore (Android 16 / API 36 ignores the
+ * key-event result unless an OnBackInvokedCallback is registered; see
+ * cordova-android's CoreAndroid.overrideBackbutton).  Registering a
+ * 'backbutton' listener makes Cordova register that callback for us and
+ * routes the event to JS, where we drive the same history-based pop
+ * logic: pop the current page if one is open, otherwise exit the app.
+ */
+if (isCordova) {
+    document.addEventListener('backbutton', function() {
+        if (pageStack.length > 0) {
+            history.back();
+        } else if (navigator.app && navigator.app.exitApp) {
+            navigator.app.exitApp();
+        }
+    }, false);
+}
 
 window.addEventListener('popstate', function(event) {
     // event.state is the state of the state we're going to
