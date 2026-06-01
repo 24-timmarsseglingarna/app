@@ -471,7 +471,7 @@ function handleMapClick(event) {
                         }
                         // show the popup from the center of the point
                         var footnote = feature.get('footnote');
-                        var logbook = curState.curLogBook.get();
+                        var logbook = getLogBook();
                         popupJustOpened = true;
                         pointPopup.show(
                             coord,
