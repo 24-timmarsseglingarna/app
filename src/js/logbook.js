@@ -522,6 +522,10 @@ LogBook.prototype.getNetDistance = function() {
     return this.sailedDist / this.teamData.sxk_handicap;
 };
 
+LogBook.prototype.getSxkHandicap = function() {
+    return this.teamData.sxk_handicap;
+};
+
 // gross
 LogBook.prototype.getEarlyStartDistance = function() {
     // we can't calculate this properly until the race has finished

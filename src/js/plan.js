@@ -292,6 +292,18 @@ Plan.prototype.getPlannedDistance = function() {
 };
 
 /**
+ * Return the planned distance recalculated to plaque distance
+ * (planned distance divided by the boat's SXK-handicap), or
+ * undefined if the plan is not attached to a logbook.
+ */
+Plan.prototype.getPlannedPlaqueDistance = function() {
+    if (this.logbook == undefined) {
+        return undefined;
+    }
+    return this.getPlannedDistance() / this.logbook.getSxkHandicap();
+};
+
+/**
  * Return the speed necessary to sail to finish in time.
  */
 Plan.prototype.getRequiredSpeed = function() {

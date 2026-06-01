@@ -58,6 +58,15 @@ export function openPage() {
         $('#plan-list-req-speed').val(curPlan.getRequiredSpeed().toFixed(1) + ' kn');
     }
 
+    $('#plan-list-planned-dist').val(curPlan.getPlannedDistance().toFixed(1) + ' M');
+
+    var plaqueDist = curPlan.getPlannedPlaqueDistance();
+    if (plaqueDist == undefined) {
+        $('#plan-list-planned-plaque-dist').val('--');
+    } else {
+        $('#plan-list-planned-plaque-dist').val(plaqueDist.toFixed(1) + ' M');
+    }
+
     var rows = '';
     var eta = '';
     var rta = '';
@@ -76,12 +85,13 @@ export function openPage() {
         }
         point = e.point || '';
         pointName = '';
-        var media = $('#tf-media').css('content');
-        if (e.point && (media == '"sm"' || media == '"md+"')) {
-            p = pod.getPoint(point);
-            if (p) {
-                pointName = p.name;
-            }
+        p = pod.getPoint(point);
+        if (p) {
+            // On the narrowest screens (smaller than the "sm"
+            // breakpoint) the point name doesn't fit beside the point
+            // badge; the responsive <br> puts it on its own line there
+            // and is hidden ("d-sm-none") from "sm" up.
+            pointName = '<br class="d-sm-none"/>' + p.name;
         }
 
         rows += '<tr data-logid="' + i + '">';
